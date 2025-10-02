@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluador de Reportes con IA (PDF) - Segura</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0fdf4; margin: 0; padding: 0; }
+        header { background: #16a34a; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
+        main { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input[type=file] { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #16a34a; color: white; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; transition: background 0.3s; }
+        button:hover { background: #15803d; }
+        table { width: 100%; margin-top: 25px; border-collapse: collapse; }
+        th, td { border: 1px solid #e5f9e7; padding: 12px; text-align: left; vertical-align: top; }
+        th { background: #e5f9e7; color: #065f46; }
+        #resultado { margin-top: 20px; font-weight: bold; font-size: 1.1em; color: #065f46; min-height: 25px; }
+        .loading { color: #f97316; }
+    </style>
+</head>
+<body>
+    <header>Evaluador Automático de Reportes en PDF</header>
+    <main>
+        <h2>Sube tu reporte en PDF:</h2>
+        <input type="file" id="pdfFile" accept="application/pdf">
+        <button onclick="procesarPDF()">Evaluar Reporte</button>
+        
+        <div id="resultado">Esperando archivo...</div>
+
+        <h2>Historial de Calificaciones</h2>
+        <table id="tablaResultados">
+            <thead>
+                <tr>
+                    <th>Reporte (extracto)</th>
+                    <th>Calificación (1-10)</th>
+                    <th>Justificación</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>
+
+    <script>
+        // --- CONFIGURACIÓN DE LA IA ---
+        // La URL apunta a nuestra función Serverless de Netlify
+        const NETLIFY_FUNCTION_URL = "/.netlify/functions/evaluate"; 
+        
+        // Estándar del reporte esperado
+        const estandar = "Un reporte válido debe contener: 1.-Título: Práctica Demostrativa de Espectroscopía Óptica, incluyendo referencia a LEDs y Halógeno-Tungsteno. 2.-Introducción: Concepto de espectroscopía óptica, Aspectos históricos de la espectroscopía, Aplicaciones de la espectroscopía óptica. 3.-Fundamentos Teóricos:Arreglo óptico del mini-espectrómetro de fibra óptica EXEMPLAR, Características principales del software BWSpec. 4.-Desarrollo de la Práctica:Objetivo de la práctica. Resultados obtenidos:Posición del máximo de emisión de cada LED, Relación entre máximo de emisión y color observado,Comparación del ancho espectral entre LEDs y fuente halógeno-tungsteno. 5.-Conclusiones:Síntesis de lo aprendido y validación de resultados. ";
+
+        // Configura el worker de PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+
+        // --- FUNCIÓN PRINCIPAL DE PROCESAMIENTO ---
+        async function procesarPDF() {
+            const file = document.getElementById("pdfFile").files[0];
+            const resultadoDiv = document.getElementById("resultado");
+            
+            if (!file) { 
+                alert("Sube un PDF primero."); 
+                return; 
+            }
+
+            resultadoDiv.innerText = "Extrayendo texto del PDF...";
+            resultadoDiv.classList.add('loading');
+            
+            try {
+                const fileReader = new FileReader();
+                const texto = await new Promise((resolve, reject) => {
+                    fileReader.onload = async function() {
+                        try {
+                            const typedarray = new Uint8Array(this.result);
+                            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+
+                            let textoAcumulado = "";
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const content = await page.getTextContent();
+                                textoAcumulado += content.items.map(item => item.str).join(" ") + "\n";
+                            }
+                            // Limpiamos el texto
+                            resolve(textoAcumulado.replace(/\s+/g, ' ').trim()); 
+                        } catch (e) {
+                            reject(e);
+                        }
+                    };
+                    fileReader.onerror = reject;
+                    fileReader.readAsArrayBuffer(file);
+                });
+
+                if (texto.length < 50) {
+                     resultadoDiv.innerText = "Error: El PDF no contiene suficiente texto legible.";
+                     resultadoDiv.classList.remove('loading');
+                     return;
+                }
+
+                await evaluarConIA(texto);
+
+            } catch (error) {
+                resultadoDiv.innerText = "Error al procesar el PDF o la IA.";
+                resultadoDiv.classList.remove('loading');
+                console.error("Error completo en procesarPDF:", error);
+            }
+        }
+
+
+        // --- FUNCIÓN DE EVALUACIÓN SEGURA CON IA ---
+        async function evaluarConIA(texto) {
+            const resultadoDiv = document.getElementById("resultado");
+            resultadoDiv.innerText = "Evaluando reporte con IA segura (¡puede tardar!)...";
+
+            try {
+                // 1. LLAMADA AL ENDPOINT DE NETLIFY (servidor intermediario)
+                const response = await fetch(NETLIFY_FUNCTION_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    // Enviamos el texto del reporte y el estándar para que el servidor lo procese
+                    body: JSON.stringify({
+                        reporteTexto: texto,
+                        estandar: estandar 
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error del servidor intermediario: ${response.status}`);
+                }
+
+                // 2. RECIBIMOS EL JSON YA PROCESADO Y SEGURO
+                const resultadoIA = await response.json();
+                
+                // 3. MOSTRAR Y GUARDAR RESULTADO
+                const calificacionFinal = parseInt(resultadoIA.calificacion, 10);
+                
+                resultadoDiv.innerText = `✅ Calificación Final: ${calificacionFinal}/10`;
+                resultadoDiv.classList.remove('loading');
+                
+                // Guardar en tabla
+                const tabla = document.querySelector("#tablaResultados tbody");
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${texto.substring(0, 80)}...</td>
+                    <td>${calificacionFinal}</td>
+                    <td>${resultadoIA.justificacion}</td>
+                `;
+                tabla.appendChild(fila);
+
+            } catch (error) {
+                resultadoDiv.innerText = "❌ Error: Falló la evaluación de la IA. Revisa la consola (F12).";
+                resultadoDiv.classList.remove('loading');
+                console.error("Error al evaluar con IA:", error);
+            }
+        }
+    </script>
+</body>
+</html>

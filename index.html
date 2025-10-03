@@ -130,9 +130,23 @@
                 // 2. RECIBIMOS EL JSON YA PROCESADO Y SEGURO
                 const resultadoIA = await response.json();
                 
-                // 3. MOSTRAR Y GUARDAR RESULTADO
-                const calificacionFinal = parseInt(resultadoIA.calificacion, 10);
+                // ⭐ CÓDIGO DEFENSIVO PARA EVITAR NaN y undefined ⭐
+                const calificacionRaw = resultadoIA.calificacion;
+                const justificacionValor = resultadoIA.justificacion || "La IA no proporcionó una justificación válida o completa.";
                 
+                // Intentar parsear la calificación
+                let calificacionFinal = parseInt(calificacionRaw, 10);
+                
+                // Si la calificación no es un número válido, asignamos 'Error'
+                if (isNaN(calificacionFinal) || calificacionFinal < 1 || calificacionFinal > 10) {
+                    calificacionFinal = 'Error';
+                    // Re-lanzar un error para mostrar la justificación como un fallo crítico
+                    if (!justificacionValor.includes("Error interno") && !justificacionValor.includes("Error externo")) {
+                        throw new Error(`La IA devolvió un JSON con una calificación inválida o vacía: ${calificacionRaw}`);
+                    }
+                }
+                
+                // 3. MOSTRAR Y GUARDAR RESULTADO
                 resultadoDiv.innerText = `✅ Calificación Final: ${calificacionFinal}/10`;
                 resultadoDiv.classList.remove('loading');
                 
@@ -142,12 +156,17 @@
                 fila.innerHTML = `
                     <td>${texto.substring(0, 80)}...</td>
                     <td>${calificacionFinal}</td>
-                    <td>${resultadoIA.justificacion}</td>
+                    <td>${justificacionValor}</td>
                 `;
                 tabla.appendChild(fila);
 
             } catch (error) {
-                resultadoDiv.innerText = "❌ Error: Falló la evaluación de la IA. Revisa la consola (F12).";
+                // El error capturado incluye los fallos de red y los nuevos errores de validación de JSON
+                const errorMessage = error.message.includes("Error del servidor intermediario") ? 
+                                    `Error de comunicación con el servidor (código ${response.status}). Revisa los logs de Netlify.` : 
+                                    error.message;
+                                    
+                resultadoDiv.innerText = `❌ Error: ${errorMessage}`;
                 resultadoDiv.classList.remove('loading');
                 console.error("Error al evaluar con IA:", error);
             }

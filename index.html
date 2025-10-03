@@ -11,10 +11,9 @@
         header { background: #16a34a; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
         main { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Estilos de Entrada de Datos */
+        /* Estilos de Entrada (Solo el PDF) */
         .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #065f46; }
-        #nombre-input, #matricula-input, #pdfFile {
+        #pdfFile {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -35,13 +34,13 @@
             transition: background 0.3s, box-shadow 0.3s;
             text-transform: uppercase;
             font-weight: bold;
-            display: block; /* Ocupa todo el ancho */
+            display: block; 
             width: 100%;
             margin-top: 20px;
         }
         button:hover { 
             background: #15803d; 
-            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4); /* Efecto de sombra/brillo */
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4); 
         }
         
         /* Estilos de Resultado y Tabla */
@@ -55,23 +54,14 @@
 <body>
     <header>Evaluador Automático de Reportes en PDF</header>
     <main>
-        <h2>Datos y Archivo</h2>
+        <h2>Sube tu Reporte</h2>
         
         <div class="input-group">
-            <label for="nombre-input">Nombre del Alumno/Autor:</label>
-            <input type="text" id="nombre-input" placeholder="Ej. Juan Pérez">
-        </div>
-        <div class="input-group">
-            <label for="matricula-input">Matrícula o ID:</label>
-            <input type="text" id="matricula-input" placeholder="Ej. A01234567">
-        </div>
-        
-        <div class="input-group">
-            <label for="pdfFile">Sube tu reporte en PDF:</label>
+            <label for="pdfFile">Selecciona el archivo PDF:</label>
             <input type="file" id="pdfFile" accept="application/pdf">
         </div>
         
-        <button onclick="procesarPDF()">Evaluar Reporte</button>
+        <button onclick="procesarPDF()">EVALUAR REPORTE</button>
         
         <div id="resultado">Esperando archivo...</div>
 
@@ -100,22 +90,15 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
 
-        // --- FUNCIÓN PRINCIPAL DE PROCESAMIENTO ---
+        // --- FUNCIÓN PRINCIPAL DE PROCESAMIENTO (AHORA INCLUYE EXTRACCIÓN) ---
         async function procesarPDF() {
             const file = document.getElementById("pdfFile").files[0];
-            const nombre = document.getElementById("nombre-input").value.trim();
-            const matricula = document.getElementById("matricula-input").value.trim();
             const resultadoDiv = document.getElementById("resultado");
             
             if (!file) { 
                 alert("Sube un PDF primero."); 
                 return; 
             }
-            if (!nombre || !matricula) { 
-                alert("Por favor, introduce el Nombre y la Matrícula."); 
-                return; 
-            }
-
 
             resultadoDiv.innerText = "Extrayendo texto del PDF...";
             resultadoDiv.classList.add('loading');
@@ -150,7 +133,29 @@
                      return;
                 }
 
-                // Pasamos los datos del alumno y el texto a la función de evaluación
+                // ⭐ LÓGICA DE EXTRACCIÓN AUTOMÁTICA DE NOMBRE Y MATRÍCULA ⭐
+                let nombre = "No Encontrado";
+                let matricula = "No Encontrada";
+                
+                // 1. Extracción de Matrícula (patrones comunes: A########, 7-10 dígitos)
+                const matriculaMatch = texto.match(/([Aa]\d{7,10})|(\d{7,10})/);
+                if (matriculaMatch) {
+                    matricula = matriculaMatch[0];
+                }
+
+                // 2. Extracción de Nombre (Busca etiquetas comunes)
+                const nombreMatch = texto.match(/(Nombre|Alumno|Autor|Estudiante)\s*[:]\s*([A-Za-z\s]{5,})/i);
+                if (nombreMatch && nombreMatch[2].trim().length > 3) {
+                    nombre = nombreMatch[2].trim().split(/\s{2,}|\n/)[0].substring(0, 50); // Toma la primera línea
+                }
+                
+                // Si no se encuentra con etiquetas, usa las primeras palabras del documento como nombre
+                if (nombre === "No Encontrado" && texto.length > 50) {
+                    nombre = texto.substring(0, 50).split(' ').slice(0, 8).join(' ') + '...';
+                }
+                // ⭐ FIN DE LÓGICA DE EXTRACCIÓN ⭐
+
+                // Pasamos los datos extraídos y el texto a la función de evaluación
                 await evaluarConIA(texto, nombre, matricula);
 
             } catch (error) {
@@ -162,9 +167,9 @@
 
 
         // --- FUNCIÓN DE EVALUACIÓN SEGURA CON IA ---
-        async function evaluarConIA(texto, nombre, matricula) { // Añadimos nombre y matrícula
+        async function evaluarConIA(texto, nombre, matricula) { 
             const resultadoDiv = document.getElementById("resultado");
-            resultadoDiv.innerText = "Evaluando reporte con IA segura (¡puede tardar!)...";
+            resultadoDiv.innerText = `Evaluando reporte de ${nombre} (¡puede tardar!)...`;
 
             try {
                 // 1. LLAMADA AL ENDPOINT DE NETLIFY (servidor intermediario)
@@ -178,23 +183,21 @@
                 });
 
                 if (!response.ok) {
-                    // Si el servidor (Netlify) devuelve un 500/502/503
                     throw new Error(`Error del servidor intermediario: ${response.status}`);
                 }
 
                 // 2. RECIBIMOS EL JSON YA PROCESADO Y SEGURO
                 const resultadoIA = await response.json();
                 
-                // ⭐ CÓDIGO DEFENSIVO para validar que el JSON es usable ⭐
+                // CÓDIGO DEFENSIVO para validar que el JSON es usable (el servidor ya lo sanitiza, pero protegemos el frontend)
                 const calificacionRaw = resultadoIA.calificacion;
                 const justificacionValor = resultadoIA.justificacion || "La IA no proporcionó una justificación válida o completa.";
                 
                 let calificacionFinal = parseInt(calificacionRaw, 10);
                 
-                // El servidor debe devolver 'calificacion' como un número, pero protegemos el frontend
                 if (isNaN(calificacionFinal) || calificacionFinal < 1 || calificacionFinal > 10) {
                     calificacionFinal = 'Error';
-                    throw new Error(`La IA devolvió un JSON con una calificación inválida o vacía: ${calificacionRaw}. Revise el log del servidor.`);
+                    throw new Error(`La IA devolvió un JSON con una calificación inválida: ${calificacionRaw}.`);
                 }
                 
                 // 3. MOSTRAR Y GUARDAR RESULTADO
@@ -205,7 +208,7 @@
                 const tabla = document.querySelector("#tablaResultados tbody");
                 const fila = document.createElement("tr");
                 
-                // ⭐ ESTRUCTURA DE LA FILA PARA 4 COLUMNAS (Nombre, Matrícula, Calificación, Justificación) ⭐
+                // ESTRUCTURA FINAL DE LA FILA
                 fila.innerHTML = `
                     <td>${nombre}</td>
                     <td>${matricula}</td>
@@ -215,7 +218,7 @@
                 tabla.appendChild(fila);
 
             } catch (error) {
-                // El error capturado incluye los fallos de red y los nuevos errores de validación de JSON
+                // El error capturado incluye los fallos de red y los errores de validación
                 const status = error.message.includes("Error del servidor intermediario") ? error.message.split(': ')[1] : '';
                 const errorMessage = status ? 
                                     `Error de comunicación con el servidor (código ${status}). Revisa los logs de Netlify.` : 

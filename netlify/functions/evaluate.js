@@ -1,7 +1,7 @@
 // EspectroEdu/netlify/functions/evaluate.js
 
-// La clave ya no se llama HUGGING_FACE_TOKEN.
-// Asegúrate de que la nueva variable en Netlify se llame GEMINI_API_KEY.
+// La clave API se lee de la variable de entorno segura de Netlify.
+// ¡Recuerda que la variable en Netlify debe llamarse GEMINI_API_KEY!
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 // Endpoint del modelo Gemini 2.5 Flash
@@ -9,13 +9,14 @@ const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-
 
 exports.handler = async (event) => {
     
-    // VERIFICACIÓN DE SEGURIDAD PARA GEMINI
+    // VERIFICACIÓN DE SEGURIDAD CRÍTICA
+    // Devuelve un error si la clave secreta no se cargó desde Netlify.
     if (!GEMINI_API_KEY || GEMINI_API_KEY.length < 10) {
         return { 
             statusCode: 500, 
             body: JSON.stringify({ 
                 calificacion: 1,
-                justificacion: "ERROR: La clave GEMINI_API_KEY no está configurada correctamente en las Variables de Entorno de Netlify." 
+                justificacion: "ERROR: La clave GEMINI_API_KEY no está configurada o es inválida en las Variables de Entorno de Netlify." 
             }) 
         };
     }
@@ -27,7 +28,7 @@ exports.handler = async (event) => {
     try {
         const { reporteTexto, estandar } = JSON.parse(event.body);
 
-        // 1. DEFINIR EL PROMPT (igual que antes, pero más directo para Gemini)
+        // 1. DEFINIR EL PROMPT DE RAZONAMIENTO
         const promptIA = `
             Eres un experto evaluador de reportes técnicos. Tu tarea es calificar el siguiente reporte comparándolo estrictamente con el estándar de cumplimiento. Tu respuesta DEBE SER SOLAMENTE un objeto JSON.
             
@@ -44,20 +45,25 @@ exports.handler = async (event) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [{ role: "user", parts: [{ text: promptIA }] }],
-                config: {
+                // ⭐ ESTA CLAVE FUE CORREGIDA DE 'config' A 'generationConfig' ⭐
+                generationConfig: { 
                     temperature: 0.1, 
                 }
             })
         });
 
         if (!response.ok) {
+            // Manejo de errores de la API (ej. 401 Unauthorized, 503 Service Unavailable)
             const errorData = await response.json().catch(() => ({}));
             console.error("Error de Gemini:", response.status, errorData);
+            
+            const userErrorMsg = errorData.error ? `Error externo de la IA: ${errorData.error.message}` : "Error desconocido.";
+            
             return { 
                 statusCode: 502, 
                 body: JSON.stringify({ 
                     calificacion: 1, 
-                    justificacion: `Fallo la IA de Gemini (Código ${response.status}). Revisa la consola para más detalles.` 
+                    justificacion: `La IA falló (Código ${response.status}). Esto puede ser por una clave inválida o saturación. ${userErrorMsg}` 
                 }) 
             };
         }
@@ -69,7 +75,7 @@ exports.handler = async (event) => {
         const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {
-            return { statusCode: 500, body: JSON.stringify({ calificacion: 1, justificacion: "La IA devolvió un formato incorrecto o ilegible." }) };
+            return { statusCode: 500, body: JSON.stringify({ calificacion: 1, justificacion: "La IA devolvió un formato incorrecto. Reintenta la evaluación." }) };
         }
 
         const resultadoIA = JSON.parse(jsonMatch[0]);

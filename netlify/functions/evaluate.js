@@ -23,9 +23,9 @@ exports.handler = async (event) => {
     try {
         const { reporteTexto, estandar } = JSON.parse(event.body);
 
-        // 1. DEFINIR EL PROMPT DE RAZONAMIENTO (Mismo prompt reforzado)
+        // 1. DEFINIR EL PROMPT DE RAZONAMIENTO
         const promptIA = `
-            Eres un experto evaluador de reportes técnicos. Tu tarea es calificar el siguiente reporte comparándolo estrictamente con el estándar de cumplimiento. Tu respuesta DEBE SER SOLAMENTE un objeto JSON y debe contener EXACTAMENTE las claves "calificacion" y "justificacion".
+            Eres un experto evaluador de reportes técnicos. Tu tarea es calificar el siguiente reporte comparándolo estrictamente con el estándar de cumplimiento. Tu respuesta DEBE SER SOLAMENTE un objeto JSON y debe contener EXACTAMENTE las claves "calificacion" (un número entero del 1 al 10) y "justificacion".
             
             ESTÁNDAR DE CUMPLIMIENTO: ${estandar}
             
@@ -47,7 +47,6 @@ exports.handler = async (event) => {
         });
 
         if (!response.ok) {
-            // Manejo de errores de la API (e.g., 401 Unauthorized)
             const errorData = await response.json().catch(() => ({}));
             const userErrorMsg = errorData.error ? `Error externo de la IA: ${errorData.error.message}` : "Error desconocido.";
             
@@ -67,7 +66,6 @@ exports.handler = async (event) => {
         const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {
-            // Si no hay JSON válido, devolvemos un JSON de error estructurado.
             return { 
                 statusCode: 500, 
                 body: JSON.stringify({ 
@@ -79,19 +77,30 @@ exports.handler = async (event) => {
 
         const resultadoIA = JSON.parse(jsonMatch[0]);
 
-        // 3. ⭐ VERIFICACIÓN DE CLAVE ESTRICTA ANTES DE DEVOLVER ⭐
-        // Si el JSON se parseó pero le faltan las claves, devolvemos un error estructurado.
+        // 3. VALIDACIÓN DE CLAVE ESTRICTA (Si falta alguna clave, devolvemos error estructurado)
         if (typeof resultadoIA.calificacion === 'undefined' || typeof resultadoIA.justificacion === 'undefined') {
              return { 
                 statusCode: 500, 
                 body: JSON.stringify({ 
                     calificacion: 1, 
-                    justificacion: `El JSON se pudo leer, pero la IA no incluyó las claves "calificacion" o "justificacion" (Fallo de formato de la IA).`
+                    justificacion: `El JSON se pudo leer, pero la IA no incluyó las claves "calificacion" o "justificacion".`
                 }) 
             };
         }
         
-        // 4. Devolvemos el resultado al frontend (Solo si pasa la validación)
+        // 4. ⭐ SANITIZACIÓN FINAL DEL VALOR DE CALIFICACIÓN ⭐
+        const calificacionNum = parseInt(resultadoIA.calificacion, 10);
+        let justificacionFinal = resultadoIA.justificacion;
+
+        if (isNaN(calificacionNum) || calificacionNum < 1 || calificacionNum > 10) {
+            // Si la calificación es 'CUMPLE', 'SI', 'OK' o cualquier otra palabra...
+            justificacionFinal = `[FALLO DE FORMATO DE LA IA: La calificación devuelta fue '${resultadoIA.calificacion}']. ${justificacionFinal}`;
+            resultadoIA.calificacion = 1; // Asignamos una calificación de error para que el cliente no falle.
+        } else {
+            resultadoIA.calificacion = calificacionNum; // Usamos el número parseado
+        }
+
+        // 5. Devolvemos el resultado al frontend (Solo si pasa la validación)
         return {
             statusCode: 200,
             headers: { "Content-Type": "application/json" },

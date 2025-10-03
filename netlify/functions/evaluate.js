@@ -1,3 +1,5 @@
+// EspectroEdu/netlify/functions/evaluate.js
+
 // La clave API no está visible en el frontend. Netlify la inyectará aquí desde
 // una variable de entorno segura.
 const HF_TOKEN = process.env.HUGGING_FACE_TOKEN; 
@@ -5,6 +7,19 @@ const HF_TOKEN = process.env.HUGGING_FACE_TOKEN;
 const API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"; 
 
 exports.handler = async (event) => {
+    
+    // VERIFICACIÓN DE SEGURIDAD CRÍTICA 🚨
+    // Si la variable de entorno no se cargó correctamente, devuelve un error específico.
+    if (!HF_TOKEN || HF_TOKEN.length < 5) {
+        return { 
+            statusCode: 500, 
+            body: JSON.stringify({ 
+                calificacion: 1,
+                justificacion: "ERROR: El token de Hugging Face no está configurado correctamente en las Variables de Entorno de Netlify. Por favor, revísalo." 
+            }) 
+        };
+    }
+    
     // Solo aceptamos solicitudes POST
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Método no permitido' };
@@ -18,7 +33,7 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: "Faltan datos de reporte o estándar." }) };
         }
 
-        // 1. DEFINIR EL PROMPT DE RAZONAMIENTO (igual que antes)
+        // 1. DEFINIR EL PROMPT DE RAZONAMIENTO
         const promptIA = `
             Eres un experto evaluador de reportes técnicos. Tu tarea es calificar el siguiente reporte comparándolo estrictamente con el estándar de cumplimiento.
             
@@ -58,10 +73,20 @@ exports.handler = async (event) => {
         });
 
         if (!response.ok) {
-            // Error de la API de Hugging Face
-            const errorData = await response.json();
-            console.error("Error de HF:", errorData);
-            return { statusCode: 502, body: JSON.stringify({ error: `Fallo la IA externa. ${errorData.error || 'Ver consola.'}` }) };
+            // Manejo de errores de la API (ej. 401 Unauthorized, 503 Service Unavailable)
+            const errorData = await response.json().catch(() => ({error: 'Error desconocido de la IA externa.'}));
+            console.error("Error de HF:", response.status, errorData);
+            
+            const userErrorMsg = errorData.error ? `Error externo de la IA: ${errorData.error}` : "Fallo la IA externa. Verifica la consola para más detalles.";
+            
+            // Devolver un JSON parseable al frontend
+            return { 
+                statusCode: 502, 
+                body: JSON.stringify({ 
+                    calificacion: 1, 
+                    justificacion: `La comunicación con la IA falló. Esto puede ser por saturación del servicio gratuito o clave inválida. ${userErrorMsg}` 
+                }) 
+            };
         }
 
         const data = await response.json();
@@ -71,7 +96,13 @@ exports.handler = async (event) => {
         const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {
-            return { statusCode: 500, body: JSON.stringify({ error: "La IA no devolvió un JSON válido." }) };
+            return { 
+                statusCode: 500, 
+                body: JSON.stringify({ 
+                    calificacion: 1, 
+                    justificacion: "La IA no devolvió un JSON válido. Error de formato inesperado." 
+                }) 
+            };
         }
 
         const resultadoIA = JSON.parse(jsonMatch[0]);

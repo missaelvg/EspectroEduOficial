@@ -6,12 +6,45 @@
     <title>Evaluador de Reportes con IA (PDF) - Segura</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
+        /* Estilos Base */
         body { font-family: 'Segoe UI', sans-serif; background: #f0fdf4; margin: 0; padding: 0; }
         header { background: #16a34a; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
         main { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input[type=file] { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { background: #16a34a; color: white; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; transition: background 0.3s; }
-        button:hover { background: #15803d; }
+        
+        /* Estilos de Entrada de Datos */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #065f46; }
+        #nombre-input, #matricula-input, #pdfFile {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 5px;
+        }
+
+        /* Estilo del Botón (Mejorado) */
+        button { 
+            background: #16a34a; 
+            color: white; 
+            padding: 12px 25px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1em; 
+            transition: background 0.3s, box-shadow 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+            display: block; /* Ocupa todo el ancho */
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover { 
+            background: #15803d; 
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4); /* Efecto de sombra/brillo */
+        }
+        
+        /* Estilos de Resultado y Tabla */
         table { width: 100%; margin-top: 25px; border-collapse: collapse; }
         th, td { border: 1px solid #e5f9e7; padding: 12px; text-align: left; vertical-align: top; }
         th { background: #e5f9e7; color: #065f46; }
@@ -22,8 +55,22 @@
 <body>
     <header>Evaluador Automático de Reportes en PDF</header>
     <main>
-        <h2>Sube tu reporte en PDF:</h2>
-        <input type="file" id="pdfFile" accept="application/pdf">
+        <h2>Datos y Archivo</h2>
+        
+        <div class="input-group">
+            <label for="nombre-input">Nombre del Alumno/Autor:</label>
+            <input type="text" id="nombre-input" placeholder="Ej. Juan Pérez">
+        </div>
+        <div class="input-group">
+            <label for="matricula-input">Matrícula o ID:</label>
+            <input type="text" id="matricula-input" placeholder="Ej. A01234567">
+        </div>
+        
+        <div class="input-group">
+            <label for="pdfFile">Sube tu reporte en PDF:</label>
+            <input type="file" id="pdfFile" accept="application/pdf">
+        </div>
+        
         <button onclick="procesarPDF()">Evaluar Reporte</button>
         
         <div id="resultado">Esperando archivo...</div>
@@ -32,8 +79,9 @@
         <table id="tablaResultados">
             <thead>
                 <tr>
-                    <th>Reporte (extracto)</th>
-                    <th>Calificación (1-10)</th>
+                    <th>Nombre</th>
+                    <th>Matrícula</th>
+                    <th>Calificación</th>
                     <th>Justificación</th>
                 </tr>
             </thead>
@@ -43,7 +91,6 @@
 
     <script>
         // --- CONFIGURACIÓN DE LA IA ---
-        // La URL apunta a nuestra función Serverless de Netlify
         const NETLIFY_FUNCTION_URL = "/.netlify/functions/evaluate"; 
         
         // Estándar del reporte esperado
@@ -56,12 +103,19 @@
         // --- FUNCIÓN PRINCIPAL DE PROCESAMIENTO ---
         async function procesarPDF() {
             const file = document.getElementById("pdfFile").files[0];
+            const nombre = document.getElementById("nombre-input").value.trim();
+            const matricula = document.getElementById("matricula-input").value.trim();
             const resultadoDiv = document.getElementById("resultado");
             
             if (!file) { 
                 alert("Sube un PDF primero."); 
                 return; 
             }
+            if (!nombre || !matricula) { 
+                alert("Por favor, introduce el Nombre y la Matrícula."); 
+                return; 
+            }
+
 
             resultadoDiv.innerText = "Extrayendo texto del PDF...";
             resultadoDiv.classList.add('loading');
@@ -96,7 +150,8 @@
                      return;
                 }
 
-                await evaluarConIA(texto);
+                // Pasamos los datos del alumno y el texto a la función de evaluación
+                await evaluarConIA(texto, nombre, matricula);
 
             } catch (error) {
                 resultadoDiv.innerText = "Error al procesar el PDF o la IA.";
@@ -107,7 +162,7 @@
 
 
         // --- FUNCIÓN DE EVALUACIÓN SEGURA CON IA ---
-        async function evaluarConIA(texto) {
+        async function evaluarConIA(texto, nombre, matricula) { // Añadimos nombre y matrícula
             const resultadoDiv = document.getElementById("resultado");
             resultadoDiv.innerText = "Evaluando reporte con IA segura (¡puede tardar!)...";
 
@@ -116,7 +171,6 @@
                 const response = await fetch(NETLIFY_FUNCTION_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    // Enviamos el texto del reporte y el estándar para que el servidor lo procese
                     body: JSON.stringify({
                         reporteTexto: texto,
                         estandar: estandar 
@@ -124,26 +178,23 @@
                 });
 
                 if (!response.ok) {
+                    // Si el servidor (Netlify) devuelve un 500/502/503
                     throw new Error(`Error del servidor intermediario: ${response.status}`);
                 }
 
                 // 2. RECIBIMOS EL JSON YA PROCESADO Y SEGURO
                 const resultadoIA = await response.json();
                 
-                // ⭐ CÓDIGO DEFENSIVO PARA EVITAR NaN y undefined ⭐
+                // ⭐ CÓDIGO DEFENSIVO para validar que el JSON es usable ⭐
                 const calificacionRaw = resultadoIA.calificacion;
                 const justificacionValor = resultadoIA.justificacion || "La IA no proporcionó una justificación válida o completa.";
                 
-                // Intentar parsear la calificación
                 let calificacionFinal = parseInt(calificacionRaw, 10);
                 
-                // Si la calificación no es un número válido, asignamos 'Error'
+                // El servidor debe devolver 'calificacion' como un número, pero protegemos el frontend
                 if (isNaN(calificacionFinal) || calificacionFinal < 1 || calificacionFinal > 10) {
                     calificacionFinal = 'Error';
-                    // Re-lanzar un error para mostrar la justificación como un fallo crítico
-                    if (!justificacionValor.includes("Error interno") && !justificacionValor.includes("Error externo")) {
-                        throw new Error(`La IA devolvió un JSON con una calificación inválida o vacía: ${calificacionRaw}`);
-                    }
+                    throw new Error(`La IA devolvió un JSON con una calificación inválida o vacía: ${calificacionRaw}. Revise el log del servidor.`);
                 }
                 
                 // 3. MOSTRAR Y GUARDAR RESULTADO
@@ -153,8 +204,11 @@
                 // Guardar en tabla
                 const tabla = document.querySelector("#tablaResultados tbody");
                 const fila = document.createElement("tr");
+                
+                // ⭐ ESTRUCTURA DE LA FILA PARA 4 COLUMNAS (Nombre, Matrícula, Calificación, Justificación) ⭐
                 fila.innerHTML = `
-                    <td>${texto.substring(0, 80)}...</td>
+                    <td>${nombre}</td>
+                    <td>${matricula}</td>
                     <td>${calificacionFinal}</td>
                     <td>${justificacionValor}</td>
                 `;
@@ -162,8 +216,9 @@
 
             } catch (error) {
                 // El error capturado incluye los fallos de red y los nuevos errores de validación de JSON
-                const errorMessage = error.message.includes("Error del servidor intermediario") ? 
-                                    `Error de comunicación con el servidor (código ${response.status}). Revisa los logs de Netlify.` : 
+                const status = error.message.includes("Error del servidor intermediario") ? error.message.split(': ')[1] : '';
+                const errorMessage = status ? 
+                                    `Error de comunicación con el servidor (código ${status}). Revisa los logs de Netlify.` : 
                                     error.message;
                                     
                 resultadoDiv.innerText = `❌ Error: ${errorMessage}`;

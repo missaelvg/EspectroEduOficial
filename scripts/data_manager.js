@@ -1,7 +1,7 @@
 // scripts/data_manager.js
 
-// URL de la función Netlify que se comunica con Firestore
-const DB_API_FUNCTION_URL = "/.netlify/functions/db_api"; 
+// 🚨 CORRECCIÓN: URL CAMBIADA DE NETLIFY A VERCEL/API 🚨
+const DB_API_FUNCTION_URL = "/api/db_api"; 
 
 // --- Funciones de Utilidad de Base de Datos ---
 
@@ -13,7 +13,7 @@ async function callDB(action, data = {}, method = 'POST') {
         options.body = JSON.stringify({ action, ...data });
     } else if (method === 'GET') {
         // En un GET, codificamos la acción en la URL si es necesario
-        // Pero usaremos POST para simplificar la API de Netlify
+        // Ejemplo: const url = `${DB_API_FUNCTION_URL}?action=${action}`;
     }
 
     const response = await fetch(DB_API_FUNCTION_URL, options);
@@ -26,21 +26,20 @@ async function callDB(action, data = {}, method = 'POST') {
 // --- Implementación de Funciones de Práctica y Usuarios ---
 
 async function getPractices() {
-    // Llama al backend para obtener todas las prácticas
+    // LLama al backend para obtener todas las prácticas desde Firestore
     const result = await callDB('get_all_practices', {}, 'GET');
     return result.practices || {};
 }
 
-async function createPractice(title, standardPdfUrl, slidesPdfUrl, slidesText) {
-    const data = { title, standardPdfUrl, slidesPdfUrl, slidesText };
+async function createPractice(practiceData) {
     // Llama al backend para crear una práctica
-    const result = await callDB('create_practice', { data });
+    const result = await callDB('create_practice', { data: practiceData });
     return result.practiceId;
 }
 
 async function getAllUsers() {
     // Llama al backend para obtener todos los perfiles de alumno
-    const result = await callDB('get_all_users');
+    const result = await callDB('get_all_users', {}, 'GET');
     return result.users || [];
 }
 

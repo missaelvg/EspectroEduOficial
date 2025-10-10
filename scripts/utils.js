@@ -1,9 +1,8 @@
 // scripts/utils.js
 
-// URL de la función Netlify para calificar reportes
-const EVALUATE_FUNCTION_URL = "/.netlify/functions/evaluate"; 
-// URL de la función Netlify para generar contenido
-const GENERATE_CONTENT_FUNCTION_URL = "/.netlify/functions/generate_content"; 
+// 🚨 CORRECCIÓN: URLS GENERALIZADAS PARA VERCEL/API 🚨
+const EVALUATE_FUNCTION_URL = "/api/evaluate"; 
+const GENERATE_CONTENT_FUNCTION_URL = "/api/generate_content"; 
 
 
 // 1. Función para extraer texto de PDF (requiere pdf.js en el HTML)

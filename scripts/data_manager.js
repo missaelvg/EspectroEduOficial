@@ -12,8 +12,7 @@ async function callDB(action, data = {}, method = 'POST') {
         options.headers = { 'Content-Type': 'application/json' };
         options.body = JSON.stringify({ action, ...data });
     } else if (method === 'GET') {
-        // En un GET, codificamos la acción en la URL si es necesario
-        // Ejemplo: const url = `${DB_API_FUNCTION_URL}?action=${action}`;
+        // En Vercel, es mejor usar POST para todo el tráfico de la DB.
     }
 
     const response = await fetch(DB_API_FUNCTION_URL, options);
@@ -23,28 +22,28 @@ async function callDB(action, data = {}, method = 'POST') {
     return response.json();
 }
 
-// --- Implementación de Funciones de Práctica y Usuarios ---
+// --- Implementación de Funciones de Práctica y Usuarios (Llaman al backend) ---
 
 async function getPractices() {
-    // LLama al backend para obtener todas las prácticas desde Firestore
+    // LLama a la función db_api.js para obtener las prácticas desde Firestore
     const result = await callDB('get_all_practices', {}, 'GET');
     return result.practices || {};
 }
 
 async function createPractice(practiceData) {
-    // Llama al backend para crear una práctica
+    // Llama a db_api.js para crear una práctica
     const result = await callDB('create_practice', { data: practiceData });
     return result.practiceId;
 }
 
 async function getAllUsers() {
-    // Llama al backend para obtener todos los perfiles de alumno
+    // Llama a db_api.js para obtener todos los perfiles de alumno
     const result = await callDB('get_all_users', {}, 'GET');
     return result.users || [];
 }
 
 async function enrollStudent(studentUid, practiceId) {
-    // Llama al backend para inscribir al alumno en la práctica
+    // Llama a db_api.js para inscribir al alumno en la práctica
     const result = await callDB('enroll_student', { studentUid, practiceId });
     return result.success;
 }

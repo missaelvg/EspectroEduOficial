@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - EspectroEdu</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header id="headerTitle">EspectroEdu</header>
+<main>
+    <div style="text-align: right; margin-bottom: 20px;">
+        <button onclick="logoutUser()">Cerrar Sesión</button>
+    </div>
+    
+    <div class="card" id="profileSection"></div>
+    
+    <div id="roleSpecificContent" class="card">
+        </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="scripts/auth.js"></script>
+<script src="scripts/data_manager.js"></script>
+<script src="scripts/utils.js"></script>
+
+<script>
+    // Configura el worker de PDF.js
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
+
+    const user = checkAuth();
+    if (!user) { throw new Error("No autenticado."); }
+
+    document.getElementById('headerTitle').textContent = `Bienvenido, ${user.username} (${user.role === 'doctor' ? 'Doctor' : 'Alumno'})`;
+
+    function loadProfile() {
+        document.getElementById('profileSection').innerHTML = `
+            <h3>Mi Perfil</h3>
+            <p><strong>Matrícula:</strong> ${user.matricula}</p>
+            <p><strong>Grupo:</strong> ${user.grupo}</p>
+            <p><strong>Correo:</strong> ${user.email}</p>
+        `;
+    }
+
+    // Lógica principal
+    if (user.role === 'doctor') {
+        loadDoctorView();
+    } else {
+        loadStudentView();
+    }
+
+    loadProfile();
+</script>
+<script src="scripts/dashboard_views.js"></script>
+</body>
+</html>

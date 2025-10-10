@@ -1,0 +1,60 @@
+/* styles.css */
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f0fdf4;
+    color: #2d3436;
+    margin: 0;
+    padding: 0;
+}
+header {
+    background: #16a34a;
+    color: white;
+    text-align: center;
+    padding: 25px 0;
+    font-size: 1.8em;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+main {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border-left: 6px solid #16a34a;
+}
+input[type="text"], input[type="email"], input[type="password"], input[type="file"], textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #b2bec3;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+button, .btn-primary {
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+button:hover, .btn-primary:hover {
+    background: #15803d;
+    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+}
+.tab-content { padding-top: 20px; }
+.nav-tabs button { background: #eee; color: #2d3436; margin-right: 10px; padding: 10px 15px; }
+.nav-tabs button.active { background: #16a34a; color: white; }
+.alert-error { color: #d63031; font-weight: bold; margin-top: 10px; }
+.score { font-size: 1.5em; color: #16a34a; font-weight: bold; }

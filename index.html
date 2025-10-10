@@ -1,234 +1,71 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluador de Reportes con IA (PDF) - Segura</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <style>
-        /* Estilos Base */
-        body { font-family: 'Segoe UI', sans-serif; background: #f0fdf4; margin: 0; padding: 0; }
-        header { background: #16a34a; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
-        main { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        /* Estilos de Entrada (Solo el PDF) */
-        .input-group { margin-bottom: 15px; }
-        #pdfFile {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            margin-bottom: 5px;
-        }
-
-        /* Estilo del Botón (Mejorado) */
-        button { 
-            background: #16a34a; 
-            color: white; 
-            padding: 12px 25px; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 1em; 
-            transition: background 0.3s, box-shadow 0.3s;
-            text-transform: uppercase;
-            font-weight: bold;
-            display: block; 
-            width: 100%;
-            margin-top: 20px;
-        }
-        button:hover { 
-            background: #15803d; 
-            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4); 
-        }
-        
-        /* Estilos de Resultado y Tabla */
-        table { width: 100%; margin-top: 25px; border-collapse: collapse; }
-        th, td { border: 1px solid #e5f9e7; padding: 12px; text-align: left; vertical-align: top; }
-        th { background: #e5f9e7; color: #065f46; }
-        #resultado { margin-top: 20px; font-weight: bold; font-size: 1.1em; color: #065f46; min-height: 25px; }
-        .loading { color: #f97316; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - EspectroEdu</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>Evaluador Automático de Reportes en PDF</header>
-    <main>
-        <h2>Sube tu Reporte</h2>
-        
-        <div class="input-group">
-            <label for="pdfFile">Selecciona el archivo PDF:</label>
-            <input type="file" id="pdfFile" accept="application/pdf">
+<header>EspectroEdu: Laboratorio de Óptica</header>
+<main>
+    <div class="card">
+        <h2>Iniciar Sesión</h2>
+        <div id="loginForm">
+            <input type="text" id="loginMatricula" placeholder="Matrícula (Alumno) o doc123 (Doctor)">
+            <button onclick="handleLogin()">ENTRAR</button>
+            <p style="margin-top: 15px;">¿Eres nuevo? <a href="#" onclick="showRegister()">Regístrate como alumno aquí</a></p>
         </div>
-        
-        <button onclick="procesarPDF()">EVALUAR REPORTE</button>
-        
-        <div id="resultado">Esperando archivo...</div>
 
-        <h2>Historial de Calificaciones</h2>
-        <table id="tablaResultados">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Matrícula</th>
-                    <th>Calificación</th>
-                    <th>Justificación</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </main>
+        <div id="registerForm" style="display:none;">
+            <h3>Registro de Alumnos</h3>
+            <input type="text" id="regName" placeholder="Nombre Completo" required>
+            <input type="text" id="regMatricula" placeholder="Matrícula" required>
+            <input type="text" id="regGroup" placeholder="Grupo" required>
+            <input type="email" id="regEmail" placeholder="Correo Electrónico" required>
+            <button onclick="handleRegister()">REGISTRARME</button>
+            <p><a href="#" onclick="showLogin()">Volver a Iniciar Sesión</a></p>
+        </div>
+    </div>
+</main>
+<script src="scripts/auth.js"></script>
+<script>
+    if (getCurrentUser()) {
+        window.location.href = 'dashboard.html';
+    }
 
-    <script>
-        // --- CONFIGURACIÓN DE LA IA ---
-        const NETLIFY_FUNCTION_URL = "/.netlify/functions/evaluate"; 
-        
-        // Estándar del reporte esperado
-        const estandar = "Un reporte válido debe contener: 1.-Título: Práctica Demostrativa de Espectroscopía Óptica, incluyendo referencia a LEDs y Halógeno-Tungsteno. 2.-Introducción: Concepto de espectroscopía óptica, Aspectos históricos de la espectroscopía, Aplicaciones de la espectroscopía óptica. 3.-Fundamentos Teóricos:Arreglo óptico del mini-espectrómetro de fibra óptica EXEMPLAR, Características principales del software BWSpec. 4.-Desarrollo de la Práctica:Objetivo de la práctica. Resultados obtenidos:Posición del máximo de emisión de cada LED, Relación entre máximo de emisión y color observado,Comparación del ancho espectral entre LEDs y fuente halógeno-tungsteno. 5.-Conclusiones:Síntesis de lo aprendido y validación de resultados. ";
-
-        // Configura el worker de PDF.js
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-
-        // --- FUNCIÓN PRINCIPAL DE PROCESAMIENTO (AHORA INCLUYE EXTRACCIÓN) ---
-        async function procesarPDF() {
-            const file = document.getElementById("pdfFile").files[0];
-            const resultadoDiv = document.getElementById("resultado");
-            
-            if (!file) { 
-                alert("Sube un PDF primero."); 
-                return; 
-            }
-
-            resultadoDiv.innerText = "Extrayendo texto del PDF...";
-            resultadoDiv.classList.add('loading');
-            
-            try {
-                const fileReader = new FileReader();
-                const texto = await new Promise((resolve, reject) => {
-                    fileReader.onload = async function() {
-                        try {
-                            const typedarray = new Uint8Array(this.result);
-                            const pdf = await pdfjsLib.getDocument(typedarray).promise;
-
-                            let textoAcumulado = "";
-                            for (let i = 1; i <= pdf.numPages; i++) {
-                                const page = await pdf.getPage(i);
-                                const content = await page.getTextContent();
-                                textoAcumulado += content.items.map(item => item.str).join(" ") + "\n";
-                            }
-                            // Limpiamos el texto
-                            resolve(textoAcumulado.replace(/\s+/g, ' ').trim()); 
-                        } catch (e) {
-                            reject(e);
-                        }
-                    };
-                    fileReader.onerror = reject;
-                    fileReader.readAsArrayBuffer(file);
-                });
-
-                if (texto.length < 50) {
-                     resultadoDiv.innerText = "Error: El PDF no contiene suficiente texto legible.";
-                     resultadoDiv.classList.remove('loading');
-                     return;
-                }
-
-                // ⭐ LÓGICA DE EXTRACCIÓN AUTOMÁTICA DE NOMBRE Y MATRÍCULA ⭐
-                let nombre = "No Encontrado";
-                let matricula = "No Encontrada";
-                
-                // 1. Extracción de Matrícula (patrones comunes: A########, 7-10 dígitos)
-                const matriculaMatch = texto.match(/([Aa]\d{7,10})|(\d{7,10})/);
-                if (matriculaMatch) {
-                    matricula = matriculaMatch[0];
-                }
-
-                // 2. Extracción de Nombre (Busca etiquetas comunes)
-                const nombreMatch = texto.match(/(Nombre|Alumno|Autor|Estudiante)\s*[:]\s*([A-Za-z\s]{5,})/i);
-                if (nombreMatch && nombreMatch[2].trim().length > 3) {
-                    nombre = nombreMatch[2].trim().split(/\s{2,}|\n/)[0].substring(0, 50); // Toma la primera línea
-                }
-                
-                // Si no se encuentra con etiquetas, usa las primeras palabras del documento como nombre
-                if (nombre === "No Encontrado" && texto.length > 50) {
-                    nombre = texto.substring(0, 50).split(' ').slice(0, 8).join(' ') + '...';
-                }
-                // ⭐ FIN DE LÓGICA DE EXTRACCIÓN ⭐
-
-                // Pasamos los datos extraídos y el texto a la función de evaluación
-                await evaluarConIA(texto, nombre, matricula);
-
-            } catch (error) {
-                resultadoDiv.innerText = "Error al procesar el PDF o la IA.";
-                resultadoDiv.classList.remove('loading');
-                console.error("Error completo en procesarPDF:", error);
-            }
+    function handleLogin() {
+        const matricula = document.getElementById('loginMatricula').value.trim();
+        if (loginUser(matricula)) {
+            window.location.href = 'dashboard.html';
+        } else {
+            alert('Matrícula incorrecta o no registrada.');
         }
+    }
 
-
-        // --- FUNCIÓN DE EVALUACIÓN SEGURA CON IA ---
-        async function evaluarConIA(texto, nombre, matricula) { 
-            const resultadoDiv = document.getElementById("resultado");
-            resultadoDiv.innerText = `Evaluando reporte de ${nombre} (¡puede tardar!)...`;
-
-            try {
-                // 1. LLAMADA AL ENDPOINT DE NETLIFY (servidor intermediario)
-                const response = await fetch(NETLIFY_FUNCTION_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        reporteTexto: texto,
-                        estandar: estandar 
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error del servidor intermediario: ${response.status}`);
-                }
-
-                // 2. RECIBIMOS EL JSON YA PROCESADO Y SEGURO
-                const resultadoIA = await response.json();
-                
-                // CÓDIGO DEFENSIVO para validar que el JSON es usable (el servidor ya lo sanitiza, pero protegemos el frontend)
-                const calificacionRaw = resultadoIA.calificacion;
-                const justificacionValor = resultadoIA.justificacion || "La IA no proporcionó una justificación válida o completa.";
-                
-                let calificacionFinal = parseInt(calificacionRaw, 10);
-                
-                if (isNaN(calificacionFinal) || calificacionFinal < 1 || calificacionFinal > 10) {
-                    calificacionFinal = 'Error';
-                    throw new Error(`La IA devolvió un JSON con una calificación inválida: ${calificacionRaw}.`);
-                }
-                
-                // 3. MOSTRAR Y GUARDAR RESULTADO
-                resultadoDiv.innerText = `✅ Calificación Final: ${calificacionFinal}/10`;
-                resultadoDiv.classList.remove('loading');
-                
-                // Guardar en tabla
-                const tabla = document.querySelector("#tablaResultados tbody");
-                const fila = document.createElement("tr");
-                
-                // ESTRUCTURA FINAL DE LA FILA
-                fila.innerHTML = `
-                    <td>${nombre}</td>
-                    <td>${matricula}</td>
-                    <td>${calificacionFinal}</td>
-                    <td>${justificacionValor}</td>
-                `;
-                tabla.appendChild(fila);
-
-            } catch (error) {
-                // El error capturado incluye los fallos de red y los errores de validación
-                const status = error.message.includes("Error del servidor intermediario") ? error.message.split(': ')[1] : '';
-                const errorMessage = status ? 
-                                    `Error de comunicación con el servidor (código ${status}). Revisa los logs de Netlify.` : 
-                                    error.message;
-                                    
-                resultadoDiv.innerText = `❌ Error: ${errorMessage}`;
-                resultadoDiv.classList.remove('loading');
-                console.error("Error al evaluar con IA:", error);
+    function handleRegister() {
+        const name = document.getElementById('regName').value;
+        const matricula = document.getElementById('regMatricula').value;
+        const group = document.getElementById('regGroup').value;
+        const email = document.getElementById('regEmail').value;
+        if (name && matricula && group && email) {
+            if(registerUser(name, matricula, group, email, 'alumno')) {
+                alert('Registro exitoso. Ya puedes iniciar sesión.');
+                showLogin();
             }
+        } else {
+            alert('Por favor, rellena todos los campos.');
         }
-    </script>
+    }
+    
+    function showRegister() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+    }
+    function showLogin() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+    }
+</script>
 </body>
 </html>

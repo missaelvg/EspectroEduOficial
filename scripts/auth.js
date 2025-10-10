@@ -1,52 +1,76 @@
 // scripts/auth.js
 
-// Nota: Usamos matricula como password para simplificar el frontend.
+// Usa las variables globales de firebase_config.js: db y auth
+
 function getCurrentUser() {
-    return JSON.parse(localStorage.getItem('currentUser'));
+    return new Promise(resolve => {
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Obtener perfil de Firestore
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists) {
+                    resolve({ uid: user.uid, ...doc.data() });
+                } else {
+                    // Si el perfil de Firestore no existe (ej. Doctor por primera vez)
+                    resolve({ uid: user.uid, email: user.email, role: 'unknown' }); 
+                }
+            } else {
+                resolve(null);
+            }
+        });
+    });
 }
 
-function registerUser(username, matricula, grupo, email, role) {
-    let users = JSON.parse(localStorage.getItem('users')) || [];
-    if (users.find(u => u.matricula === matricula)) {
-        alert("La matrícula ya está registrada.");
+async function registerUser(username, matricula, password, grupo, email, role) {
+    try {
+        // 1. Crear usuario en Firebase Authentication
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+
+        // 2. Guardar perfil en Firestore
+        await db.collection('users').doc(uid).set({
+            username,
+            matricula,
+            grupo,
+            email,
+            role,
+            uid
+        });
+        return true;
+    } catch (error) {
+        alert("Error de registro: " + error.message);
         return false;
     }
-    const newUser = { username, matricula, grupo, email, role, id: Date.now() };
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    return true;
 }
 
-function loginUser(matricula) {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(u => u.matricula === matricula);
-
-    // Lógica especial para el Doctor (Doctor's profile is always 'doc123')
-    if (matricula === 'doc123') {
-        let doctor = users.find(u => u.role === 'doctor');
-        if (!doctor) {
-             // Si el doctor no existe, lo registramos la primera vez
-             registerUser('Dr. Experto', 'doc123', 'N/A', 'doctor@espectro.edu', 'doctor');
-             doctor = users.find(u => u.role === 'doctor');
+async function loginUser(email, password) {
+    try {
+        // Lógica especial para el Doctor
+        if (email === 'doc123@espectro.edu' && password === 'doc123') {
+             // Si el Doctor no existe en Firestore, lo registra y luego inicia sesión
+             let doctorSnapshot = await db.collection('users').where('matricula', '==', 'doc123').get();
+             if (doctorSnapshot.empty) {
+                 await registerUser('Dr. Experto', 'doc123', 'doc123', 'N/A', 'doc123@espectro.edu', 'doctor');
+             }
+             await auth.signInWithEmailAndPassword('doc123@espectro.edu', 'doc123');
+             return true;
         }
-        localStorage.setItem('currentUser', JSON.stringify(doctor));
+
+        // Login normal de Alumno
+        await auth.signInWithEmailAndPassword(email, password);
         return true;
+    } catch (error) {
+        return false;
     }
-    
-    if (user && user.role === 'alumno') {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        return true;
-    }
-    return false;
 }
 
 function logoutUser() {
-    localStorage.removeItem('currentUser');
+    auth.signOut();
     window.location.href = 'index.html';
 }
 
-function checkAuth(requiredRole) {
-    const user = getCurrentUser();
+async function checkAuth(requiredRole) {
+    const user = await getCurrentUser();
     if (!user) {
         window.location.href = 'index.html';
         return null;

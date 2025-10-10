@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login - EspectroEdu</title>
 <link rel="stylesheet" href="styles.css">
+
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -36,6 +37,7 @@
 <script src="scripts/firebase_config.js"></script> 
 <script src="scripts/auth.js"></script>
 <script>
+    // Verifica si ya hay un usuario logueado (esta función está en auth.js)
     if (getCurrentUser()) {
         window.location.href = 'dashboard.html';
     }
@@ -44,6 +46,7 @@
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
 
+        // El loginUser usa Firebase Authentication
         const success = await loginUser(email, password); 
         if (success) {
             window.location.href = 'dashboard.html';

@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login - EspectroEdu</title>
 <link rel="stylesheet" href="styles.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
 <header>EspectroEdu: Laboratorio de Óptica</header>
@@ -12,15 +15,17 @@
     <div class="card">
         <h2>Iniciar Sesión</h2>
         <div id="loginForm">
-            <input type="text" id="loginMatricula" placeholder="Matrícula (Alumno) o doc123 (Doctor)">
+            <input type="email" id="loginEmail" placeholder="Correo Electrónico (Doctor: doc123@espectro.edu)">
+            <input type="password" id="loginPassword" placeholder="Contraseña (Doctor: doc123)">
             <button onclick="handleLogin()">ENTRAR</button>
-            <p style="margin-top: 15px;">¿Eres nuevo? <a href="#" onclick="showRegister()">Regístrate como alumno aquí</a></p>
+            <p style="margin-top: 15px;">¿Nuevo alumno? <a href="#" onclick="showRegister()">Regístrate aquí</a></p>
         </div>
 
         <div id="registerForm" style="display:none;">
             <h3>Registro de Alumnos</h3>
             <input type="text" id="regName" placeholder="Nombre Completo" required>
             <input type="text" id="regMatricula" placeholder="Matrícula" required>
+            <input type="password" id="regPassword" placeholder="Contraseña" required>
             <input type="text" id="regGroup" placeholder="Grupo" required>
             <input type="email" id="regEmail" placeholder="Correo Electrónico" required>
             <button onclick="handleRegister()">REGISTRARME</button>
@@ -28,28 +33,35 @@
         </div>
     </div>
 </main>
+<script src="scripts/firebase_config.js"></script> 
 <script src="scripts/auth.js"></script>
 <script>
     if (getCurrentUser()) {
         window.location.href = 'dashboard.html';
     }
 
-    function handleLogin() {
-        const matricula = document.getElementById('loginMatricula').value.trim();
-        if (loginUser(matricula)) {
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+
+        const success = await loginUser(email, password); 
+        if (success) {
             window.location.href = 'dashboard.html';
         } else {
-            alert('Matrícula incorrecta o no registrada.');
+            alert('Credenciales incorrectas o usuario no existe.');
         }
     }
 
-    function handleRegister() {
+    async function handleRegister() {
         const name = document.getElementById('regName').value;
         const matricula = document.getElementById('regMatricula').value;
+        const password = document.getElementById('regPassword').value;
         const group = document.getElementById('regGroup').value;
         const email = document.getElementById('regEmail').value;
-        if (name && matricula && group && email) {
-            if(registerUser(name, matricula, group, email, 'alumno')) {
+        
+        if (name && matricula && password && group && email) {
+            const success = await registerUser(name, matricula, password, group, email, 'alumno');
+            if(success) {
                 alert('Registro exitoso. Ya puedes iniciar sesión.');
                 showLogin();
             }

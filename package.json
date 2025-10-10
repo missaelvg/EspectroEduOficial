@@ -1,0 +1,12 @@
+{
+  "name": "espectroedu-lms",
+  "version": "1.0.0",
+  "description": "Sistema LMS para laboratorio de óptica con IA",
+  "main": "api/evaluate.js",
+  "dependencies": {
+    "firebase-admin": "^11.11.0"
+  },
+  "scripts": {
+    "start": "vercel dev"
+  }
+}

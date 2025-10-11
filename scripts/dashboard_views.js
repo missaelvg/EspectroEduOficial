@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL DEFINITIVA Y CORREGIDA)
+// scripts/dashboard_views.js (VERSIÓN FINAL Y CORREGIDA)
 
 // Almacén de estado simple para evitar recargar datos innecesariamente
 const AppState = {
@@ -15,37 +15,43 @@ function renderDoctorLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Dr. ${user.username}`;
     const navbar = document.getElementById('navbar');
+    // **CORRECCIÓN 1/3: Se añade la clase 'active' por defecto al primer botón**
     navbar.innerHTML = `
-        <button onclick="setActive(this); renderDoctorDashboard();">Dashboard</button>
+        <button class="active" onclick="setActive(this); renderDoctorDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderCreatePracticeView();">Crear Práctica</button>
         <button onclick="setActive(this); renderManageStudentsView();">Gestionar Alumnos</button>
     `;
     renderDoctorDashboard();
-    setActive(navbar.children[0]);
+    // **CORRECCIÓN 2/3: Se elimina la línea que causaba el error**
+    // setActive(navbar.children[0]); // Esta línea se ha borrado
 }
 
 function renderStudentLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Alumno: ${user.username}`;
     const navbar = document.getElementById('navbar');
+    // **CORRECCIÓN 1/3: Se añade la clase 'active' por defecto al primer botón**
     navbar.innerHTML = `
-        <button onclick="setActive(this); renderStudentDashboard();">Dashboard</button>
+        <button class="active" onclick="setActive(this); renderStudentDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderStudentPracticesView();">Mis Prácticas</button>
         <button onclick="setActive(this); renderStudentGradesView();">Mis Calificaciones</button>
     `;
     renderStudentDashboard();
-    setActive(navbar.children[0]);
+    // **CORRECCIÓN 2/3: Se elimina la línea que causaba el error**
+    // setActive(navbar.children[0]); // Esta línea se ha borrado
 }
 
-// Función para resaltar el botón de la vista activa en la barra de navegación
+// **CORRECCIÓN 3/3: Función para resaltar el botón activo (ahora más robusta)**
 function setActive(button) {
+    // Primero, quita la clase 'active' de todos los botones de la barra de navegación
     document.querySelectorAll('#navbar button').forEach(btn => btn.classList.remove('active'));
+    // Luego, añade la clase 'active' solo al botón que fue presionado
     button.classList.add('active');
 }
 
 
 // ====================================================
-// VISTAS DEL DOCTOR
+// VISTAS DEL DOCTOR (Sin cambios funcionales)
 // ====================================================
 async function renderDoctorDashboard() {
     const contentDiv = document.getElementById('main-content');
@@ -181,7 +187,7 @@ async function enrollStudentHandler(studentUid) {
 }
 
 // ====================================================
-// VISTAS DEL ALUMNO (VERSIÓN CORREGIDA)
+// VISTAS DEL ALUMNO
 // ====================================================
 
 function renderStudentDashboard() {
@@ -209,15 +215,15 @@ async function renderStudentPracticesView() {
             const status = p.students[AppState.user.uid];
             let content;
 
-            if (status.completed) { // FASE 3: Práctica Finalizada
-                content = `<h4>${p.title}</h4><p><strong>Estado:</strong> ${status.status}</p><p>¡Felicidades! Has completado esta práctica. Puedes ver tu resultado en la sección "Mis Calificaciones".</p>`;
-            } else if (status.reportUrl) { // FASE 2: Cuestionario Pendiente
+            if (status.completed) { // FASE 3: Finalizada
+                content = `<h4>${p.title}</h4><p><strong>Estado:</strong> ${status.status}</p><p>¡Felicidades! Has completado esta práctica. Puedes ver tu resultado en "Mis Calificaciones".</p>`;
+            } else if (status.reportUrl) { // FASE 2: Cuestionario
                 content = `<h4>${p.title}</h4><p><strong>Estado:</strong> ${status.status}</p><div id="quiz-container-${p.id}"></div>`;
                 setTimeout(() => renderQuiz(p), 0);
-            } else { // FASE 1: Subir Reporte
+            } else { // FASE 1: Subir reporte
                 content = `
                     <h4>${p.title}</h4><p><strong>Estado:</strong> ${status.status}</p>
-                    <p>Descarga los materiales de estudio y sube tu reporte en PDF para continuar.</p>
+                    <p>Descarga los materiales y sube tu reporte en PDF para continuar.</p>
                     <a href="${p.slidesPdfUrl}" target="_blank" class="btn">Descargar Diapositivas</a>
                     <a href="${p.standardPdfUrl}" target="_blank" class="btn">Descargar Estándar</a>
                     <hr style="margin: 20px 0;">
@@ -230,24 +236,18 @@ async function renderStudentPracticesView() {
         }).join('');
         document.getElementById('student-practices-list').innerHTML = html;
     } catch (e) {
-        document.getElementById('student-practices-list').innerHTML = `<p class="alert-error">Error al cargar tus prácticas: ${e.message}</p>`;
+        document.getElementById('student-practices-list').innerHTML = `<p class="alert-error">Error al cargar prácticas: ${e.message}</p>`;
     }
 }
 
 async function renderStudentGradesView() {
     const contentDiv = document.getElementById('main-content');
-    // **LA CORRECCIÓN ESTÁ AQUÍ**
     contentDiv.innerHTML = '<h2>Mis Calificaciones</h2><div id="grades-list">Cargando...</div>';
     
     try {
-        // Obtenemos la referencia al div DESPUÉS de que ha sido creado en el DOM.
         const gradesListDiv = document.getElementById('grades-list');
-        
         const practices = await getPractices();
-        const completedPractices = Object.values(practices).filter(p => {
-            const studentData = p.students ? p.students[AppState.user.uid] : null;
-            return studentData && studentData.completed === true;
-        });
+        const completedPractices = Object.values(practices).filter(p => p.students?.[AppState.user.uid]?.completed === true);
 
         if (completedPractices.length === 0) {
             gradesListDiv.innerHTML = '<p>Aún no has completado ninguna práctica.</p>';
@@ -260,14 +260,13 @@ async function renderStudentGradesView() {
             return `
                 <div class="card">
                     <h4>${p.title}</h4>
-                    <p class="score">Calificación Final Obtenida: <strong>${score}/10</strong></p>
+                    <p class="score">Calificación Final: <strong>${score}/10</strong></p>
                 </div>`;
         }).join('');
         gradesListDiv.innerHTML = html;
     } catch (e) {
         console.error("Error en renderStudentGradesView:", e);
-        // Si hay un error, lo mostramos dentro del div principal.
-        contentDiv.innerHTML = `<p class="alert-error">Ocurrió un error al cargar tus calificaciones: ${e.message}</p>`;
+        contentDiv.innerHTML = `<p class="alert-error">Error al cargar calificaciones: ${e.message}</p>`;
     }
 }
 
@@ -302,13 +301,12 @@ function renderQuiz(practice) {
     const questions = practice.generatedContent?.cuestionario;
 
     if (!questions || !Array.isArray(questions)) {
-        container.innerHTML = "<p class='alert-error'>Error: El cuestionario para esta práctica no está disponible o tiene un formato incorrecto.</p>";
+        container.innerHTML = "<p class='alert-error'>Error: El cuestionario no está disponible.</p>";
         return;
     }
 
-    let quizHtml = `<h5>Fase 2: Cuestionario</h5><p>Responde las siguientes preguntas para finalizar la práctica.</p>`;
+    let quizHtml = `<h5>Fase 2: Cuestionario</h5><p>Responde las siguientes preguntas para finalizar.</p>`;
     questions.forEach((q, index) => {
-        // Usamos el ID de la práctica en el nombre para evitar conflictos si hay varios quizzes en la página
         const inputName = `q-${practice.id}-${index}`;
         quizHtml += `<div class="question"><p><strong>${index + 1}. ${q.pregunta}</strong></p>`;
         if (q.tipo === 'opcion' && q.opciones) {
@@ -316,11 +314,11 @@ function renderQuiz(practice) {
                 quizHtml += `<label><input type="radio" name="${inputName}" value="${op}"> ${op}</label><br>`;
             });
         } else {
-            quizHtml += `<textarea name="${inputName}" rows="3" placeholder="Escribe tu respuesta aquí..."></textarea>`;
+            quizHtml += `<textarea name="${inputName}" rows="3" placeholder="Escribe tu respuesta..."></textarea>`;
         }
         quizHtml += `</div>`;
     });
-    quizHtml += `<button onclick="handleQuizSubmit(event, '${practice.id}')">Entregar Cuestionario y Finalizar</button>`;
+    quizHtml += `<button onclick="handleQuizSubmit(event, '${practice.id}')">Entregar Cuestionario</button>`;
     container.innerHTML = quizHtml;
 }
 
@@ -353,11 +351,11 @@ async function handleQuizSubmit(event, practiceId) {
         const finalScore = Math.round((correctAnswers / questions.length) * 10);
 
         await submitStudentQuiz(practiceId, AppState.user.uid, finalScore);
-        alert(`¡Cuestionario entregado! Tu calificación final para esta práctica es: ${finalScore}/10.`);
+        alert(`¡Cuestionario entregado! Tu calificación es: ${finalScore}/10.`);
         renderStudentPracticesView();
     } catch(e) {
         alert(`Error al entregar el cuestionario: ${e.message}`);
         button.disabled = false;
-        button.textContent = "Entregar Cuestionario y Finalizar";
+        button.textContent = "Entregar Cuestionario";
     }
 }

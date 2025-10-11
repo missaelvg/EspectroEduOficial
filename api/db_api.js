@@ -1,65 +1,39 @@
-// api/db_api.js (Versión final con soporte para Base64)
-
 const admin = require('firebase-admin');
+// IMPORTANTE: Lee las credenciales directamente del archivo JSON
+const serviceAccount = require('./espectroedu-e8856-firebase-adminsdk-fbsvc-44bc6f4a74.json');
 
-// Función para inicializar Firebase Admin de forma segura desde Base64
-function initializeFirebaseAdmin() {
-    if (admin.apps.length) {
-        return; // Ya está inicializado
-    }
-
-    const credentialsBase64 = process.env.FIREBASE_ADMIN_CREDENTIALS;
-
-    if (!credentialsBase64) {
-        throw new Error('La variable de entorno FIREBASE_ADMIN_CREDENTIALS no está configurada en Vercel.');
-    }
-
+// Solo inicializamos si no se ha hecho antes
+if (!admin.apps.length) {
     try {
-        // Decodifica la string de Base64 para obtener el JSON original
-        const decodedCredentials = Buffer.from(credentialsBase64, 'base64').toString('utf-8');
-        const serviceAccount = JSON.parse(decodedCredentials);
-
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
     } catch (e) {
-        throw new Error('Fallo al decodificar o parsear FIREBASE_ADMIN_CREDENTIALS. Asegúrate de haber copiado la string Base64 correctamente. Error: ' + e.message);
+        console.error('Error al inicializar Firebase Admin desde el archivo:', e);
     }
 }
 
+const db = admin.firestore();
+
+// El resto del código handler se mantiene exactamente igual...
 exports.handler = async (event) => {
     const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     };
-
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 204, headers };
-    }
-
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers };
     try {
-        initializeFirebaseAdmin();
-        const db = admin.firestore();
-        
         let action, data;
         if (event.httpMethod === 'POST') {
             const body = JSON.parse(event.body);
-            action = body.action;
-            data = body.data;
-        } else { // GET
-            action = event.queryStringParameters.action;
-            data = event.queryStringParameters;
+            action = body.action; data = body.data;
+        } else {
+            action = event.queryStringParameters.action; data = event.queryStringParameters;
         }
-        
-        // El resto del switch se mantiene igual
         switch (action) {
             case 'get_all_practices': {
                 const snapshot = await db.collection('practices').get();
                 const practices = {};
-                snapshot.forEach(doc => {
-                    practices[doc.id] = { id: doc.id, ...doc.data() };
-                });
+                snapshot.forEach(doc => { practices[doc.id] = { id: doc.id, ...doc.data() }; });
                 return { statusCode: 200, headers, body: JSON.stringify({ practices }) };
             }
             case 'get_all_users': {
@@ -114,10 +88,6 @@ exports.handler = async (event) => {
         }
     } catch (error) {
         console.error("DB_API Fallo:", error);
-        return { 
-            statusCode: 500, 
-            headers, 
-            body: JSON.stringify({ error: `Error en el servidor: ${error.message}` }) 
-        };
+        return { statusCode: 500, headers, body: JSON.stringify({ error: `Error en el servidor: ${error.message}` }) };
     }
 };

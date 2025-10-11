@@ -1,19 +1,28 @@
-// api/db_api.js (Servidor Vercel)
+// api/db_api.js (Servidor Vercel con Diagnóstico Mejorado)
 
 const admin = require('firebase-admin');
 
-// Inicializa Firebase Admin SDK
-if (!admin.apps.length) {
-    try {
-        const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
-        });
-    } catch (e) {
-        console.error("Fallo al inicializar Firebase Admin:", e);
+// Función para inicializar Firebase Admin de forma segura
+function initializeFirebaseAdmin() {
+    // Comprobación CRÍTICA: ¿Existe la variable de entorno?
+    if (!process.env.FIREBASE_ADMIN_CREDENTIALS) {
+        // Si no existe, lanzamos un error claro.
+        throw new Error('La variable de entorno FIREBASE_ADMIN_CREDENTIALS no está configurada en Vercel.');
+    }
+
+    // Solo inicializamos si no se ha hecho antes
+    if (!admin.apps.length) {
+        try {
+            const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount)
+            });
+        } catch (e) {
+            // Si el JSON es inválido, lanzamos un error específico.
+            throw new Error('Fallo al parsear FIREBASE_ADMIN_CREDENTIALS. Asegúrate de copiar el contenido completo del archivo JSON. Error original: ' + e.message);
+        }
     }
 }
-const db = admin.firestore();
 
 exports.handler = async (event) => {
     const headers = {
@@ -25,14 +34,15 @@ exports.handler = async (event) => {
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
-    
-    if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
-        return { statusCode: 405, body: 'Método no permitido', headers };
-    }
 
     try {
+        // Intentamos inicializar Firebase Admin en cada llamada.
+        // La función interna evitará que se reinicie si ya está activa.
+        initializeFirebaseAdmin();
+        const db = admin.firestore();
+
         let action, data;
-        
+
         if (event.httpMethod === 'POST') {
             const body = JSON.parse(event.body);
             action = body.action;
@@ -41,10 +51,8 @@ exports.handler = async (event) => {
             action = event.queryStringParameters.action;
             data = event.queryStringParameters;
         }
-        
-        switch (action) {
-            // ... (casos 'get_all_practices', 'get_all_users', etc. se mantienen igual)
 
+        switch (action) {
             case 'get_all_practices': {
                 const snapshot = await db.collection('practices').get();
                 const practices = {};
@@ -60,6 +68,7 @@ exports.handler = async (event) => {
                 return { statusCode: 200, headers, body: JSON.stringify({ users }) };
             }
             
+            // ... (el resto de los casos se mantienen igual)
             case 'create_practice': {
                 if (!data) throw new Error("Faltan datos.");
                 const ref = await db.collection('practices').add(data);
@@ -68,7 +77,7 @@ exports.handler = async (event) => {
 
             case 'update_practice_content': {
                  if (!data || !data.practiceId || !data.content) throw new Error("Datos incompletos.");
-                 await db.collection('practices').doc(data.practiceId).update({ generatedContent: data.content });
+                 await db.collection('practices').doc(data.practiceId).update({ 'generatedContent': data.content, 'slidesPdfUrl': data.slidesPdfUrl, 'standardPdfUrl': data.standardPdfUrl });
                  return { statusCode: 200, headers, body: JSON.stringify({ message: 'Contenido actualizado' }) };
             }
             
@@ -91,7 +100,6 @@ exports.handler = async (event) => {
                 return { statusCode: 200, headers, body: JSON.stringify({ message: 'Reporte entregado' }) };
             }
             
-            // --- NUEVA ACCIÓN ---
             case 'update_student_progress': {
                 if (!data || !data.practiceId || !data.studentUid || !data.status) throw new Error("Datos incompletos.");
                 const practiceRef = db.collection('practices').doc(data.practiceId);
@@ -103,14 +111,13 @@ exports.handler = async (event) => {
                 return { statusCode: 200, headers, body: JSON.stringify({ message: 'Progreso actualizado' }) };
             }
 
-
             case 'submit_quiz': { // Esta acción ahora es el paso final
                 if (!data || !data.practiceId || !data.studentUid || typeof data.score === 'undefined') throw new Error("Datos incompletos.");
                 const practiceRef = db.collection('practices').doc(data.practiceId);
                 const finalGrade = data.score; 
 
                 await practiceRef.update({
-                    [`students.${data.studentUid}.quizScore`]: finalGrade, // Se guarda la calificación final
+                    [`students.${data.studentUid}.quizScore`]: finalGrade,
                     [`students.${data.studentUid}.status`]: 'Práctica Finalizada',
                     [`students.${data.studentUid}.completed`]: true
                 });
@@ -122,7 +129,12 @@ exports.handler = async (event) => {
         }
 
     } catch (error) {
+        // Si algo falla, ahora devolveremos un JSON con el mensaje de error claro.
         console.error("DB_API Fallo:", error);
-        return { statusCode: 500, headers, body: JSON.stringify({ error: `Error en el servidor: ${error.message}` }) };
+        return { 
+            statusCode: 500, 
+            headers, 
+            body: JSON.stringify({ error: `Error en el servidor: ${error.message}` }) 
+        };
     }
 };

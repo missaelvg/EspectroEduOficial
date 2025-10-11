@@ -119,7 +119,6 @@ async function renderManageStudentsView() {
     }
 }
 
-// --- NUEVA VISTA DE DOCTOR ---
 async function renderDoctorGradesView() {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = `<h2>Calificaciones por Práctica</h2><div id="grades-by-practice">Cargando...</div>`;
@@ -178,7 +177,7 @@ async function handlePracticeCreation() {
             title, 
             students: {}, 
             generatedContent: null, 
-            creatorId: AppState.user.uid, // Guardamos quién creó la práctica
+            creatorId: AppState.user.uid,
             createdAt: new Date()
         };
         const practiceId = await createPractice(practiceData);
@@ -197,7 +196,7 @@ async function handlePracticeCreation() {
 
         logDiv.innerHTML = '<p class="alert-success">✅ ¡Práctica creada con éxito!</p>';
         setTimeout(() => {
-            document.querySelector('#navbar button').click(); // Volver al dashboard
+            document.querySelector('#navbar button').click();
         }, 2000);
     } catch (e) {
         logDiv.innerHTML = `<p class="alert-error">❌ ERROR: ${e.message}</p>`;
@@ -251,18 +250,18 @@ async function renderStudentPracticesView() {
             const statusData = p.students[AppState.user.uid];
             let content = `<h4>${p.title}</h4><p><strong>Estado:</strong> ${statusData.status}</p>`;
 
-            if (statusData.completed) { // FASE 4: Finalizada
+            if (statusData.completed) {
                 content += `<p>¡Felicidades! Has completado esta práctica. Puedes ver tu resultado en "Mis Calificaciones".</p>`;
             
-            } else if (statusData.status === 'Crucigrama Pendiente') { // FASE 3: Crucigrama
+            } else if (statusData.status === 'Crucigrama Pendiente') {
                 content += `<div id="crossword-container-${p.id}"></div>`;
                 setTimeout(() => renderCrossword(p), 0);
 
-            } else if (statusData.reportUrl) { // FASE 2: Cuestionario
+            } else if (statusData.reportUrl) {
                 content += `<div id="quiz-container-${p.id}"></div>`;
                 setTimeout(() => renderQuiz(p), 0);
 
-            } else { // FASE 1: Subir reporte
+            } else {
                 content += `
                     <p>Descarga los materiales y sube tu reporte en PDF para continuar.</p>
                     <a href="${p.slidesPdfUrl}" target="_blank" class="btn">Descargar Diapositivas</a>
@@ -380,7 +379,7 @@ async function handleQuizSubmit(event, practiceId) {
                 if (checkedInput && checkedInput.value.trim().toLowerCase() === q.correcta.trim().toLowerCase()) {
                     correctAnswers++;
                 }
-            } else { // Pregunta abierta (simplificado: se califica si tiene contenido)
+            } else {
                 if (inputs[0] && inputs[0].value.trim().length > 10) {
                     correctAnswers++;
                 }
@@ -389,7 +388,6 @@ async function handleQuizSubmit(event, practiceId) {
 
         const quizScore = Math.round((correctAnswers / questions.length) * 10);
 
-        // Guardar el progreso y pasar al crucigrama
         await updateStudentProgress(practiceId, AppState.user.uid, 'Crucigrama Pendiente', quizScore);
         alert(`¡Cuestionario entregado! Tu puntaje parcial es: ${quizScore}/10. Ahora, el crucigrama.`);
         renderStudentPracticesView();
@@ -402,69 +400,54 @@ async function handleQuizSubmit(event, practiceId) {
 }
 
 
-// --- LÓGICA DEL CRUCIGRAMA ---
+// =======================================================
+// LÓGICA DEL CRUCIGRAMA (VERSIÓN MEJORADA)
+// =======================================================
 
 function renderCrossword(practice) {
     const container = document.getElementById(`crossword-container-${practice.id}`);
     const crosswordData = practice.generatedContent?.crucigrama;
 
-    if (!crosswordData) {
+    if (!crosswordData || crosswordData.length === 0) {
         container.innerHTML = "<p class='alert-error'>Error: El crucigrama no está disponible.</p>";
         return;
     }
-    const gridSize = 12;
-    let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
-    const words = crosswordData.map(w => ({...w, word: w.word.toUpperCase()}));
 
-    let placedWords = [];
-    try {
-        words.forEach((wordObj, i) => {
-            let placed = false;
-            // Intenta colocar horizontal
-            if (i % 2 === 0) {
-                if (1 + wordObj.word.length < gridSize) {
-                    const row = i + 1;
-                    const col = 1;
-                    for (let j = 0; j < wordObj.word.length; j++) {
-                        grid[row][col + j] = { char: wordObj.word[j], num: j === 0 ? i + 1 : null };
-                    }
-                    placed = true;
-                }
-            } else { // Intenta colocar vertical
-                 if (1 + wordObj.word.length < gridSize) {
-                    const row = 1;
-                    const col = i + 1;
-                    for (let j = 0; j < wordObj.word.length; j++) {
-                        grid[row + j][col] = { char: wordObj.word[j], num: j === 0 ? i + 1 : null };
-                    }
-                    placed = true;
-                }
-            }
-             if(placed) placedWords.push({...wordObj, number: i+1});
-        });
-    } catch(e) { console.error("Error al colocar palabras en el crucigrama", e)}
+    const words = crosswordData.map(w => ({
+        word: w.word.toUpperCase().trim(),
+        clue: w.clue
+    }));
 
-
-    let gridHtml = '<table>';
-    for (let r = 0; r < gridSize; r++) {
-        gridHtml += '<tr>';
-        for (let c = 0; c < gridSize; c++) {
-            gridHtml += `<td class="${grid[r][c] ? '' : 'empty'}" style="position:relative;">`;
-            if (grid[r][c]) {
-                gridHtml += `
-                    <input type="text" maxlength="1" data-correct="${grid[r][c].char}" class="crossword-cell">
-                    ${grid[r][c].num ? `<span style="position:absolute; top:1px; left:1px; font-size:9px; z-index:1; color: #333;">${grid[r][c].num}</span>` : ''}
-                `;
-            }
-             gridHtml += '</td>';
-        }
-        gridHtml += '</tr>';
+    // --- Lógica de Generación del Crucigrama ---
+    const layout = generateCrosswordLayout(words);
+    if (!layout) {
+        container.innerHTML = "<p class='alert-error'>No se pudo generar el crucigrama con las palabras dadas.</p>";
+        return;
     }
-    gridHtml += '</table>';
+    
+    const { grid, placedWordsInfo } = layout;
 
+    // --- Renderizado del HTML ---
+    let gridHtml = '<table>';
+    grid.forEach(row => {
+        gridHtml += '<tr>';
+        row.forEach(cell => {
+            if (cell) {
+                gridHtml += `<td style="position:relative;">
+                    <input type="text" maxlength="1" data-correct="${cell.char}" class="crossword-cell">
+                    ${cell.num ? `<span class="crossword-number">${cell.num}</span>` : ''}
+                </td>`;
+            } else {
+                gridHtml += '<td class="empty"></td>';
+            }
+        });
+        gridHtml += '</tr>';
+    });
+    gridHtml += '</table>';
+    
     let cluesHtml = '<h5>Pistas</h5>';
-    placedWords.forEach(w => {
-         cluesHtml += `<p><strong>${w.number}.</strong> ${w.clue}</p>`;
+    placedWordsInfo.sort((a,b) => a.number - b.number).forEach(w => {
+         cluesHtml += `<p><strong>${w.number}. ${w.orientation === 'across' ? 'Horizontal' : 'Vertical'}</strong>: ${w.clue}</p>`;
     });
 
     container.innerHTML = `
@@ -476,7 +459,118 @@ function renderCrossword(practice) {
         <br>
         <button onclick="handleCrosswordSubmit(event, '${practice.id}')">Finalizar Práctica</button>
     `;
+    
+    // Añadimos un estilo pequeño para los números, que no estaba en el CSS.
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .crossword-number { position:absolute; top:1px; left:1px; font-size:9px; z-index:1; color: #333; }
+    `;
+    container.appendChild(style);
 }
+
+/**
+ * Intenta generar un layout para el crucigrama a partir de una lista de palabras.
+ * @param {Array<{word: string, clue: string}>} words - La lista de palabras y pistas.
+ * @returns {Object|null} Un objeto con la 'grid' y 'placedWordsInfo' o null si falla.
+ */
+function generateCrosswordLayout(words) {
+    const gridSize = 20; // Un tamaño de rejilla más grande para mayor flexibilidad
+    let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
+    let placedWords = []; // { word, row, col, orientation, clue }
+
+    // 1. Coloca la primera palabra (la más larga) en el centro.
+    words.sort((a, b) => b.word.length - a.word.length);
+    const firstWord = words.shift();
+    const startRow = Math.floor(gridSize / 2);
+    const startCol = Math.floor((gridSize - firstWord.word.length) / 2);
+
+    for (let i = 0; i < firstWord.word.length; i++) {
+        grid[startRow][startCol + i] = { char: firstWord.word[i] };
+    }
+    placedWords.push({ ...firstWord, row: startRow, col: startCol, orientation: 'across' });
+
+    // 2. Itera sobre las palabras restantes para intentar cruzarlas.
+    while (words.length > 0) {
+        const wordToPlace = words.shift();
+        let placed = false;
+
+        for (let i = 0; i < placedWords.length && !placed; i++) {
+            const currentPlacedWord = placedWords[i];
+            for (let j = 0; j < currentPlacedWord.word.length && !placed; j++) {
+                for (let k = 0; k < wordToPlace.word.length && !placed; k++) {
+                    
+                    if (currentPlacedWord.word[j] === wordToPlace.word[k]) {
+                        // Posible intersección encontrada.
+                        let newRow, newCol;
+                        const newOrientation = currentPlacedWord.orientation === 'across' ? 'down' : 'across';
+
+                        if (currentPlacedWord.orientation === 'across') {
+                            newRow = currentPlacedWord.row - k;
+                            newCol = currentPlacedWord.col + j;
+                        } else { // 'down'
+                            newRow = currentPlacedWord.row + j;
+                            newCol = currentPlacedWord.col - k;
+                        }
+
+                        // Verificar si la palabra cabe y no choca con otras.
+                        if (canPlaceWord(grid, wordToPlace.word, newRow, newCol, newOrientation)) {
+                            for (let l = 0; l < wordToPlace.word.length; l++) {
+                                let r = newRow, c = newCol;
+                                if (newOrientation === 'across') c += l; else r += l;
+                                grid[r][c] = { char: wordToPlace.word[l] };
+                            }
+                            placedWords.push({ ...wordToPlace, row: newRow, col: newCol, orientation: newOrientation });
+                            placed = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (!placed) { /* Opcional: manejar palabras que no se pudieron colocar */ }
+    }
+    
+    // 3. Añadir los números a la rejilla final
+    const placedWordsInfo = [];
+    placedWords.forEach((word, index) => {
+        const { row, col } = word;
+        if (grid[row][col].num === undefined) {
+             grid[row][col].num = placedWordsInfo.length + 1;
+             placedWordsInfo.push({...word, number: grid[row][col].num});
+        } else {
+             // Si ya hay un número, la palabra comparte el inicio, hay que encontrarla.
+             const existing = placedWordsInfo.find(p => p.number === grid[row][col].num && p.orientation !== word.orientation);
+             if(existing) {
+                 placedWordsInfo.push({...word, number: grid[row][col].num});
+             }
+        }
+    });
+
+    return { grid, placedWordsInfo };
+}
+
+
+/**
+ * Verifica si una palabra se puede colocar en una posición sin colisionar.
+ */
+function canPlaceWord(grid, word, row, col, orientation) {
+    if (row < 0 || col < 0) return false;
+
+    for (let i = 0; i < word.length; i++) {
+        let r = row, c = col;
+        if (orientation === 'across') c += i; else r += i;
+        
+        if (r >= grid.length || c >= grid[0].length) return false; // Fuera de los límites
+
+        const cell = grid[r][c];
+        const prevCell = (orientation === 'across') ? grid[r][c-1] : grid[r-1]?.[c];
+        const nextCell = (orientation === 'across') ? grid[r][c+1] : grid[r+1]?.[c];
+
+        if (cell && cell.char !== word[i]) return false; // Colisión con letra diferente
+        if (!cell && (prevCell || nextCell) && i > 0 && i < word.length-1) return false; // Paralelo a otra palabra
+    }
+    return true;
+}
+
 
 async function handleCrosswordSubmit(event, practiceId) {
     const button = event.target;
@@ -491,14 +585,16 @@ async function handleCrosswordSubmit(event, practiceId) {
         let correctCrosswordCells = 0;
         let totalCrosswordCells = 0;
         const cells = document.querySelectorAll(`#crossword-container-${practiceId} .crossword-cell`);
+        
         cells.forEach(cell => {
             totalCrosswordCells++;
             if (cell.value.toUpperCase() === cell.dataset.correct) {
                 correctCrosswordCells++;
-                cell.style.backgroundColor = '#d4edda'; // Verde para correcto
+                cell.style.backgroundColor = '#d4edda';
             } else {
-                 cell.style.backgroundColor = '#f8d7da'; // Rojo para incorrecto
+                 cell.style.backgroundColor = '#f8d7da';
             }
+            cell.disabled = true; // Deshabilitar celdas tras calificar
         });
 
         const crosswordScore = (totalCrosswordCells > 0) ? Math.round((correctCrosswordCells / totalCrosswordCells) * 10) : 10;

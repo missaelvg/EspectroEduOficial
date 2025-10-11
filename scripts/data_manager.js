@@ -1,12 +1,8 @@
 // scripts/data_manager.js
 
-// Asegúrate de que tu firebase_config.js también inicializa storage
-// const storage = firebase.storage();
-
 const DB_API_FUNCTION_URL = "/api/db_api";
 
-// --- Funciones de Utilidad de Base de Datos ---
-
+// --- Función de Utilidad ---
 async function callDB(action, data = {}, method = 'POST') {
     const options = { method };
     let url = DB_API_FUNCTION_URL;
@@ -16,43 +12,31 @@ async function callDB(action, data = {}, method = 'POST') {
         options.body = JSON.stringify({ action, data });
     } else { // GET
         url = `${DB_API_FUNCTION_URL}?action=${action}`;
-        // Podrías añadir más parámetros si fuera necesario
     }
 
     try {
         const response = await fetch(url, options);
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`DB Error ${response.status}: ${errorData.error}`);
+            throw new Error(`Error de API: ${errorData.error || 'Fallo desconocido'}`);
         }
         return response.json();
     } catch (e) {
-        console.error(`Fallo al ejecutar acción [${action}]:`, e);
-        throw e; // Relanzar el error para que la función que llama lo maneje
+        console.error(`Fallo en callDB [${action}]:`, e);
+        throw e;
     }
 }
 
-
 // --- GESTIÓN DE ARCHIVOS ---
-
-/**
- * Sube un archivo a Firebase Storage.
- * @param {File} file - El archivo a subir.
- * @param {string} path - La ruta en Storage donde se guardará (ej. 'practices/practiceId').
- * @returns {Promise<string>} La URL de descarga del archivo.
- */
 async function uploadFile(file, path) {
     if (!file) throw new Error("Archivo no proporcionado.");
     const storageRef = firebase.storage().ref();
     const fileRef = storageRef.child(`${path}/${file.name}`);
     await fileRef.put(file);
-    const url = await fileRef.getDownloadURL();
-    return url;
+    return await fileRef.getDownloadURL();
 }
 
-
 // --- API DE DOCTOR ---
-
 async function createPractice(practiceData) {
     const result = await callDB('create_practice', practiceData);
     return result.practiceId;
@@ -71,9 +55,17 @@ async function getAllUsers() {
     return result.users || [];
 }
 
+// --- API DE ALUMNO ---
+async function submitStudentReport(practiceId, studentUid, reportUrl) {
+    await callDB('submit_report', { practiceId, studentUid, reportUrl });
+}
+
+async function submitStudentQuiz(practiceId, studentUid, score) {
+    const result = await callDB('submit_quiz', { practiceId, studentUid, score });
+    return result.finalGrade;
+}
 
 // --- API GENERAL ---
-
 async function getPractices() {
     const result = await callDB('get_all_practices', {}, 'GET');
     return result.practices || {};

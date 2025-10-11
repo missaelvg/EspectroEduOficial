@@ -2,7 +2,7 @@
 
 const admin = require('firebase-admin');
 
-// Inicializa Firebase Admin SDK (Vercel/Netlify inyectan las credenciales desde las variables de entorno)
+// Inicializa Firebase Admin SDK
 if (!admin.apps.length) {
     try {
         const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
@@ -16,7 +16,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async (event) => {
-    // Permitir CORS para peticiones desde el frontend
+    // Configuración de CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -40,7 +40,6 @@ exports.handler = async (event) => {
             data = body.data;
         } else { // GET
             action = event.queryStringParameters.action;
-            // Potencialmente pasar data via query params si es necesario para GET
             data = event.queryStringParameters;
         }
         
@@ -48,49 +47,62 @@ exports.handler = async (event) => {
 
         switch (action) {
             case 'get_all_practices': {
-                const practicesSnapshot = await db.collection('practices').get();
+                const snapshot = await db.collection('practices').get();
                 const practices = {};
-                practicesSnapshot.forEach(doc => {
+                snapshot.forEach(doc => {
                     practices[doc.id] = { id: doc.id, ...doc.data() };
                 });
                 return { statusCode: 200, headers, body: JSON.stringify({ practices }) };
             }
 
             case 'get_all_users': {
-                const usersSnapshot = await db.collection('users').get();
-                const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const snapshot = await db.collection('users').get();
+                const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 return { statusCode: 200, headers, body: JSON.stringify({ users }) };
             }
             
             case 'create_practice': {
-                if (!data) throw new Error("Faltan datos para crear la práctica.");
-                const practiceRef = await db.collection('practices').add(data);
-                return { statusCode: 200, headers, body: JSON.stringify({ practiceId: practiceRef.id }) };
+                if (!data) throw new Error("Faltan datos.");
+                const ref = await db.collection('practices').add(data);
+                return { statusCode: 200, headers, body: JSON.stringify({ practiceId: ref.id }) };
             }
 
             case 'update_practice_content': {
-                 if (!data || !data.practiceId || !data.content) throw new Error("Datos incompletos para actualizar práctica.");
-                 await db.collection('practices').doc(data.practiceId).update({
-                     generatedContent: data.content
-                 });
+                 if (!data || !data.practiceId || !data.content) throw new Error("Datos incompletos.");
+                 await db.collection('practices').doc(data.practiceId).update({ generatedContent: data.content });
                  return { statusCode: 200, headers, body: JSON.stringify({ message: 'Contenido actualizado' }) };
             }
             
             case 'enroll_student_to_practice': {
-                if (!data || !data.practiceId || !data.studentUid) throw new Error("Faltan datos para inscribir.");
-
+                if (!data || !data.practiceId || !data.studentUid) throw new Error("Faltan datos.");
                 const practiceRef = db.collection('practices').doc(data.practiceId);
-                // Usamos notación de punto para actualizar un campo específico en un mapa (objeto)
                 await practiceRef.update({
-                    [`students.${data.studentUid}`]: {
-                        enrolled: true,
-                        status: 'Inscrito',
-                        reportUrl: null,
-                        quizScore: null,
-                        completed: false
-                    }
+                    [`students.${data.studentUid}`]: { status: 'Inscrito', reportUrl: null, quizScore: null, completed: false }
                 });
                 return { statusCode: 200, headers, body: JSON.stringify({ message: 'Alumno inscrito' }) };
+            }
+
+            case 'submit_report': {
+                if (!data || !data.practiceId || !data.studentUid || !data.reportUrl) throw new Error("Datos incompletos.");
+                const practiceRef = db.collection('practices').doc(data.practiceId);
+                await practiceRef.update({
+                    [`students.${data.studentUid}.reportUrl`]: data.reportUrl,
+                    [`students.${data.studentUid}.status`]: 'Reporte Entregado. Cuestionario pendiente.'
+                });
+                return { statusCode: 200, headers, body: JSON.stringify({ message: 'Reporte entregado' }) };
+            }
+
+            case 'submit_quiz': {
+                if (!data || !data.practiceId || !data.studentUid || typeof data.score === 'undefined') throw new Error("Datos incompletos.");
+                const practiceRef = db.collection('practices').doc(data.practiceId);
+                const finalGrade = data.score; 
+
+                await practiceRef.update({
+                    [`students.${data.studentUid}.quizScore`]: finalGrade,
+                    [`students.${data.studentUid}.status`]: 'Práctica Finalizada',
+                    [`students.${data.studentUid}.completed`]: true
+                });
+                return { statusCode: 200, headers, body: JSON.stringify({ message: 'Cuestionario entregado', finalGrade }) };
             }
 
             default:

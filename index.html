@@ -6,65 +6,9 @@
 <title>Login - EspectroEdu</title>
 <link rel="stylesheet" href="styles.css">
 
-<script src="scripts/firebase_config.js"></script> 
-<script src="scripts/auth.js"></script>
-<script>
-    // ⭐⭐ CORRECCIÓN DE LA LÓGICA ASÍNCRONA ⭐⭐
-    async function checkInitialAuthAndRun() {
-        // 1. Verificación Asíncrona: Espera a que Firebase cargue el usuario.
-        const user = await getCurrentUser();
-        
-        if (user) {
-            // Si hay usuario logueado, redirige a dashboard
-            window.location.href = 'dashboard.html';
-        }
-        // Si no hay usuario, el formulario de login permanece visible.
-    }
-
-    // Llamada inicial para chequear la sesión
-    checkInitialAuthAndRun();
-
-    async function handleLogin() {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
-
-        const success = await loginUser(email, password); 
-        if (success) {
-            // No usamos window.location.href aquí, la función loginUser ya lo hará de forma implícita
-            // o el chequeo de auth lo hará al cambiar el estado.
-            window.location.href = 'dashboard.html';
-        } else {
-            alert('Credenciales incorrectas o usuario no existe.');
-        }
-    }
-
-    async function handleRegister() {
-        const name = document.getElementById('regName').value;
-        const matricula = document.getElementById('regMatricula').value;
-        const password = document.getElementById('regPassword').value;
-        const group = document.getElementById('regGroup').value;
-        const email = document.getElementById('regEmail').value;
-        
-        if (name && matricula && password && group && email) {
-            const success = await registerUser(name, matricula, password, group, email, 'alumno');
-            if(success) {
-                alert('Registro exitoso. Ya puedes iniciar sesión.');
-                showLogin();
-            }
-        } else {
-            alert('Por favor, rellena todos los campos.');
-        }
-    }
-    
-    function showRegister() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('registerForm').style.display = 'block';
-    }
-    function showLogin() {
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('registerForm').style.display = 'none';
-    }
-</script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
 <header>EspectroEdu: Laboratorio de Óptica</header>
@@ -93,16 +37,23 @@
 <script src="scripts/firebase_config.js"></script> 
 <script src="scripts/auth.js"></script>
 <script>
-    // Verifica si ya hay un usuario logueado (esta función está en auth.js)
-    if (getCurrentUser()) {
-        window.location.href = 'dashboard.html';
+    // ⭐⭐ BLOQUE DE CHEQUEO DE SESIÓN ASÍNCRONO (SOLUCIÓN) ⭐⭐
+    async function checkInitialAuthAndRun() {
+        // Espera a que la promesa de autenticación de Firebase se resuelva.
+        const user = await getCurrentUser();
+        
+        if (user) {
+            window.location.href = 'dashboard.html';
+        }
     }
+
+    // Inicia la verificación para evitar el bucle.
+    checkInitialAuthAndRun();
 
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
 
-        // El loginUser usa Firebase Authentication
         const success = await loginUser(email, password); 
         if (success) {
             window.location.href = 'dashboard.html';

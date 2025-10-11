@@ -1,39 +1,49 @@
+// api/db_api.js
 const admin = require('firebase-admin');
-// IMPORTANTE: Lee las credenciales directamente del archivo JSON
-const serviceAccount = require('./espectroedu-e8856-firebase-adminsdk-fbsvc-44bc6f4a74.json');
 
 // Solo inicializamos si no se ha hecho antes
 if (!admin.apps.length) {
     try {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
     } catch (e) {
-        console.error('Error al inicializar Firebase Admin desde el archivo:', e);
+        console.error('Error CRÍTICO al inicializar Firebase Admin:', e.message);
     }
 }
 
 const db = admin.firestore();
 
-// El resto del código handler se mantiene exactamente igual...
 exports.handler = async (event) => {
     const headers = {
-        'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     };
-    if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers };
+
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 204, headers };
+    }
+
     try {
         let action, data;
         if (event.httpMethod === 'POST') {
             const body = JSON.parse(event.body);
-            action = body.action; data = body.data;
-        } else {
-            action = event.queryStringParameters.action; data = event.queryStringParameters;
+            action = body.action;
+            data = body.data;
+        } else { // GET
+            action = event.queryStringParameters.action;
+            data = event.queryStringParameters;
         }
+
         switch (action) {
             case 'get_all_practices': {
                 const snapshot = await db.collection('practices').get();
                 const practices = {};
-                snapshot.forEach(doc => { practices[doc.id] = { id: doc.id, ...doc.data() }; });
+                snapshot.forEach(doc => {
+                    practices[doc.id] = { id: doc.id, ...doc.data() };
+                });
                 return { statusCode: 200, headers, body: JSON.stringify({ practices }) };
             }
             case 'get_all_users': {
@@ -45,8 +55,10 @@ exports.handler = async (event) => {
                 const ref = await db.collection('practices').add(data);
                 return { statusCode: 200, headers, body: JSON.stringify({ practiceId: ref.id }) };
             }
+            // CORRECCIÓN DE BUG: Acepta el objeto completo de 'content'
             case 'update_practice_content': {
-                 await db.collection('practices').doc(data.practiceId).update({ generatedContent: data.content });
+                 if (!data || !data.practiceId || !data.content) throw new Error("Datos incompletos.");
+                 await db.collection('practices').doc(data.practiceId).update(data.content);
                  return { statusCode: 200, headers, body: JSON.stringify({ message: 'Contenido actualizado' }) };
             }
             case 'enroll_student_to_practice': {
@@ -88,6 +100,10 @@ exports.handler = async (event) => {
         }
     } catch (error) {
         console.error("DB_API Fallo:", error);
-        return { statusCode: 500, headers, body: JSON.stringify({ error: `Error en el servidor: ${error.message}` }) };
+        return { 
+            statusCode: 500, 
+            headers, 
+            body: JSON.stringify({ error: `Error en el servidor: ${error.message}` }) 
+        };
     }
 };

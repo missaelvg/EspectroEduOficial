@@ -174,7 +174,14 @@ async function handlePracticeCreation() {
     button.disabled = true;
     logDiv.innerHTML = '1/5: Creando registro de la práctica...';
     try {
-        const practiceId = await createPractice({ title, students: {}, generatedContent: null });
+        const practiceData = { 
+            title, 
+            students: {}, 
+            generatedContent: null, 
+            creatorId: AppState.user.uid, // Guardamos quién creó la práctica
+            createdAt: new Date()
+        };
+        const practiceId = await createPractice(practiceData);
         logDiv.innerHTML = `2/5: Subiendo archivos a la nube...`;
         const [slidesPdfUrl, standardPdfUrl] = await Promise.all([
             uploadFile(slidesFile, `practices/${practiceId}`),
@@ -186,9 +193,7 @@ async function handlePracticeCreation() {
         logDiv.innerHTML = '4/5: Generando contenido con IA (esto puede tardar)...';
         const generatedContent = await callAIGenerate(slidesText);
 
-        // Guardar todo en Firestore
-        const db = firebase.firestore();
-        await db.collection('practices').doc(practiceId).update({ slidesPdfUrl, standardPdfUrl, slidesText, generatedContent });
+        await savePracticeContent(practiceId, { slidesPdfUrl, standardPdfUrl, slidesText, generatedContent });
 
         logDiv.innerHTML = '<p class="alert-success">✅ ¡Práctica creada con éxito!</p>';
         setTimeout(() => {
@@ -407,47 +412,51 @@ function renderCrossword(practice) {
         container.innerHTML = "<p class='alert-error'>Error: El crucigrama no está disponible.</p>";
         return;
     }
-    // Lógica para generar una grilla simple (esto es un ejemplo y puede mejorarse)
-    // Se asume una grilla de 10x10 para colocar las palabras. Es una simplificación.
     const gridSize = 12;
     let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
     const words = crosswordData.map(w => ({...w, word: w.word.toUpperCase()}));
 
-    // Algoritmo simple para colocar palabras (no garantiza que todas quepan sin colisión)
-    // Para un crucigrama real, se necesita un generador más complejo.
     let placedWords = [];
     try {
         words.forEach((wordObj, i) => {
-            if (i % 2 === 0) { // Horizontal
-                const row = i + 1;
-                const col = 1;
-                for (let j = 0; j < wordObj.word.length; j++) {
-                    grid[row][col + j] = { char: wordObj.word[j], num: j === 0 ? i + 1 : null };
+            let placed = false;
+            // Intenta colocar horizontal
+            if (i % 2 === 0) {
+                if (1 + wordObj.word.length < gridSize) {
+                    const row = i + 1;
+                    const col = 1;
+                    for (let j = 0; j < wordObj.word.length; j++) {
+                        grid[row][col + j] = { char: wordObj.word[j], num: j === 0 ? i + 1 : null };
+                    }
+                    placed = true;
                 }
-            } else { // Vertical
-                const row = 1;
-                const col = i + 1;
-                for (let j = 0; j < wordObj.word.length; j++) {
-                    grid[row + j][col] = { char: wordObj.word[j], num: j === 0 ? i + 1 : null };
+            } else { // Intenta colocar vertical
+                 if (1 + wordObj.word.length < gridSize) {
+                    const row = 1;
+                    const col = i + 1;
+                    for (let j = 0; j < wordObj.word.length; j++) {
+                        grid[row + j][col] = { char: wordObj.word[j], num: j === 0 ? i + 1 : null };
+                    }
+                    placed = true;
                 }
             }
-             placedWords.push({...wordObj, number: i+1});
+             if(placed) placedWords.push({...wordObj, number: i+1});
         });
-    } catch(e) {/* Ignorar si las palabras se salen de la grilla */}
+    } catch(e) { console.error("Error al colocar palabras en el crucigrama", e)}
 
 
     let gridHtml = '<table>';
     for (let r = 0; r < gridSize; r++) {
         gridHtml += '<tr>';
         for (let c = 0; c < gridSize; c++) {
+            gridHtml += `<td class="${grid[r][c] ? '' : 'empty'}" style="position:relative;">`;
             if (grid[r][c]) {
-                gridHtml += `<td>
+                gridHtml += `
                     <input type="text" maxlength="1" data-correct="${grid[r][c].char}" class="crossword-cell">
-                    ${grid[r][c].num ? `<span style="position:absolute; top:1px; left:1px; font-size:9px;">${grid[r][c].num}</span>` : ''}
-                </td>`;
-            } else {
-                gridHtml += '<td class="empty"></td>';
+                    ${grid[r][c].num ? `<span style="position:absolute; top:1px; left:1px; font-size:9px; z-index:1; color: #333;">${grid[r][c].num}</span>` : ''}
+                `;
             }
+             gridHtml += '</td>';
         }
         gridHtml += '</tr>';
     }
@@ -475,12 +484,10 @@ async function handleCrosswordSubmit(event, practiceId) {
     button.textContent = "Calculando Calificación Final...";
 
     try {
-        // Obtener el puntaje del quiz guardado previamente
         const practices = await getPractices();
         const practice = practices[practiceId];
         const quizScore = practice.students[AppState.user.uid].quizScore || 0;
 
-        // Evaluar el crucigrama
         let correctCrosswordCells = 0;
         let totalCrosswordCells = 0;
         const cells = document.querySelectorAll(`#crossword-container-${practiceId} .crossword-cell`);
@@ -488,15 +495,16 @@ async function handleCrosswordSubmit(event, practiceId) {
             totalCrosswordCells++;
             if (cell.value.toUpperCase() === cell.dataset.correct) {
                 correctCrosswordCells++;
+                cell.style.backgroundColor = '#d4edda'; // Verde para correcto
+            } else {
+                 cell.style.backgroundColor = '#f8d7da'; // Rojo para incorrecto
             }
         });
 
         const crosswordScore = (totalCrosswordCells > 0) ? Math.round((correctCrosswordCells / totalCrosswordCells) * 10) : 10;
         
-        // Calcular calificación final (ej. 70% cuestionario, 30% crucigrama)
         const finalGrade = Math.round((quizScore * 0.7) + (crosswordScore * 0.3));
 
-        // Enviar calificación final
         await submitStudentQuiz(practiceId, AppState.user.uid, finalGrade);
         alert(`¡Práctica finalizada! Tu calificación final es: ${finalGrade}/10.`);
         renderStudentPracticesView();

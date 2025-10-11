@@ -22,6 +22,7 @@
     </div>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script src="scripts/firebase_config.js"></script>
 <script src="scripts/auth.js"></script>
@@ -59,7 +60,7 @@
             console.error("Fallo crítico en la inicialización:", error);
             mainContent.innerHTML = `
                 <h2 style="color: red;">Error al Cargar la Aplicación</h2>
-                <p>No se pudo conectar con el servicio. Por favor, revisa tu conexión a internet o intenta más tarde.</p>
+                <p>No se pudo conectar con los servicios. Verifica las reglas de seguridad de Firestore y tu conexión a internet.</p>
                 <p><i>Detalle del error: ${error.message}</i></p>
             `;
         }

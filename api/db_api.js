@@ -1,31 +1,22 @@
-// api/db_api.js (Versión final con soporte para Base64)
+// api/db_api.js (Versión simplificada y final)
 
 const admin = require('firebase-admin');
 
-// Función para inicializar Firebase Admin de forma segura desde Base64
-function initializeFirebaseAdmin() {
-    if (admin.apps.length) {
-        return; // Ya está inicializado
-    }
-
-    const credentialsBase64 = process.env.FIREBASE_ADMIN_CREDENTIALS;
-
-    if (!credentialsBase64) {
-        throw new Error('La variable de entorno FIREBASE_ADMIN_CREDENTIALS no está configurada en Vercel.');
-    }
-
+// Solo inicializamos si no se ha hecho antes
+if (!admin.apps.length) {
     try {
-        // Decodifica la string de Base64 para obtener el JSON original
-        const decodedCredentials = Buffer.from(credentialsBase64, 'base64').toString('utf-8');
-        const serviceAccount = JSON.parse(decodedCredentials);
-
+        // Leemos las credenciales directamente del entorno
+        const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
     } catch (e) {
-        throw new Error('Fallo al decodificar o parsear FIREBASE_ADMIN_CREDENTIALS. Asegúrate de haber copiado la string Base64 correctamente. Error: ' + e.message);
+        // Este error solo se verá en los logs de Vercel, pero es crucial
+        console.error('Error al inicializar Firebase Admin:', e);
     }
 }
+
+const db = admin.firestore();
 
 exports.handler = async (event) => {
     const headers = {
@@ -39,9 +30,6 @@ exports.handler = async (event) => {
     }
 
     try {
-        initializeFirebaseAdmin();
-        const db = admin.firestore();
-        
         let action, data;
         if (event.httpMethod === 'POST') {
             const body = JSON.parse(event.body);

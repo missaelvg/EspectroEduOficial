@@ -155,3 +155,51 @@ button:disabled {
     color: #16a34a;
     font-weight: bold;
 }
+
+/* ... (todo tu CSS anterior) ... */
+
+/* ESTILOS PARA EL CRUCIGRAMA */
+.crossword-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.crossword-grid table {
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.crossword-grid td {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #718093;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.crossword-grid .empty {
+    background: #2d3436;
+    border: 1px solid #2d3436;
+}
+
+.crossword-grid input {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    text-align: center;
+    border: none;
+    font-size: 1em;
+    text-transform: uppercase;
+}
+
+.crossword-clues {
+    flex: 1;
+    min-width: 250px;
+}
+
+.crossword-clues h5 {
+    margin-top: 0;
+    color: #16a34a;
+}

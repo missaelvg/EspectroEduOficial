@@ -8,11 +8,13 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script> </head>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+</head>
 <body>
 <header id="header">
     <div id="header-title">EspectroEdu</div>
-    <nav id="navbar"></nav> <button id="logoutButton" onclick="logoutUser()">Cerrar Sesión</button>
+    <nav id="navbar"></nav>
+    <button id="logoutButton" onclick="logoutUser()">Cerrar Sesión</button>
 </header>
 <main>
     <div id="main-content">
@@ -25,7 +27,8 @@
 <script src="scripts/auth.js"></script>
 <script src="scripts/data_manager.js"></script>
 <script src="scripts/utils.js"></script>
-<script src="scripts/dashboard_views.js"></script> <script>
+<script src="scripts/dashboard_views.js"></script>
+<script>
     // Configura el worker de PDF.js
     if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -36,18 +39,28 @@
      * Verifica la autenticación y carga la vista correspondiente al rol del usuario.
      */
     async function initDashboard() {
-        const user = await checkAuth(); // checkAuth ya redirige si no hay usuario
-        if (!user) return;
+        const mainContent = document.getElementById('main-content');
+        try {
+            const user = await checkAuth(); // checkAuth ya redirige si no hay usuario
+            if (!user) return;
 
-        // Renderiza el contenido según el rol
-        if (user.role === 'doctor') {
-            renderDoctorLayout(user);
-        } else if (user.role === 'alumno') {
-            renderStudentLayout(user);
-        } else {
-            document.getElementById('main-content').innerHTML = `
-                <h2>Rol no reconocido</h2>
-                <p>Tu cuenta no tiene un rol válido asignado. Por favor, contacta al administrador.</p>
+            // Renderiza el contenido según el rol
+            if (user.role === 'doctor') {
+                renderDoctorLayout(user);
+            } else if (user.role === 'alumno') {
+                renderStudentLayout(user);
+            } else {
+                mainContent.innerHTML = `
+                    <h2>Rol no reconocido</h2>
+                    <p>Tu cuenta no tiene un rol válido asignado. Por favor, contacta al administrador.</p>
+                `;
+            }
+        } catch (error) {
+            console.error("Fallo crítico en la inicialización:", error);
+            mainContent.innerHTML = `
+                <h2 style="color: red;">Error al Cargar la Aplicación</h2>
+                <p>No se pudo conectar con el servicio. Por favor, revisa tu conexión a internet o intenta más tarde.</p>
+                <p><i>Detalle del error: ${error.message}</i></p>
             `;
         }
     }

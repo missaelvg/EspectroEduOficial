@@ -60,7 +60,12 @@ async function submitStudentReport(practiceId, studentUid, reportUrl) {
     await callDB('submit_report', { practiceId, studentUid, reportUrl });
 }
 
-async function submitStudentQuiz(practiceId, studentUid, score) {
+// --- NUEVA FUNCIÓN ---
+async function updateStudentProgress(practiceId, studentUid, status, quizScore) {
+    await callDB('update_student_progress', { practiceId, studentUid, status, quizScore });
+}
+
+async function submitStudentQuiz(practiceId, studentUid, score) { // Se mantiene para el paso final
     const result = await callDB('submit_quiz', { practiceId, studentUid, score });
     return result.finalGrade;
 }

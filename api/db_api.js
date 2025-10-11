@@ -16,7 +16,6 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async (event) => {
-    // Configuración de CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -43,9 +42,9 @@ exports.handler = async (event) => {
             data = event.queryStringParameters;
         }
         
-        // --- LÓGICA CENTRAL DE LA BASE DE DATOS ---
-
         switch (action) {
+            // ... (casos 'get_all_practices', 'get_all_users', etc. se mantienen igual)
+
             case 'get_all_practices': {
                 const snapshot = await db.collection('practices').get();
                 const practices = {};
@@ -91,18 +90,31 @@ exports.handler = async (event) => {
                 });
                 return { statusCode: 200, headers, body: JSON.stringify({ message: 'Reporte entregado' }) };
             }
+            
+            // --- NUEVA ACCIÓN ---
+            case 'update_student_progress': {
+                if (!data || !data.practiceId || !data.studentUid || !data.status) throw new Error("Datos incompletos.");
+                const practiceRef = db.collection('practices').doc(data.practiceId);
+                const updateData = { [`students.${data.studentUid}.status`]: data.status };
+                if(typeof data.quizScore !== 'undefined') {
+                    updateData[`students.${data.studentUid}.quizScore`] = data.quizScore;
+                }
+                await practiceRef.update(updateData);
+                return { statusCode: 200, headers, body: JSON.stringify({ message: 'Progreso actualizado' }) };
+            }
 
-            case 'submit_quiz': {
+
+            case 'submit_quiz': { // Esta acción ahora es el paso final
                 if (!data || !data.practiceId || !data.studentUid || typeof data.score === 'undefined') throw new Error("Datos incompletos.");
                 const practiceRef = db.collection('practices').doc(data.practiceId);
                 const finalGrade = data.score; 
 
                 await practiceRef.update({
-                    [`students.${data.studentUid}.quizScore`]: finalGrade,
+                    [`students.${data.studentUid}.quizScore`]: finalGrade, // Se guarda la calificación final
                     [`students.${data.studentUid}.status`]: 'Práctica Finalizada',
                     [`students.${data.studentUid}.completed`]: true
                 });
-                return { statusCode: 200, headers, body: JSON.stringify({ message: 'Cuestionario entregado', finalGrade }) };
+                return { statusCode: 200, headers, body: JSON.stringify({ message: 'Práctica finalizada', finalGrade }) };
             }
 
             default:

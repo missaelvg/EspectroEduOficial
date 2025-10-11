@@ -9,6 +9,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
 </head>
 <body>
 <header>EspectroEdu: Laboratorio de Óptica</header>
@@ -37,23 +39,19 @@
 <script src="scripts/firebase_config.js"></script> 
 <script src="scripts/auth.js"></script>
 <script>
-    // ⭐⭐ BLOQUE DE CHEQUEO DE SESIÓN ASÍNCRONO (SOLUCIÓN) ⭐⭐
+    // Chequeo de sesión asíncrono
     async function checkInitialAuthAndRun() {
-        // Espera a que la promesa de autenticación de Firebase se resuelva.
         const user = await getCurrentUser();
-        
         if (user) {
             window.location.href = 'dashboard.html';
         }
     }
 
-    // Inicia la verificación para evitar el bucle.
     checkInitialAuthAndRun();
 
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
-
         const success = await loginUser(email, password); 
         if (success) {
             window.location.href = 'dashboard.html';

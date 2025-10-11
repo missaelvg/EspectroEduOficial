@@ -4,7 +4,7 @@
   "description": "Sistema LMS para laboratorio de óptica con IA",
   "main": "api/evaluate.js",
   "dependencies": {
-    "firebase-admin": "^11.11.0"
+    "firebase-admin": "^12.1.0"
   },
   "scripts": {
     "start": "vercel dev"

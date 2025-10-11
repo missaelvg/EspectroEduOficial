@@ -2,7 +2,7 @@
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBSGXDBCCwMC1L-t96ATtfVOfdtpiPWWjw",
+  apiKey: "AIzaSyBSGXbBCCwMC1L-t96ATtfVOfdtpiPWWjw",
   authDomain: "espectroedu-e8856.firebaseapp.com",
   projectId: "espectroedu-e8856",
   storageBucket: "espectroedu-e8856.firebasestorage.app",

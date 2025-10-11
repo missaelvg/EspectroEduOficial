@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL DEFINITIVA)
+// scripts/dashboard_views.js (VERSIÓN FINAL Y CORREGIDA)
 
 // Almacén de estado simple para evitar recargar datos
 const AppState = {
@@ -15,7 +15,7 @@ function renderDoctorLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Dr. ${user.username}`;
     const navbar = document.getElementById('navbar');
-    // Se añade la clase 'active' por defecto al primer botón y se simplifica el onclick
+    // CORRECCIÓN: Se añade la clase 'active' por defecto al primer botón
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderDoctorDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderCreatePracticeView();">Crear Práctica</button>
@@ -28,6 +28,7 @@ function renderStudentLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Alumno: ${user.username}`;
     const navbar = document.getElementById('navbar');
+    // CORRECCIÓN: Se añade la clase 'active' por defecto al primer botón
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderStudentDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderStudentPracticesView();">Mis Prácticas</button>
@@ -153,7 +154,6 @@ async function handlePracticeCreation() {
         await savePracticeContent(practiceId, generatedContent);
         logDiv.innerHTML = '<p class="alert-success">✅ ¡Práctica creada con éxito!</p>';
         setTimeout(() => {
-            // Regresa al dashboard y activa el botón
             const firstNavButton = document.querySelector('#navbar button');
             setActive(firstNavButton);
             renderDoctorDashboard();

@@ -26,6 +26,13 @@ header {
     font-weight: bold;
 }
 
+/* Estilos solo para el header del index.html */
+header:not([id='header']) {
+    justify-content: center;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
 nav#navbar {
     display: flex;
     gap: 10px;
@@ -51,6 +58,10 @@ nav#navbar button:hover, nav#navbar button.active {
     background: #dc2626;
     color: white;
     border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 #logoutButton:hover {
@@ -109,6 +120,7 @@ button:hover, .btn:hover {
 button:disabled {
     background-color: #9ca3af;
     cursor: not-allowed;
+    box-shadow: none;
 }
 
 .btn-secondary {
@@ -130,7 +142,13 @@ button:disabled {
 }
 
 .question {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    padding-left: 10px;
+    border-left: 3px solid #eee;
+}
+.question label {
+    display: block;
+    margin-bottom: 8px;
 }
 .score {
     font-size: 1.5em;

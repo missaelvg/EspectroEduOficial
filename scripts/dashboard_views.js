@@ -15,7 +15,6 @@ function renderDoctorLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Dr. ${user.username}`;
     const navbar = document.getElementById('navbar');
-    // CORRECCIÓN: Se añade la clase 'active' por defecto al primer botón
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderDoctorDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderCreatePracticeView();">Crear Práctica</button>
@@ -28,7 +27,6 @@ function renderStudentLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Alumno: ${user.username}`;
     const navbar = document.getElementById('navbar');
-    // CORRECCIÓN: Se añade la clase 'active' por defecto al primer botón
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderStudentDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderStudentPracticesView();">Mis Prácticas</button>
@@ -236,10 +234,13 @@ async function renderStudentPracticesView() {
 
 async function renderStudentGradesView() {
     const contentDiv = document.getElementById('main-content');
+    // **LA CORRECCIÓN ESTÁ AQUÍ**
     contentDiv.innerHTML = '<h2>Mis Calificaciones</h2><div id="grades-list">Cargando...</div>';
     
     try {
+        // Obtenemos la referencia al div DESPUÉS de que ha sido creado en el DOM.
         const gradesListDiv = document.getElementById('grades-list');
+        
         const practices = await getPractices();
         const completedPractices = Object.values(practices).filter(p => p.students?.[AppState.user.uid]?.completed === true);
 
@@ -260,7 +261,8 @@ async function renderStudentGradesView() {
         gradesListDiv.innerHTML = html;
     } catch (e) {
         console.error("Error en renderStudentGradesView:", e);
-        contentDiv.innerHTML = `<p class="alert-error">Error al cargar calificaciones: ${e.message}</p>`;
+        // Si hay un error, lo mostramos dentro del div principal.
+        contentDiv.innerHTML = `<h2>Mis Calificaciones</h2><p class="alert-error">Error al cargar calificaciones: ${e.message}</p>`;
     }
 }
 

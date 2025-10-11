@@ -1,6 +1,6 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL Y CORREGIDA)
+// scripts/dashboard_views.js (VERSIÓN FINAL DEFINITIVA)
 
-// Almacén de estado simple para evitar recargar datos innecesariamente
+// Almacén de estado simple para evitar recargar datos
 const AppState = {
     user: null,
     practices: null,
@@ -15,43 +15,36 @@ function renderDoctorLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Dr. ${user.username}`;
     const navbar = document.getElementById('navbar');
-    // **CORRECCIÓN 1/3: Se añade la clase 'active' por defecto al primer botón**
+    // Se añade la clase 'active' por defecto al primer botón y se simplifica el onclick
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderDoctorDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderCreatePracticeView();">Crear Práctica</button>
         <button onclick="setActive(this); renderManageStudentsView();">Gestionar Alumnos</button>
     `;
     renderDoctorDashboard();
-    // **CORRECCIÓN 2/3: Se elimina la línea que causaba el error**
-    // setActive(navbar.children[0]); // Esta línea se ha borrado
 }
 
 function renderStudentLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Alumno: ${user.username}`;
     const navbar = document.getElementById('navbar');
-    // **CORRECCIÓN 1/3: Se añade la clase 'active' por defecto al primer botón**
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderStudentDashboard();">Dashboard</button>
         <button onclick="setActive(this); renderStudentPracticesView();">Mis Prácticas</button>
         <button onclick="setActive(this); renderStudentGradesView();">Mis Calificaciones</button>
     `;
     renderStudentDashboard();
-    // **CORRECCIÓN 2/3: Se elimina la línea que causaba el error**
-    // setActive(navbar.children[0]); // Esta línea se ha borrado
 }
 
-// **CORRECCIÓN 3/3: Función para resaltar el botón activo (ahora más robusta)**
+// Función para resaltar el botón activo en la barra de navegación
 function setActive(button) {
-    // Primero, quita la clase 'active' de todos los botones de la barra de navegación
     document.querySelectorAll('#navbar button').forEach(btn => btn.classList.remove('active'));
-    // Luego, añade la clase 'active' solo al botón que fue presionado
     button.classList.add('active');
 }
 
 
 // ====================================================
-// VISTAS DEL DOCTOR (Sin cambios funcionales)
+// VISTAS DEL DOCTOR
 // ====================================================
 async function renderDoctorDashboard() {
     const contentDiv = document.getElementById('main-content');
@@ -160,8 +153,9 @@ async function handlePracticeCreation() {
         await savePracticeContent(practiceId, generatedContent);
         logDiv.innerHTML = '<p class="alert-success">✅ ¡Práctica creada con éxito!</p>';
         setTimeout(() => {
-            const firstButton = document.querySelector('#navbar button');
-            setActive(firstButton);
+            // Regresa al dashboard y activa el botón
+            const firstNavButton = document.querySelector('#navbar button');
+            setActive(firstNavButton);
             renderDoctorDashboard();
         }, 2000);
     } catch (e) {

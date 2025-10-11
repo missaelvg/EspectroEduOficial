@@ -1,6 +1,6 @@
 // netlify/functions/generate_content.js
 // Requiere la variable de entorno: GEMINI_API_KEY
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+const GEMINI_API_KEY = "AIzaSyACXWk5kLuYLQKLxaurTD_QP-11PRDSsAM"; 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 exports.handler = async (event) => {

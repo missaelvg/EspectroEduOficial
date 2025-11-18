@@ -1,4 +1,4 @@
-// scripts/data_manager.js
+// scripts/data_manager.js (VERSIÓN ROBUSTA Y SEGURA)
 
 const DB_API_FUNCTION_URL = "/api/db_api";
 
@@ -11,25 +11,42 @@ async function callDB(action, data = {}, method = 'POST') {
         options.headers = { 'Content-Type': 'application/json' };
         options.body = JSON.stringify({ action, data });
     } else { // GET
-        url = `${DB_API_FUNCTION_URL}?action=${action}`;
+        const params = new URLSearchParams({ action, ...data });
+        url = `${DB_API_FUNCTION_URL}?${params.toString()}`;
     }
 
     try {
         const response = await fetch(url, options);
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Error de API: ${errorData.error || 'Fallo desconocido'}`);
+        
+        // Verificar el tipo de contenido de la respuesta
+        const contentType = response.headers.get("content-type");
+        
+        if (contentType && contentType.includes("application/json")) {
+            // Es JSON, procedemos normalmente
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || `Error del servidor: ${response.status}`);
+            }
+            return result;
+        } else {
+            // NO es JSON (probablemente es la página de error "A server error...")
+            const text = await response.text();
+            console.error("Respuesta no-JSON del servidor:", text);
+            throw new Error(`Fallo crítico del servidor (${response.status}). Revisa los logs de Vercel. Detalle: ${text.substring(0, 100)}...`);
         }
-        return response.json();
+
     } catch (e) {
         console.error(`Fallo en callDB [${action}]:`, e);
-        throw e;
+        throw e; // Re-lanzar para que la vista lo maneje
     }
 }
 
 // --- GESTIÓN DE ARCHIVOS ---
 async function uploadFile(file, path) {
     if (!file) throw new Error("Archivo no proporcionado.");
+    // Asegurarse de que storage esté inicializado
+    if (!firebase.storage) throw new Error("Firebase Storage no está disponible.");
+    
     const storageRef = firebase.storage().ref();
     const fileRef = storageRef.child(`${path}/${file.name}`);
     await fileRef.put(file);

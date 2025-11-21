@@ -1,4 +1,4 @@
-// api/db_api.js (VERSIÓN CON GESTIÓN DE USUARIOS)
+// api/db_api.js (VERSIÓN COMPLETA DEFINITIVA)
 const admin = require('firebase-admin');
 
 let db;
@@ -24,7 +24,7 @@ if (!admin.apps.length) {
 }
 
 module.exports = async (req, res) => {
-    // Headers CORS
+    // CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
     }
 
     if (!db) {
-        return res.status(500).json({ error: "Error crítico: No se pudo conectar a la base de datos." });
+        return res.status(500).json({ error: "Error crítico: Base de datos no conectada." });
     }
 
     try {
@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             action = body.action;
             data = body.data;
-        } else { // GET
+        } else { 
             action = req.query.action;
             data = req.query;
         }
@@ -58,9 +58,8 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: "No se especificó ninguna acción." });
         }
 
-        // --- LÓGICA DE LA BASE DE DATOS ---
+        // --- RUTAS ---
 
-        // GET
         if (action === 'get_all_practices') {
             const snapshot = await db.collection('practices').get();
             const practices = {};
@@ -74,15 +73,14 @@ module.exports = async (req, res) => {
             return res.status(200).json({ users });
         }
 
-        // POST: Prácticas
         if (action === 'create_practice') {
             const cleanData = {
                 title: data.title,
                 students: {},
                 generatedContent: null,
-                slidesPdfUrl: data.slidesPdfUrl || "",
-                standardPdfUrl: data.standardPdfUrl || "",
-                slidesText: data.slidesText || "",
+                slidesPdfUrl: "", 
+                standardPdfUrl: "",
+                slidesText: "",
                 createdAt: new Date().toISOString()
             };
             const ref = await db.collection('practices').add(cleanData);
@@ -96,10 +94,11 @@ module.exports = async (req, res) => {
 
         if (action === 'delete_practice') {
             await db.collection('practices').doc(data.practiceId).delete();
-            return res.status(200).json({ message: 'Práctica eliminada' });
+            return res.status(200).json({ message: 'OK' });
         }
 
-        // POST: Gestión de Alumnos en Prácticas
+        // --- GESTIÓN DE ALUMNOS ---
+
         if (action === 'enroll_student_to_practice') {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}`]: { 
@@ -116,55 +115,49 @@ module.exports = async (req, res) => {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}`]: admin.firestore.FieldValue.delete()
             });
-            return res.status(200).json({ message: 'Alumno desinscrito' });
+            return res.status(200).json({ message: 'OK' });
         }
 
-        // POST: Gestión de Perfiles (NUEVO)
-        
-        // Actualizar datos del alumno (excepto matrícula)
+        // --- GESTIÓN DE PERFILES ---
+
         if (action === 'update_user_profile') {
             if (!data.uid || !data.updateData) throw new Error("Faltan datos.");
-            
-            // Filtramos para que NO se pueda cambiar la matrícula ni el rol por seguridad
             const { matricula, role, uid, ...allowedUpdates } = data.updateData;
-            
-            // Actualizamos Firestore
             await db.collection('users').doc(data.uid).update(allowedUpdates);
-            
-            // Si cambió el email, intentamos actualizarlo en Auth también
             if (allowedUpdates.email) {
-                try {
-                    await admin.auth().updateUser(data.uid, { email: allowedUpdates.email });
-                } catch(e) {
-                    console.warn("No se pudo actualizar el email en Auth (puede requerir re-login):", e);
-                }
+                try { await admin.auth().updateUser(data.uid, { email: allowedUpdates.email }); } catch(e) {}
             }
-            return res.status(200).json({ message: 'Perfil actualizado' });
+            return res.status(200).json({ message: 'OK' });
         }
 
-        // Eliminar usuario completo (Docente)
         if (action === 'delete_user') {
             if (!data.uid) throw new Error("Falta el UID.");
-            
-            // 1. Borrar de Authentication (Login)
-            try {
-                await admin.auth().deleteUser(data.uid);
-            } catch (e) {
-                console.warn("Usuario no encontrado en Auth o ya borrado:", e);
-            }
-
-            // 2. Borrar de Firestore (Datos)
+            try { await admin.auth().deleteUser(data.uid); } catch (e) {}
             await db.collection('users').doc(data.uid).delete();
-            
-            return res.status(200).json({ message: 'Usuario eliminado correctamente del sistema' });
+            return res.status(200).json({ message: 'OK' });
         }
 
-        // POST: Acciones del Alumno
+        // --- PROGRESO DEL ALUMNO ---
+
         if (action === 'submit_report') {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}.reportUrl`]: data.reportUrl,
                 [`students.${data.studentUid}.status`]: 'Reporte Entregado'
             });
+            return res.status(200).json({ message: 'OK' });
+        }
+
+        // ESTA ES LA FUNCIÓN QUE FALTABA:
+        if (action === 'update_student_progress') {
+            const practiceRef = db.collection('practices').doc(data.practiceId);
+            const updateData = {
+                [`students.${data.studentUid}.status`]: data.status
+            };
+            // Si viene el puntaje, lo guardamos también
+            if (typeof data.quizScore !== 'undefined') {
+                updateData[`students.${data.studentUid}.quizScore`] = data.quizScore;
+            }
+            await practiceRef.update(updateData);
             return res.status(200).json({ message: 'OK' });
         }
 

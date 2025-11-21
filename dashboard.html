@@ -4,12 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard - EspectroEdu</title>
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="styles.css">
+
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-</head>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script> </head>
 <body>
 <header id="header">
     <div id="header-title">EspectroEdu</div>
@@ -29,23 +30,19 @@
 <script src="scripts/data_manager.js"></script>
 <script src="scripts/utils.js"></script>
 <script src="scripts/dashboard_views.js"></script>
+
 <script>
-    // Configura el worker de PDF.js
+    // Configuración del worker de PDF.js
     if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     }
 
-    /**
-     * Función de inicialización principal.
-     * Verifica la autenticación y carga la vista correspondiente al rol del usuario.
-     */
     async function initDashboard() {
         const mainContent = document.getElementById('main-content');
         try {
-            const user = await checkAuth(); // checkAuth ya redirige si no hay usuario
+            const user = await checkAuth();
             if (!user) return;
 
-            // Renderiza el contenido según el rol
             if (user.role === 'doctor') {
                 renderDoctorLayout(user);
             } else if (user.role === 'alumno') {
@@ -66,7 +63,6 @@
         }
     }
     
-    // Iniciar la aplicación
     initDashboard();
 </script>
 </body>

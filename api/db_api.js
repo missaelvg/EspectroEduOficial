@@ -1,9 +1,9 @@
-// api/db_api.js (VERSIÓN CON BORRADO Y EDICIÓN)
+// api/db_api.js (VERSIÓN CORREGIDA PARA GUARDAR PDFs)
 const admin = require('firebase-admin');
 
 let db;
 
-// Inicialización de Firebase (solo una vez)
+// Inicialización de Firebase
 if (!admin.apps.length) {
     try {
         if (!process.env.FIREBASE_ADMIN_CREDENTIALS) {
@@ -25,7 +25,7 @@ if (!admin.apps.length) {
 }
 
 module.exports = async (req, res) => {
-    // 1. Manejo de CORS
+    // Headers CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -61,7 +61,6 @@ module.exports = async (req, res) => {
 
         // --- LÓGICA DE LA BASE DE DATOS ---
 
-        // GET: Obtener Prácticas
         if (action === 'get_all_practices') {
             const snapshot = await db.collection('practices').get();
             const practices = {};
@@ -69,35 +68,34 @@ module.exports = async (req, res) => {
             return res.status(200).json({ practices });
         }
 
-        // GET: Obtener Usuarios
         if (action === 'get_all_users') {
             const snapshot = await db.collection('users').get();
             const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             return res.status(200).json({ users });
         }
 
-        // POST: Crear Práctica
         if (action === 'create_practice') {
             const cleanData = {
                 title: data.title,
                 students: {},
                 generatedContent: null,
-                slidesPdfUrl: data.slidesPdfUrl || "",
-                standardPdfUrl: data.standardPdfUrl || "",
-                slidesText: data.slidesText || "",
+                slidesPdfUrl: "", // Se llenarán después
+                standardPdfUrl: "",
+                slidesText: "",
                 createdAt: new Date().toISOString()
             };
             const ref = await db.collection('practices').add(cleanData);
             return res.status(200).json({ practiceId: ref.id });
         }
 
-        // POST: Actualizar Contenido
+        // --- CORRECCIÓN CLAVE AQUÍ ---
         if (action === 'update_practice_content') {
-            await db.collection('practices').doc(data.practiceId).update({ generatedContent: data.content });
+            // Antes guardaba todo dentro de 'generatedContent'. 
+            // Ahora usamos data.content directamente para actualizar la raíz del documento (PDFs, texto, etc.)
+            await db.collection('practices').doc(data.practiceId).update(data.content);
             return res.status(200).json({ message: 'OK' });
         }
 
-        // POST: Inscribir Alumno
         if (action === 'enroll_student_to_practice') {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}`]: { 
@@ -110,24 +108,18 @@ module.exports = async (req, res) => {
             return res.status(200).json({ message: 'OK' });
         }
 
-        // POST: Desinscribir Alumno (NUEVO)
         if (action === 'unenroll_student') {
-            if (!data.practiceId || !data.studentUid) throw new Error("Faltan datos.");
-            // Usamos FieldValue.delete() para borrar la clave del mapa
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}`]: admin.firestore.FieldValue.delete()
             });
-            return res.status(200).json({ message: 'Alumno desinscrito correctamente' });
+            return res.status(200).json({ message: 'Alumno desinscrito' });
         }
 
-        // POST: Borrar Práctica (NUEVO)
         if (action === 'delete_practice') {
-            if (!data.practiceId) throw new Error("Falta el ID de la práctica.");
             await db.collection('practices').doc(data.practiceId).delete();
             return res.status(200).json({ message: 'Práctica eliminada' });
         }
 
-        // POST: Entregar Reporte
         if (action === 'submit_report') {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}.reportUrl`]: data.reportUrl,
@@ -136,7 +128,6 @@ module.exports = async (req, res) => {
             return res.status(200).json({ message: 'OK' });
         }
 
-        // POST: Entregar Cuestionario/Finalizar
         if (action === 'submit_quiz') {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}.quizScore`]: data.score,

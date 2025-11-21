@@ -10,7 +10,6 @@ body {
     min-height: 100vh;
 }
 
-/* CORRECCIÓN: Se cambió 'header#header' por 'header' para que aplique a todas las páginas */
 header {
     background: #16a34a;
     color: white;
@@ -26,7 +25,7 @@ header {
     font-weight: bold;
 }
 
-/* Estilos solo para el header del index.html */
+/* Estilos para header en login */
 header:not([id='header']) {
     justify-content: center;
     font-size: 1.5em;
@@ -86,7 +85,8 @@ main {
     border-left: 6px solid #16a34a;
 }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="file"], textarea {
+/* Estilos inputs y SELECT */
+input[type="text"], input[type="email"], input[type="password"], input[type="file"], textarea, select {
     width: 100%;
     padding: 12px;
     margin-top: 8px;
@@ -95,6 +95,7 @@ input[type="text"], input[type="email"], input[type="password"], input[type="fil
     border-radius: 8px;
     box-sizing: border-box;
     font-size: 1em;
+    background-color: #fff;
 }
 
 button, .btn {
@@ -156,50 +157,11 @@ button:disabled {
     font-weight: bold;
 }
 
-/* ... (todo tu CSS anterior) ... */
-
-/* ESTILOS PARA EL CRUCIGRAMA */
-.crossword-container {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
-}
-
-.crossword-grid table {
-    border-collapse: collapse;
-    background: #fff;
-}
-
-.crossword-grid td {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #718093;
-    text-align: center;
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-.crossword-grid .empty {
-    background: #2d3436;
-    border: 1px solid #2d3436;
-}
-
-.crossword-grid input {
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    text-align: center;
-    border: none;
-    font-size: 1em;
-    text-transform: uppercase;
-}
-
-.crossword-clues {
-    flex: 1;
-    min-width: 250px;
-}
-
-.crossword-clues h5 {
-    margin-top: 0;
-    color: #16a34a;
-}
+/* CRUCIGRAMA */
+.crossword-container { display: flex; gap: 30px; flex-wrap: wrap; }
+.crossword-grid table { border-collapse: collapse; background: #fff; }
+.crossword-grid td { width: 30px; height: 30px; border: 1px solid #718093; text-align: center; font-size: 1.2em; font-weight: bold; position: relative; }
+.crossword-grid .empty { background: #2d3436; border: 1px solid #2d3436; }
+.crossword-grid input { width: 100%; height: 100%; padding: 0; text-align: center; border: none; font-size: 1em; text-transform: uppercase; margin:0; }
+.crossword-clues { flex: 1; min-width: 250px; }
+.crossword-clues h5 { margin-top: 0; color: #16a34a; }

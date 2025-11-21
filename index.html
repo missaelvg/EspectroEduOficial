@@ -21,10 +21,12 @@
             <img src="logo.png" alt="Logo EspectroEdu" class="logo-img">
             
             <h1>EspectroEdu</h1>
-            <p class="subtitle">Plataforma Inteligente para Laboratorios de Óptica</p>
+            <p class="subtitle">Laboratorios de Óptica</p>
+            
+            <div class="spectrum-bar"></div>
             
             <div class="welcome-text">
-                <p>Gestiona tus prácticas, reportes y calificaciones en un solo lugar. Potenciado con IA para mejorar tu aprendizaje.</p>
+                <p>Plataforma inteligente para la gestión, análisis y aprendizaje en óptica biomédica.</p>
             </div>
         </div>
     </section>
@@ -33,28 +35,31 @@
         <div class="card form-card">
             
             <div id="loginForm">
-                <h2>Iniciar Sesión</h2>
-                <p class="form-instruction">Ingresa tus credenciales para continuar</p>
+                <h2>¡Hola de nuevo!</h2>
+                <p class="form-instruction">Ingresa tus credenciales para acceder</p>
                 
-                <input type="email" id="loginEmail" placeholder="Correo Electrónico">
-                <input type="password" id="loginPassword" placeholder="Contraseña">
+                <label>Correo Electrónico</label>
+                <input type="email" id="loginEmail" placeholder="ejemplo@espectro.edu">
                 
-                <div style="text-align: right; margin-bottom: 20px;">
+                <label>Contraseña</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+                
+                <div style="text-align: right; margin-bottom: 20px; margin-top: -10px;">
                     <a href="#" onclick="showRecovery()" class="forgot-link">¿Olvidaste tu contraseña?</a>
                 </div>
 
                 <button onclick="handleLogin()" class="btn-full">ENTRAR</button>
                 
                 <div class="form-footer">
-                    ¿Nuevo usuario? <a href="#" onclick="showRegister()">Crea una cuenta</a>
+                    ¿No tienes cuenta? <a href="#" onclick="showRegister()">Regístrate gratis</a>
                 </div>
             </div>
 
             <div id="registerForm" style="display:none;">
                 <h3>Crear Cuenta</h3>
-                <p class="form-instruction">Únete a la comunidad educativa</p>
+                <p class="form-instruction">Completa tus datos para unirte</p>
                 
-                <label for="regRole" style="display:block; margin-bottom:5px;">Soy:</label>
+                <label for="regRole">Soy:</label>
                 <select id="regRole" onchange="toggleGroupInput()">
                     <option value="alumno">Alumno</option>
                     <option value="doctor">Doctor / Docente</option>
@@ -63,7 +68,7 @@
                 <input type="text" id="regName" placeholder="Nombre Completo" required>
                 <input type="text" id="regMatricula" placeholder="Matrícula / ID" required>
                 <input type="text" id="regGroup" placeholder="Grupo" required>
-                <input type="email" id="regEmail" placeholder="Correo Electrónico" required>
+                <input type="email" id="regEmail" placeholder="Correo Institucional" required>
                 <input type="password" id="regPassword" placeholder="Contraseña" required>
                 
                 <button onclick="handleRegister()" class="btn-full">REGISTRARME</button>
@@ -76,13 +81,13 @@
             <div id="recoveryForm" style="display:none;">
                 <h3>Recuperar Acceso</h3>
                 <p class="form-instruction">
-                    Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+                    Ingresa tu correo y te enviaremos un enlace mágico.
                 </p>
-                <input type="email" id="recoveryEmail" placeholder="Tu Correo Electrónico">
-                <button onclick="handleRecovery()" class="btn-full">ENVIAR CORREO</button>
+                <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com">
+                <button onclick="handleRecovery()" class="btn-full">ENVIAR ENLACE</button>
                 
                 <div class="form-footer">
-                    <a href="#" onclick="showLogin()">Volver al inicio</a>
+                    <a href="#" onclick="showLogin()">← Volver al inicio</a>
                 </div>
             </div>
 
@@ -96,13 +101,10 @@
 <script>
     async function checkInitialAuthAndRun() {
         const user = await getCurrentUser();
-        if (user) {
-            window.location.href = 'dashboard.html';
-        }
+        if (user) window.location.href = 'dashboard.html';
     }
     checkInitialAuthAndRun();
 
-    // --- MANEJADORES DE UI ---
     function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }
     function showLogin() { hideAllForms(); document.getElementById('loginForm').style.display = 'block'; }
     function showRecovery() { hideAllForms(); document.getElementById('recoveryForm').style.display = 'block'; }
@@ -124,7 +126,6 @@
         }
     }
 
-    // --- LÓGICA ---
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
@@ -151,7 +152,7 @@
 
     async function handleRecovery() {
         const email = document.getElementById('recoveryEmail').value.trim();
-        if (!email) return alert("Por favor ingresa tu correo.");
+        if (!email) return alert("Ingresa tu correo.");
         const success = await resetPassword(email);
         if (success) { alert(`Correo enviado a ${email}.`); showLogin(); }
     }

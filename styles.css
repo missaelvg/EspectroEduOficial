@@ -1,19 +1,30 @@
-/* styles.css - Diseño Minimalista y Responsivo EspectroEdu */
+/* styles.css - Diseño EspectroEdu (Alusivo al Logo) */
 
 :root {
-    --primary-color: #16a34a;       
-    --primary-hover: #15803d;       
-    --bg-color: #f8fafc;            
-    --card-bg: #ffffff;             
-    --text-main: #1e293b;           
-    --text-muted: #64748b;          
-    --border-color: #e2e8f0;        
-    --danger-color: #ef4444;        
+    /* Colores extraídos de la vibra del logo */
+    --primary-color: #16a34a;       /* El verde de acción */
+    --primary-hover: #15803d;
     
-    --radius-md: 12px;
+    --brand-dark: #0f172a;          /* Azul oscuro profundo (fondo del logo) */
+    --brand-purple: #7e22ce;
+    --brand-blue: #3b82f6;
+    --brand-yellow: #eab308;
+    --brand-red: #ef4444;
+    
+    /* Gradiente del espectro para detalles */
+    --spectrum-gradient: linear-gradient(135deg, #7e22ce, #3b82f6, #16a34a, #eab308, #ef4444);
+
+    --bg-color: #f1f5f9;            /* Gris azulado muy claro */
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --danger-color: #ef4444;
+    
+    --radius-md: 16px;
     --radius-sm: 8px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 * { box-sizing: border-box; }
@@ -30,9 +41,9 @@ body {
     min-height: 100vh;
 }
 
-/* --- HEADER (Solo para Dashboard) --- */
+/* --- HEADER (Dashboard) --- */
 header {
-    background: var(--primary-color);
+    background: var(--brand-dark); /* Ahora el header es oscuro como el logo */
     color: white;
     padding: 1rem 2rem;
     display: flex;
@@ -42,48 +53,50 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: 3px solid transparent;
+    border-image: var(--spectrum-gradient) 1; /* Borde inferior multicolor */
 }
 
-#header-title { font-size: 1.5rem; font-weight: 700; }
+#header-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+body.login-page header { display: none; } /* Ocultar header en login */
 
-/* Ocultar el header viejo en la página de login si existe */
-body.login-page header { display: none; }
-
-nav#navbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+nav#navbar { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 2px; }
 
 nav#navbar button {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid transparent;
     color: white;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     padding: 8px 16px;
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
 }
-
-nav#navbar button:hover { background: rgba(255, 255, 255, 0.25); }
-nav#navbar button.active { background: white; color: var(--primary-color); font-weight: 600; box-shadow: var(--shadow-sm); }
+nav#navbar button:hover { background: rgba(255, 255, 255, 0.2); }
+nav#navbar button.active { background: white; color: var(--brand-dark); font-weight: 700; }
 
 #logoutButton {
-    background: rgba(0,0,0,0.2);
-    color: white;
-    border: none;
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.5);
     border-radius: var(--radius-sm);
     padding: 8px 16px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
     margin-left: 15px;
 }
-#logoutButton:hover { background: var(--danger-color); }
+#logoutButton:hover { background: var(--danger-color); color: white; }
 
-/* --- LAYOUT LOGIN (NUEVO DISEÑO DIVIDIDO) --- */
+/* --- LOGIN PAGE (DISEÑO ACTUALIZADO) --- */
 
 body.login-page {
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    background-color: #f8fafc;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(126, 34, 206, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(22, 163, 74, 0.05) 0px, transparent 50%);
     justify-content: center;
     align-items: center;
 }
@@ -91,19 +104,20 @@ body.login-page {
 .login-container {
     display: flex;
     width: 100%;
-    max-width: 1000px;
+    max-width: 950px;
     background: white;
-    border-radius: 20px;
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
     overflow: hidden;
-    min-height: 600px; /* Altura mínima para que se vea imponente */
+    min-height: 600px;
     margin: 20px;
+    border: 1px solid rgba(255,255,255,0.5);
 }
 
-/* Lado Izquierdo: Bienvenida */
+/* Lado Izquierdo: Identidad de Marca */
 .welcome-side {
     flex: 1;
-    background: var(--primary-color);
+    background-color: var(--brand-dark); /* Fondo oscuro */
     color: white;
     display: flex;
     flex-direction: column;
@@ -112,33 +126,63 @@ body.login-page {
     padding: 3rem;
     text-align: center;
     position: relative;
-    overflow: hidden;
+    z-index: 1;
 }
 
-/* Patrón de fondo sutil para darle textura */
-.welcome-side::before {
+/* Efecto de "Luz/Espectro" de fondo en el lado oscuro */
+.welcome-side::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 20%), 
-                      radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 20%);
-    pointer-events: none;
+    background: radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.15), transparent 60%);
+    z-index: -1;
 }
 
 .logo-img {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
     object-fit: contain;
     margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
     background: white;
     border-radius: 50%;
-    padding: 10px;
+    padding: 12px;
+    /* Sombra suave simulando luz */
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); 
 }
 
-.welcome-side h1 { font-size: 2.5rem; margin: 0; font-weight: 800; letter-spacing: -1px; }
-.welcome-side .subtitle { font-size: 1.1rem; margin-top: 10px; opacity: 0.9; font-weight: 500; }
-.welcome-text { margin-top: 2rem; font-size: 0.95rem; line-height: 1.6; opacity: 0.85; max-width: 80%; margin-left: auto; margin-right: auto; }
+.welcome-side h1 { 
+    font-size: 2.5rem; 
+    margin: 0; 
+    font-weight: 800; 
+    letter-spacing: -1px;
+    background: linear-gradient(to right, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.welcome-side .subtitle { 
+    font-size: 1.1rem; 
+    margin-top: 10px; 
+    color: #94a3b8; 
+    font-weight: 500; 
+}
+
+/* Barra decorativa del espectro */
+.spectrum-bar {
+    height: 6px;
+    width: 60px;
+    background: var(--spectrum-gradient);
+    border-radius: 10px;
+    margin: 25px auto;
+}
+
+.welcome-text { 
+    margin-top: 1rem; 
+    font-size: 0.95rem; 
+    line-height: 1.6; 
+    color: #cbd5e1; 
+    max-width: 85%; 
+}
 
 /* Lado Derecho: Formularios */
 .forms-side {
@@ -146,52 +190,51 @@ body.login-page {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 3rem;
+    padding: 3.5rem;
     background: white;
 }
 
 .form-card {
-    box-shadow: none !important; /* Quitamos sombra de la card interna */
-    border: none !important;
-    padding: 0 !important;
+    box-shadow: none !important; 
+    border: none !important; 
+    padding: 0 !important; 
     margin: 0 !important;
 }
 
-.form-instruction { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
-.form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted); }
-.forgot-link { font-size: 0.85rem; color: var(--primary-color); }
-
-.btn-full { width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px; }
-
-/* --- ESTILOS GENERALES DASHBOARD --- */
-
-main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
-
-.card {
-    background: var(--card-bg);
-    border-radius: var(--radius-md);
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.form-card h2, .form-card h3 {
+    font-size: 1.8rem;
+    color: var(--text-main);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
 }
-.card:hover { box-shadow: var(--shadow-md); } /* Efecto hover solo en dashboard cards */
-.form-card:hover { box-shadow: none; transform: none; } /* Excepción para el login */
 
-.card h2, .card h3, .card h4 { margin-top: 0; color: var(--text-main); margin-bottom: 1rem; }
-.card h4 { color: var(--primary-color); font-weight: 700; }
+.form-instruction { 
+    color: var(--text-muted); 
+    font-size: 0.95rem; 
+    margin-bottom: 2rem; 
+}
 
-/* --- FORMULARIOS ELEMENTOS --- */
+.form-footer { 
+    text-align: center; 
+    margin-top: 2rem; 
+    font-size: 0.9rem; 
+    color: var(--text-muted); 
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+}
 
+.forgot-link { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
+.forgot-link:hover { color: var(--primary-color); }
+
+/* Inputs más elegantes */
 input, select, textarea {
     width: 100%;
-    padding: 12px 16px;
+    padding: 14px 16px;
     margin-top: 6px;
     margin-bottom: 20px;
-    border: 1px solid var(--border-color);
+    border: 2px solid #f1f5f9;
     border-radius: var(--radius-sm);
-    background-color: #f8fafc; /* Fondo input sutil */
+    background-color: #f8fafc;
     font-size: 1rem;
     color: var(--text-main);
     transition: all 0.2s;
@@ -201,69 +244,81 @@ input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     background-color: white;
-    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.05);
 }
 
-label { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
+label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
 
-button, .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+/* Botón principal más llamativo */
+.btn-full { 
+    width: 100%; 
+    padding: 16px; 
+    font-size: 1rem; 
+    margin-top: 10px; 
     background: var(--primary-color);
-    color: #fff;
+    /* Sutil gradiente verde para darle volumen */
+    background: linear-gradient(to bottom, #16a34a, #15803d);
+    box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
+}
+.btn-full:hover {
+    box-shadow: 0 6px 10px -1px rgba(22, 163, 74, 0.4);
+    transform: translateY(-1px);
+}
+
+/* --- GENERAL LAYOUT DASHBOARD --- */
+main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+.card {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.card h4 { color: var(--brand-dark); font-weight: 700; font-size: 1.2rem; }
+
+/* Utilidades */
+button, .btn {
+    background: var(--primary-color);
+    color: white;
     border: none;
     border-radius: var(--radius-sm);
-    padding: 12px 24px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    padding: 10px 20px;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 600;
+    transition: 0.2s;
 }
+.btn-secondary { background: white; color: var(--text-muted); border: 1px solid var(--border-color); }
+.btn-secondary:hover { background: #f8fafc; color: var(--text-main); }
 
-button:hover, .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
-button:active { transform: translateY(0); }
-button:disabled { background-color: #cbd5e1; cursor: not-allowed; transform: none; }
-
-.btn-secondary { background-color: white; color: var(--text-muted); border: 1px solid var(--border-color); }
-.btn-secondary:hover { background-color: #f1f5f9; color: var(--text-main); border-color: #cbd5e1; }
-
-/* --- UTILIDADES Y TABLAS --- */
 .student-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border-color); }
-.student-list-item:last-child { border-bottom: none; }
 .student-list-item:hover { background-color: #f8fafc; }
 
-.alert-error { background-color: #fef2f2; color: var(--danger-color); padding: 12px; border-radius: var(--radius-sm); border: 1px solid #fecaca; margin-top: 15px; font-weight: 600; font-size: 0.9rem; }
-.alert-success { background-color: #f0fdf4; color: var(--primary-color); padding: 12px; border-radius: var(--radius-sm); border: 1px solid #bbf7d0; margin-top: 15px; font-weight: 600; font-size: 0.9rem; }
-.score { font-size: 2rem; color: var(--primary-color); font-weight: 800; display: block; margin-top: 10px; }
-a { color: var(--primary-color); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+.score { font-size: 2rem; color: var(--primary-color); font-weight: 800; }
+.alert-error { background: #fef2f2; color: #b91c1c; padding: 1rem; border-radius: 8px; border: 1px solid #fecaca; }
+.alert-success { background: #f0fdf4; color: #15803d; padding: 1rem; border-radius: 8px; border: 1px solid #bbf7d0; }
+
+a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
 a:hover { color: var(--primary-hover); text-decoration: underline; }
 
-/* --- CRUCIGRAMA --- */
-.crossword-container { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
-.crossword-grid { box-shadow: var(--shadow-md); padding: 10px; background: white; border-radius: var(--radius-sm); }
-.crossword-grid table { border-collapse: collapse; background: #fff; }
-.crossword-grid td { width: 36px; height: 36px; border: 1px solid #cbd5e1; text-align: center; font-size: 1.2rem; font-weight: bold; position: relative; padding: 0; }
-.crossword-grid .empty { background: #1e293b; border-color: #1e293b; }
-.crossword-grid input { width: 100%; height: 100%; padding: 0; margin: 0; text-align: center; border: none; font-size: 1.2rem; font-family: monospace; text-transform: uppercase; background: transparent; color: var(--primary-color); }
-.crossword-grid input:focus { background-color: #f0fdf4; box-shadow: none; }
-.crossword-number { position: absolute; top: 2px; left: 2px; font-size: 9px; line-height: 1; color: #64748b; pointer-events: none; }
-.crossword-clues { flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
-.crossword-clues h5 { margin-top: 0; color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+/* Crucigrama */
+.crossword-container { display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+.crossword-grid { padding: 15px; background: white; border-radius: 12px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
+.crossword-grid table { border-collapse: collapse; }
+.crossword-grid td { width: 34px; height: 34px; border: 1px solid #cbd5e1; text-align: center; position: relative; padding:0; }
+.crossword-grid .empty { background: var(--brand-dark); border-color: var(--brand-dark); }
+.crossword-grid input { width: 100%; height: 100%; border: none; text-align: center; font-family: monospace; font-size: 1.2rem; text-transform: uppercase; margin:0; background: transparent; }
+.crossword-grid input:focus { background: #f0fdf4; box-shadow: none; }
+.crossword-number { position: absolute; top: 1px; left: 2px; font-size: 8px; color: #64748b; pointer-events: none; }
+.crossword-clues { flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+.crossword-clues h5 { color: var(--brand-dark); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-top: 0; }
 
-/* --- RESPONSIVE (MÓVIL) --- */
-@media (max-width: 768px) {
-    .login-container { flex-direction: column; min-height: auto; margin: 10px; }
-    .welcome-side { padding: 2rem 1.5rem; }
-    .forms-side { padding: 2rem 1.5rem; }
-    
-    header { flex-direction: column; gap: 15px; padding: 1rem; text-align: center; }
-    nav#navbar { width: 100%; justify-content: center; flex-wrap: wrap; }
-    main { padding: 1rem; }
-    
-    .student-list-item { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .student-list-item > div { width: 100%; text-align: left !important; }
+/* Responsive */
+@media (max-width: 850px) {
+    .login-container { flex-direction: column; height: auto; min-height: auto; }
+    .welcome-side { padding: 3rem 2rem; }
+    .forms-side { padding: 2rem; }
+    header { flex-direction: column; gap: 15px; text-align: center; }
 }

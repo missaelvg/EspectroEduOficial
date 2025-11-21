@@ -1,4 +1,4 @@
-// scripts/data_manager.js (VERSIÓN ROBUSTA Y SEGURA)
+// scripts/data_manager.js
 
 const DB_API_FUNCTION_URL = "/api/db_api";
 
@@ -18,35 +18,28 @@ async function callDB(action, data = {}, method = 'POST') {
     try {
         const response = await fetch(url, options);
         
-        // Verificar el tipo de contenido de la respuesta
         const contentType = response.headers.get("content-type");
-        
         if (contentType && contentType.includes("application/json")) {
-            // Es JSON, procedemos normalmente
             const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.error || `Error del servidor: ${response.status}`);
+                throw new Error(result.error || `Error lógico del servidor: ${response.status}`);
             }
             return result;
         } else {
-            // NO es JSON (probablemente es la página de error "A server error...")
             const text = await response.text();
-            console.error("Respuesta no-JSON del servidor:", text);
-            throw new Error(`Fallo crítico del servidor (${response.status}). Revisa los logs de Vercel. Detalle: ${text.substring(0, 100)}...`);
+            console.error("Respuesta crítica del servidor (No JSON):", text);
+            throw new Error(`Error de Servidor (${response.status}). Posible falta de credenciales en Vercel.`);
         }
 
     } catch (e) {
         console.error(`Fallo en callDB [${action}]:`, e);
-        throw e; // Re-lanzar para que la vista lo maneje
+        throw e;
     }
 }
 
 // --- GESTIÓN DE ARCHIVOS ---
 async function uploadFile(file, path) {
     if (!file) throw new Error("Archivo no proporcionado.");
-    // Asegurarse de que storage esté inicializado
-    if (!firebase.storage) throw new Error("Firebase Storage no está disponible.");
-    
     const storageRef = firebase.storage().ref();
     const fileRef = storageRef.child(`${path}/${file.name}`);
     await fileRef.put(file);
@@ -65,6 +58,16 @@ async function savePracticeContent(practiceId, content) {
 
 async function enrollStudent(practiceId, studentUid) {
     await callDB('enroll_student_to_practice', { practiceId, studentUid });
+}
+
+// NUEVO: Sacar a un alumno de una práctica
+async function unenrollStudent(practiceId, studentUid) {
+    await callDB('unenroll_student', { practiceId, studentUid });
+}
+
+// NUEVO: Borrar práctica
+async function deletePractice(practiceId) {
+    await callDB('delete_practice', { practiceId });
 }
 
 async function getAllUsers() {

@@ -1,6 +1,5 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL Y CORREGIDA)
+// scripts/dashboard_views.js (VERSIÓN COMPLETA CON EDICIÓN Y BORRADO)
 
-// Almacén de estado simple
 const AppState = {
     user: null,
 };
@@ -56,7 +55,10 @@ async function renderDoctorDashboard() {
                 const studentCount = Object.keys(p.students || {}).length;
                 html += `
                     <div class="card">
-                        <h4>${p.title}</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h4>${p.title}</h4>
+                            <button onclick="handleDeletePractice('${p.id}')" style="background-color:#dc2626; font-size:0.8em; padding:5px 10px;">Borrar</button>
+                        </div>
                         <p>${studentCount} alumno(s) inscrito(s).</p>
                         <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a>
                         <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar</a>
@@ -91,26 +93,50 @@ async function renderManageStudentsView() {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
         const allStudents = users.filter(u => u.role === 'alumno');
         
-        const assignedStudents = new Set();
-        Object.values(practices).forEach(p => Object.keys(p.students || {}).forEach(id => assignedStudents.add(id)));
+        // Mapa para saber en qué práctica está cada alumno
+        const studentPracticeMap = {};
+        Object.values(practices).forEach(p => {
+            Object.keys(p.students || {}).forEach(sid => {
+                studentPracticeMap[sid] = { id: p.id, title: p.title };
+            });
+        });
         
-        const unassignedStudents = allStudents.filter(u => !assignedStudents.has(u.uid));
-        
-        let html = `<h3>Alumnos sin Práctica Asignada</h3>`;
-        if (Object.keys(practices).length === 0) {
-            html += `<p>Primero debes crear al menos una práctica para poder inscribir alumnos.</p>`;
-        } else if (unassignedStudents.length === 0) {
-            html += `<p>Todos los alumnos ya están inscritos en al menos una práctica.</p>`;
+        let html = `<h3>Estado de los Alumnos</h3>`;
+        if (allStudents.length === 0) {
+            html += `<p>No hay alumnos registrados en el sistema.</p>`;
         } else {
-            unassignedStudents.forEach(student => {
+            allStudents.forEach(student => {
+                const currentPractice = studentPracticeMap[student.uid];
                 html += `
                     <div class="student-list-item">
-                        <span>${student.username} (${student.matricula})</span>
-                        <div>
-                            <select id="practice-select-${student.uid}">${Object.values(practices).map(p => `<option value="${p.id}">${p.title}</option>`).join('')}</select>
-                            <button onclick="enrollStudentHandler('${student.uid}')">Inscribir</button>
+                        <div style="flex:1;">
+                            <strong>${student.username}</strong> <br> 
+                            <small>Matrícula: ${student.matricula}</small>
                         </div>
-                    </div>`;
+                        <div style="flex:1; text-align:right;">
+                `;
+
+                if (currentPractice) {
+                    // Si ya tiene práctica, mostramos cuál es y botón de desinscribir
+                    html += `
+                        <span style="color:#16a34a; font-weight:bold;">Inscrito en: ${currentPractice.title}</span>
+                        <button onclick="handleUnenroll('${currentPractice.id}', '${student.uid}')" style="background-color:#f39c12; margin-left:10px; font-size:0.8em;">Desinscribir / Editar</button>
+                    `;
+                } else {
+                    // Si no tiene práctica, mostramos selector para inscribir
+                    if (Object.keys(practices).length > 0) {
+                        html += `
+                            <select id="practice-select-${student.uid}" style="padding:5px; width:auto; margin-right:5px;">
+                                <option value="">Seleccionar Práctica...</option>
+                                ${Object.values(practices).map(p => `<option value="${p.id}">${p.title}</option>`).join('')}
+                            </select>
+                            <button onclick="enrollStudentHandler('${student.uid}')" style="font-size:0.8em;">Inscribir</button>
+                        `;
+                    } else {
+                        html += `<span style="color:#7f8c8d;">Crea una práctica primero</span>`;
+                    }
+                }
+                html += `</div></div>`;
             });
         }
         document.getElementById('students-management-area').innerHTML = html;
@@ -142,7 +168,7 @@ async function renderDoctorGradesView() {
                         const studentInfo = usersMap.get(studentId);
                         const name = studentInfo ? `${studentInfo.username} (${studentInfo.matricula})` : `ID: ${studentId}`;
                         const grade = studentData.completed ? `<strong>${studentData.quizScore}/10</strong>` : '<i>Pendiente</i>';
-                        html += `<li>${name} - Calificación: ${grade}</li>`;
+                        html += `<li>${name} - Calificación Final: ${grade}</li>`;
                     }
                     html += '</ul>';
                 }
@@ -158,6 +184,31 @@ async function renderDoctorGradesView() {
 
 
 // --- MANEJADORES DE LÓGICA DEL DOCTOR ---
+
+async function handleDeletePractice(practiceId) {
+    if (confirm("¿Estás SEGURO de que quieres borrar esta práctica? Se perderá el progreso de todos los alumnos inscritos en ella.")) {
+        try {
+            await deletePractice(practiceId);
+            alert("Práctica eliminada.");
+            renderDoctorDashboard();
+        } catch (e) {
+            alert("Error al eliminar: " + e.message);
+        }
+    }
+}
+
+async function handleUnenroll(practiceId, studentUid) {
+    if (confirm("¿Desinscribir a este alumno? Perderá su progreso actual en esta práctica.")) {
+        try {
+            await unenrollStudent(practiceId, studentUid);
+            alert("Alumno desinscrito. Ahora puedes asignarlo a otra práctica.");
+            renderManageStudentsView();
+        } catch (e) {
+            alert("Error al desinscribir: " + e.message);
+        }
+    }
+}
+
 async function handlePracticeCreation() {
     const title = document.getElementById('practiceTitle').value;
     const slidesFile = document.getElementById('slidesFile').files[0];
@@ -208,7 +259,7 @@ async function enrollStudentHandler(studentUid) {
     const select = document.getElementById(`practice-select-${studentUid}`);
     const practiceId = select.value;
     if (!practiceId) {
-        alert("No hay prácticas disponibles.");
+        alert("Selecciona una práctica.");
         return;
     }
     try {
@@ -222,7 +273,7 @@ async function enrollStudentHandler(studentUid) {
 
 
 // ====================================================
-// VISTAS DEL ALUMNO
+// VISTAS DEL ALUMNO (Sin cambios mayores)
 // ====================================================
 
 function renderStudentDashboard() {
@@ -242,7 +293,7 @@ async function renderStudentPracticesView() {
         const myPractices = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
 
         if (myPractices.length === 0) {
-            document.getElementById('student-practices-list').innerHTML = '<p>Aún no has sido inscrito en ninguna práctica.</p>';
+            document.getElementById('student-practices-list').innerHTML = '<p>Aún no has sido inscrito en ninguna práctica. Contacta a tu doctor.</p>';
             return;
         }
 

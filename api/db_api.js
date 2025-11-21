@@ -1,4 +1,4 @@
-// api/db_api.js (VERSIÓN COMPATIBLE CON VERCEL)
+// api/db_api.js (VERSIÓN CON BORRADO Y EDICIÓN)
 const admin = require('firebase-admin');
 
 let db;
@@ -10,7 +10,6 @@ if (!admin.apps.length) {
             throw new Error("Falta la variable de entorno FIREBASE_ADMIN_CREDENTIALS");
         }
         const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
-        // Corrección de saltos de línea para Vercel
         if (serviceAccount.private_key) {
             serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
         }
@@ -20,13 +19,11 @@ if (!admin.apps.length) {
         db = admin.firestore();
     } catch (e) {
         console.error('Error al inicializar Firebase:', e);
-        // No podemos hacer nada si falla la DB, así que dejamos db como undefined
     }
 } else {
     db = admin.firestore();
 }
 
-// Exportación por defecto para Vercel (req, res)
 module.exports = async (req, res) => {
     // 1. Manejo de CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -37,13 +34,11 @@ module.exports = async (req, res) => {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     );
 
-    // Responder a la solicitud "preflight" OPTIONS inmediatamente
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
     }
 
-    // 2. Verificación de error inicial
     if (!db) {
         return res.status(500).json({ error: "Error crítico: No se pudo conectar a la base de datos." });
     }
@@ -51,9 +46,7 @@ module.exports = async (req, res) => {
     try {
         let action, data;
 
-        // 3. Extracción de datos según el método (Vercel parsea req.body automáticamente)
         if (req.method === 'POST') {
-            // En Vercel, req.body ya es un objeto si el Content-Type es application/json
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             action = body.action;
             data = body.data;
@@ -115,6 +108,23 @@ module.exports = async (req, res) => {
                 }
             });
             return res.status(200).json({ message: 'OK' });
+        }
+
+        // POST: Desinscribir Alumno (NUEVO)
+        if (action === 'unenroll_student') {
+            if (!data.practiceId || !data.studentUid) throw new Error("Faltan datos.");
+            // Usamos FieldValue.delete() para borrar la clave del mapa
+            await db.collection('practices').doc(data.practiceId).update({
+                [`students.${data.studentUid}`]: admin.firestore.FieldValue.delete()
+            });
+            return res.status(200).json({ message: 'Alumno desinscrito correctamente' });
+        }
+
+        // POST: Borrar Práctica (NUEVO)
+        if (action === 'delete_practice') {
+            if (!data.practiceId) throw new Error("Falta el ID de la práctica.");
+            await db.collection('practices').doc(data.practiceId).delete();
+            return res.status(200).json({ message: 'Práctica eliminada' });
         }
 
         // POST: Entregar Reporte

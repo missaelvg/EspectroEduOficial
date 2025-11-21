@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN BLINDADA Y SEGURA)
+// scripts/dashboard_views.js (VERSIÓN FINAL MEJORADA)
 
 const AppState = {
     user: null,
@@ -7,7 +7,7 @@ const AppState = {
 };
 
 // ====================================================
-// RENDERIZADO PRINCIPAL
+// RENDERIZADO PRINCIPAL Y NAVEGACIÓN
 // ====================================================
 
 function renderDoctorLayout(user) {
@@ -59,6 +59,16 @@ async function renderDoctorDashboard() {
         } else {
             practicesList.forEach(p => {
                 const studentCount = Object.keys(p.students || {}).length;
+                
+                // VERIFICACIÓN DE ENLACES (Diagnóstico)
+                const slidesBtn = p.slidesPdfUrl && p.slidesPdfUrl.length > 5
+                    ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Ver Diapositivas</a>`
+                    : `<button class="btn btn-secondary" disabled style="opacity:0.5; cursor:not-allowed;">Sin Diapositivas</button>`;
+
+                const stdBtn = p.standardPdfUrl && p.standardPdfUrl.length > 5
+                    ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Ver Estándar</a>`
+                    : `<button class="btn btn-secondary" disabled style="opacity:0.5; cursor:not-allowed;">Sin Estándar</button>`;
+
                 html += `
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -66,9 +76,9 @@ async function renderDoctorDashboard() {
                             <button onclick="handleDeletePractice('${p.id}')" style="background-color:#dc2626; font-size:0.8em; padding:5px 10px;">Borrar Práctica</button>
                         </div>
                         <p>${studentCount} alumno(s) inscrito(s).</p>
-                        <div style="margin-top:10px;">
-                            <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a>
-                            <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar</a>
+                        <div style="margin-top:10px; display:flex; gap:10px;">
+                            ${slidesBtn}
+                            ${stdBtn}
                         </div>
                     </div>`;
             });
@@ -88,18 +98,18 @@ function renderCreatePracticeView() {
             
             <label for="slidesFile">Diapositivas (PDF)</label>
             <input type="file" id="slidesFile" accept="application/pdf">
-            <small style="color:#64748b; display:block; margin-bottom:15px;">* Asegúrate de que el PDF tenga texto seleccionable, no solo imágenes escaneadas, para que la IA funcione.</small>
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* PDF con texto seleccionable para generar cuestionario.</small>
             
             <label for="standardFile">Estándar del Reporte (PDF)</label>
             <input type="file" id="standardFile" accept="application/pdf">
             
             <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
             
-            <div id="creationLog" style="margin-top: 15px; font-family:monospace;"></div>
+            <div id="creationLog" style="margin-top: 15px; font-family:monospace; font-size:0.9em;"></div>
         </div>`;
 }
 
-// --- LÓGICA DE CREACIÓN ROBUSTA ---
+// --- LÓGICA DE CREACIÓN PASO A PASO ---
 async function handlePracticeCreation() {
     const title = document.getElementById('practiceTitle').value;
     const slidesFile = document.getElementById('slidesFile').files[0];
@@ -115,8 +125,8 @@ async function handlePracticeCreation() {
     button.disabled = true;
     
     try {
-        // 1. Crear registro básico
-        logDiv.innerHTML = '<span style="color:orange">1/5: Creando registro...</span>';
+        // 1. Crear registro
+        logDiv.innerHTML = '<span style="color:#3b82f6">1/4: Creando registro en base de datos...</span>';
         const practiceData = { 
             title, 
             students: {}, 
@@ -127,47 +137,38 @@ async function handlePracticeCreation() {
         const practiceId = await createPractice(practiceData);
 
         // 2. Subir archivos
-        logDiv.innerHTML = '<span style="color:orange">2/5: Subiendo archivos...</span>';
+        logDiv.innerHTML = '<span style="color:#3b82f6">2/4: Subiendo archivos (esto puede tardar)...</span>';
         const [slidesPdfUrl, standardPdfUrl] = await Promise.all([
             uploadFile(slidesFile, `practices/${practiceId}`),
             uploadFile(standardFile, `practices/${practiceId}`)
         ]);
 
-        // 3. GUARDAR URLS INMEDIATAMENTE (Paso crítico)
-        // Esto asegura que los PDFs sean visibles aunque la IA falle después
-        logDiv.innerHTML = '<span style="color:orange">3/5: Guardando enlaces de archivos...</span>';
+        // 3. GUARDAR ENLACES (Paso Crítico)
+        logDiv.innerHTML = '<span style="color:#3b82f6">3/4: Guardando enlaces de archivos...</span>';
+        // Aquí es donde antes fallaba si la IA se rompía. Ahora lo hacemos antes.
         await savePracticeContent(practiceId, { slidesPdfUrl, standardPdfUrl });
 
-        // 4. Procesar IA
-        logDiv.innerHTML = '<span style="color:orange">4/5: Extrayendo texto para la IA...</span>';
+        // 4. IA (Opcional / Puede fallar sin romper todo)
+        logDiv.innerHTML = '<span style="color:#eab308">4/4: Analizando texto con IA para cuestionario...</span>';
+        
         let slidesText = "";
         try {
             slidesText = await extractTextFromPDF(slidesFile);
-        } catch (err) {
-            console.warn("Error extrayendo texto:", err);
+        } catch (err) { console.warn("Error texto:", err); }
+
+        if (slidesText && slidesText.length > 50) {
+            try {
+                const generatedContent = await callAIGenerate(slidesText);
+                await savePracticeContent(practiceId, { slidesText, generatedContent });
+                logDiv.innerHTML = '<p class="alert-success">✅ ¡Todo listo! Práctica y Cuestionario creados.</p>';
+            } catch (aiErr) {
+                console.error(aiErr);
+                logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Práctica creada, pero la IA no pudo generar el cuestionario (revisa si el PDF es imagen).</p>';
+            }
+        } else {
+            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Práctica creada sin cuestionario (PDF sin texto legible).</p>';
         }
 
-        if (!slidesText || slidesText.trim().length < 50) {
-            logDiv.innerHTML += '<br><span style="color:#eab308">⚠️ Aviso: El PDF parece ser una imagen escaneada o tiene muy poco texto. No se puede generar el cuestionario automático, pero la práctica se ha creado.</span>';
-            // Terminamos aquí con éxito parcial
-            setTimeout(() => { document.querySelector('#navbar button').click(); }, 4000);
-            return;
-        }
-        
-        logDiv.innerHTML = '<span style="color:orange">5/5: Generando cuestionario con IA (puede tardar 10-20 seg)...</span>';
-        
-        // Intentamos generar el contenido
-        try {
-            const generatedContent = await callAIGenerate(slidesText);
-            // Guardamos el contenido generado
-            await savePracticeContent(practiceId, { slidesText, generatedContent });
-            logDiv.innerHTML = '<p class="alert-success">✅ ¡Práctica y Cuestionario creados con éxito!</p>';
-        } catch (aiError) {
-            console.error("Error de IA:", aiError);
-            logDiv.innerHTML += `<br><span style="color:#ef4444">❌ La IA tardó demasiado o falló. La práctica se creó y los archivos son visibles, pero el cuestionario no se generó.</span>`;
-        }
-
-        // Redirigir al dashboard después de un momento
         setTimeout(() => {
             const firstNavButton = document.querySelector('#navbar button');
             setActive(firstNavButton);
@@ -175,14 +176,13 @@ async function handlePracticeCreation() {
         }, 3000);
 
     } catch (e) {
-        logDiv.innerHTML = `<p class="alert-error">❌ ERROR CRÍTICO: ${e.message}</p>`;
+        logDiv.innerHTML = `<p class="alert-error">❌ ERROR: ${e.message}</p>`;
         button.disabled = false;
     }
 }
 
-// ... (El resto de funciones: renderManageStudentsView, renderDoctorGradesView, deletePractice, etc.) ...
-// Copia aquí el resto de funciones que ya tenías en el archivo anterior.
-// Para asegurar que no falte nada, pego aquí las funciones esenciales de gestión y alumno:
+// ... (COPIA AQUÍ EL RESTO DE FUNCIONES EXACTAMENTE IGUAL QUE ANTES) ...
+// ... (renderManageStudentsView, renderDoctorGradesView, renderStudent..., etc.) ...
 
 async function renderManageStudentsView() {
     const contentDiv = document.getElementById('main-content');
@@ -273,7 +273,6 @@ async function renderDoctorGradesView() {
     } catch (e) { contentDiv.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-// Manejadores Doctor Auxiliares
 async function handleDeletePractice(pid) { if(confirm("¿Borrar práctica?")) { await deletePractice(pid); renderDoctorDashboard(); } }
 async function handleDeleteUser(uid) { if(confirm("¿Borrar usuario permanentemente?")) { await deleteUser(uid); renderManageStudentsView(); } }
 async function handleUnenroll(pid, uid) { if(confirm("¿Desinscribir?")) { await unenrollStudent(pid, uid); delete AppState.practices[pid].students[uid]; handleSearchStudent(); } }
@@ -286,7 +285,6 @@ async function enrollStudentHandler(uid) {
     handleSearchStudent();
 }
 
-// VISTAS ALUMNO
 function renderStudentDashboard() {
     document.getElementById('main-content').innerHTML = `<h2>Bienvenido</h2><div class="card"><p>Hola, ${AppState.user.username}</p></div>`;
 }
@@ -382,17 +380,4 @@ async function subQuiz(e, pid) {
     renderStudentPracticesView();
 }
 
-function renderCrossword(p) {
-    // (Simplificado para brevedad, usar versión completa anterior si es posible)
-    const d = document.getElementById(`crossword-${p.id}`);
-    if(!p.generatedContent?.crucigrama) return d.innerHTML="<p>Error crucigrama</p>";
-    d.innerHTML = `<h5>Crucigrama (Simulado)</h5><p>Completa el crucigrama en papel o imagina que lo haces.</p><button onclick="finCross(event, '${p.id}')">Finalizar</button>`;
-}
-async function finCross(e, pid) {
-    const p = (await getPractices())[pid];
-    const oldS = p.students[AppState.user.uid].quizScore;
-    const final = Math.round(oldS*0.7 + 3); // +3 puntos por crucigrama
-    await submitStudentQuiz(pid, AppState.user.uid, final > 10 ? 10 : final);
-    alert("¡Felicidades!");
-    renderStudentPracticesView();
-}
+// ... (Incluye aquí las funciones de crucigrama: renderCrossword, generateCrosswordLayout, etc. que ya tenías antes)

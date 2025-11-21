@@ -5,7 +5,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBSGXbBCCwMC1L-t96ATtfVOfdtpiPWWjw",
   authDomain: "espectroedu-e8856.firebaseapp.com",
   projectId: "espectroedu-e8856",
-  storageBucket: "espectroedu-e8856.appspot.com", // <-- CORRECCIÓN APLICADA AQUÍ
+  storageBucket: "espectroedu-e8856.firebasestorage.app", // 
   messagingSenderId: "207748203701",
   appId: "1:207748203701:web:953df6a7ccd3f686b7eafc",
   measurementId: "G-Z2J9XT9PHC"

@@ -1,18 +1,13 @@
-/* styles.css - Diseño EspectroEdu (Tema Azul Profundo) */
+/* styles.css - Diseño EspectroEdu (Full Screen) */
 
 :root {
-    /* --- PALETA DE COLORES ACTUALIZADA (TODO AZUL) --- */
-    
-    /* Nuevo color principal de acción (Azul vibrante del espectro) */
+    /* Paleta de colores (Azul Profundo y Vibrante) */
     --primary-color: #3b82f6;       
-    /* Color para hover (Azul un poco más oscuro) */
     --primary-hover: #2563eb;
-
-    /* Colores de marca (del logo) */
-    --brand-dark: #0f172a;          /* Azul oscuro profundo (fondo) */
+    
+    --brand-dark: #0f172a;          /* Fondo oscuro */
     --spectrum-gradient: linear-gradient(135deg, #7e22ce, #3b82f6, #06b6d4, #eab308, #ef4444);
 
-    /* Neutros */
     --bg-color: #f1f5f9;
     --card-bg: #ffffff;
     --text-main: #1e293b;
@@ -20,11 +15,10 @@
     --border-color: #e2e8f0;
     --danger-color: #ef4444;
     
-    /* UI */
-    --radius-md: 16px;
-    --radius-sm: 8px;
+    --radius-md: 20px; /* Bordes más redondeados para el diseño grande */
+    --radius-sm: 10px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 * { box-sizing: border-box; }
@@ -41,7 +35,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- HEADER (Dashboard) --- */
+/* --- HEADER (Solo Dashboard) --- */
 header {
     background: var(--brand-dark);
     color: white;
@@ -90,41 +84,44 @@ nav#navbar button.active { background: white; color: var(--brand-dark); font-wei
 }
 #logoutButton:hover { background: var(--danger-color); color: white; }
 
-/* --- LOGIN PAGE --- */
+/* --- LOGIN PAGE (ESTILO FULL SCREEN) --- */
 
 body.login-page {
-    background-color: #f8fafc;
-    /* Gradientes de fondo sutiles ahora en azul/violeta */
+    background-color: #0f172a; /* Fondo oscuro detrás del contenedor */
+    /* Patrón sutil de fondo */
     background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(126, 34, 206, 0.05) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(126, 34, 206, 0.15) 0px, transparent 50%);
     justify-content: center;
     align-items: center;
+    height: 100vh; /* Asegura que ocupe toda la altura */
+    overflow: hidden; /* Evita scrolls innecesarios */
 }
 
 .login-container {
     display: flex;
-    width: 100%;
-    max-width: 950px;
+    /* CAMBIO CLAVE: Ocupar casi toda la pantalla */
+    width: 96%;
+    height: 92vh; 
+    max-width: 1800px; /* Límite para monitores ultra-wide */
+    
     background: white;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
     overflow: hidden;
-    min-height: 600px;
-    margin: 20px;
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 /* Lado Izquierdo: Identidad de Marca */
 .welcome-side {
-    flex: 1;
+    flex: 1.2; /* Un poco más ancho que el formulario */
     background-color: var(--brand-dark);
     color: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 3rem;
+    padding: 4rem;
     text-align: center;
     position: relative;
     z-index: 1;
@@ -134,52 +131,51 @@ body.login-page {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.2), transparent 60%);
+    background: radial-gradient(circle at 50% 40%, rgba(59, 130, 246, 0.2), transparent 70%);
     z-index: -1;
 }
 
 .logo-img {
-    width: 130px;
-    height: 130px;
+    /* Logo más grande para llenar el espacio */
+    width: 180px; 
+    height: 180px;
     object-fit: contain;
-    margin-bottom: 1.5rem;
-    background: white;
-    border-radius: 50%;
-    padding: 12px;
-    box-shadow: 0 0 35px rgba(59, 130, 246, 0.4); 
+    margin-bottom: 2rem;
+    /* Efecto de luz sin fondo blanco */
+    filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.5));
 }
 
 .welcome-side h1 { 
-    font-size: 2.5rem; 
+    font-size: 3.5rem; /* Título más impactante */
     margin: 0; 
     font-weight: 800; 
-    letter-spacing: -1px;
+    letter-spacing: -2px;
     background: linear-gradient(to right, #ffffff, #e0f2fe);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .welcome-side .subtitle { 
-    font-size: 1.1rem; 
-    margin-top: 10px; 
-    color: #bae6fd; /* Azul muy claro */
+    font-size: 1.4rem; 
+    margin-top: 15px; 
+    color: #bae6fd; 
     font-weight: 500; 
 }
 
 .spectrum-bar {
-    height: 6px;
-    width: 60px;
+    height: 8px;
+    width: 80px;
     background: var(--spectrum-gradient);
     border-radius: 10px;
-    margin: 25px auto;
+    margin: 40px auto;
 }
 
 .welcome-text { 
     margin-top: 1rem; 
-    font-size: 0.95rem; 
-    line-height: 1.6; 
-    color: #cbd5e1; 
-    max-width: 85%; 
+    font-size: 1.1rem; 
+    line-height: 1.7; 
+    color: #94a3b8; 
+    max-width: 600px; 
 }
 
 /* Lado Derecho: Formularios */
@@ -188,40 +184,55 @@ body.login-page {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 3.5rem;
+    align-items: center; /* Centrar el formulario horizontalmente */
+    padding: 4rem;
     background: white;
+    position: relative;
 }
 
-.form-card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+.form-card {
+    width: 100%;
+    max-width: 480px; /* Evita que los inputs sean gigantes */
+    box-shadow: none !important; 
+    border: none !important; 
+    padding: 0 !important; 
+    margin: 0 !important;
+}
 
-.form-card h2, .form-card h3 {
-    font-size: 1.8rem;
+.form-card h2 {
+    font-size: 2.2rem;
     color: var(--text-main);
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 0.5rem;
+    text-align: center;
 }
 
-.form-instruction { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+.form-instruction { 
+    color: var(--text-muted); 
+    font-size: 1rem; 
+    margin-bottom: 2.5rem; 
+    text-align: center;
+}
 
 .form-footer { 
     text-align: center; 
-    margin-top: 2rem; 
-    font-size: 0.9rem; 
+    margin-top: 2.5rem; 
+    font-size: 0.95rem; 
     color: var(--text-muted); 
     border-top: 1px solid var(--border-color);
-    padding-top: 1.5rem;
+    padding-top: 2rem;
 }
 
 .forgot-link { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
 .forgot-link:hover { color: var(--primary-color); }
 
-/* Inputs (Ahora azules al enfocar) */
+/* Inputs */
 input, select, textarea {
     width: 100%;
-    padding: 14px 16px;
-    margin-top: 6px;
-    margin-bottom: 20px;
-    border: 2px solid #f1f5f9;
+    padding: 16px 20px; /* Inputs más cómodos */
+    margin-top: 8px;
+    margin-bottom: 24px;
+    border: 2px solid #e2e8f0;
     border-radius: var(--radius-sm);
     background-color: #f8fafc;
     font-size: 1rem;
@@ -231,30 +242,33 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: var(--primary-color); /* Borde azul */
+    border-color: var(--primary-color);
     background-color: white;
-    /* Sombra azul suave */
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
 }
 
-label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+label { font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-left: 4px; }
 
-/* Botón principal (Gradiente Azul) */
+/* Botón principal */
 .btn-full { 
     width: 100%; 
-    padding: 16px; 
-    font-size: 1rem; 
-    margin-top: 10px; 
+    padding: 18px; 
+    font-size: 1.1rem; 
+    margin-top: 15px; 
     background: var(--primary-color);
-    /* Gradiente azul vibrante */
     background: linear-gradient(to bottom, #3b82f6, #2563eb);
-    /* Sombra azul */
     box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+    border-radius: var(--radius-sm);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
 }
 .btn-full:hover {
     background: linear-gradient(to bottom, #2563eb, #1d4ed8);
-    box-shadow: 0 6px 10px -1px rgba(59, 130, 246, 0.5);
-    transform: translateY(-1px);
+    box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
 }
 
 /* --- GENERAL LAYOUT DASHBOARD --- */
@@ -272,8 +286,8 @@ main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
 .card h4 { color: var(--brand-dark); font-weight: 700; font-size: 1.2rem; }
 
 /* Utilidades */
-button, .btn {
-    background: var(--primary-color); /* Azul */
+button:not(.btn-full), .btn {
+    background: var(--primary-color); 
     color: white;
     border: none;
     border-radius: var(--radius-sm);
@@ -283,7 +297,7 @@ button, .btn {
     transition: 0.2s;
     text-decoration: none;
 }
-button:hover, .btn:hover { background: var(--primary-hover); } /* Azul oscuro */
+button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 
 .btn-secondary { background: white; color: var(--text-muted); border: 1px solid var(--border-color); }
 .btn-secondary:hover { background: #f8fafc; color: var(--text-main); }
@@ -293,7 +307,6 @@ button:hover, .btn:hover { background: var(--primary-hover); } /* Azul oscuro */
 
 .score { font-size: 2rem; color: var(--primary-color); font-weight: 800; }
 .alert-error { background: #fef2f2; color: #b91c1c; padding: 1rem; border-radius: 8px; border: 1px solid #fecaca; }
-/* Alerta de éxito ahora es azul */
 .alert-success { background: #eff6ff; color: #1e40af; padding: 1rem; border-radius: 8px; border: 1px solid #bfdbfe; }
 
 a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
@@ -306,16 +319,17 @@ a:hover { color: var(--primary-hover); text-decoration: underline; }
 .crossword-grid td { width: 34px; height: 34px; border: 1px solid #cbd5e1; text-align: center; position: relative; padding:0; }
 .crossword-grid .empty { background: var(--brand-dark); border-color: var(--brand-dark); }
 .crossword-grid input { width: 100%; height: 100%; border: none; text-align: center; font-family: monospace; font-size: 1.2rem; text-transform: uppercase; margin:0; background: transparent; }
-/* Input de crucigrama al enfocar */
-.crossword-grid input:focus { background: #eff6ff; box-shadow: none; } 
+.crossword-grid input:focus { background: #eff6ff; box-shadow: none; }
 .crossword-number { position: absolute; top: 1px; left: 2px; font-size: 8px; color: #64748b; pointer-events: none; }
 .crossword-clues { flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
 .crossword-clues h5 { color: var(--brand-dark); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-top: 0; }
 
 /* Responsive */
 @media (max-width: 850px) {
-    .login-container { flex-direction: column; height: auto; min-height: auto; }
-    .welcome-side { padding: 3rem 2rem; }
-    .forms-side { padding: 2rem; }
+    body.login-page { height: auto; padding: 20px; overflow-y: auto; }
+    .login-container { flex-direction: column; height: auto; min-height: auto; width: 100%; }
+    .welcome-side { padding: 3rem 2rem; flex: none; }
+    .forms-side { padding: 2rem; flex: none; }
+    .logo-img { width: 120px; height: 120px; }
     header { flex-direction: column; gap: 15px; text-align: center; }
 }

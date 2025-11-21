@@ -1,17 +1,36 @@
-// api/generate_content.js (Ahora usa variable de entorno)
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; // <-- CAMBIO IMPORTANTE
+// api/generate_content.js
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-exports.handler = async (event) => {
-    if (!GEMINI_API_KEY || GEMINI_API_KEY.length < 10) return { statusCode: 500, body: JSON.stringify({ error: "Clave de Gemini no configurada en el servidor." }) };
-    if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Método no permitido' };
+module.exports = async (req, res) => {
+    // CORS Headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+
+    if (!GEMINI_API_KEY) {
+        return res.status(500).json({ error: "Clave de Gemini no configurada." });
+    }
+
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Método no permitido' });
+    }
+
     try {
-        const { slidesTexto } = JSON.parse(event.body);
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const { slidesTexto } = body;
+
         const promptIA = `
             Eres un generador de contenido educativo. Basándote en el siguiente texto de diapositivas, crea 10 preguntas para un cuestionario (5 abiertas, 5 de opción múltiple con 3 opciones cada una) y un crucigrama con 5 palabras (Horizontales y Verticales). 
-            La salida DEBE SER SOLAMENTE un objeto JSON que contenga estas dos claves: "cuestionario" y "crucigrama". El cuestionario debe tener las claves: tipo, pregunta, opciones (si es opcion), y correcta. El crucigrama debe tener las claves: word y clue.
-            Texto de Diapositivas: --- ${slidesTexto} --- JSON:
+            La salida DEBE SER SOLAMENTE un objeto JSON válido que contenga estas dos claves: "cuestionario" y "crucigrama". El cuestionario debe tener las claves: tipo, pregunta, opciones (si es opcion), y correcta. El crucigrama debe tener las claves: word y clue.
+            Texto: --- ${slidesTexto} --- JSON:
         `;
+
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -20,20 +39,25 @@ exports.handler = async (event) => {
                 generationConfig: { temperature: 0.4 },
             })
         });
-        if (!response.ok) return { statusCode: 502, body: JSON.stringify({ error: `Fallo la IA externa. Código: ${response.status}` }) };
+
+        if (!response.ok) {
+            return res.status(502).json({ error: `Fallo la IA externa. Código: ${response.status}` });
+        }
+
         const data = await response.json();
         const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        // Limpiar el texto por si la IA pone ```json ... ```
         const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) return { statusCode: 500, body: JSON.stringify({ error: "La IA no devolvió un JSON válido." }) };
+        
+        if (!jsonMatch) {
+            return res.status(500).json({ error: "La IA no devolvió un JSON válido." });
+        }
+
         const contenidoGenerado = JSON.parse(jsonMatch[0]);
-        if (!contenidoGenerado.cuestionario || !contenidoGenerado.crucigrama) return { statusCode: 500, body: JSON.stringify({ error: "La IA no incluyó las claves 'cuestionario' o 'crucigrama'." }) };
-        return {
-            statusCode: 200,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(contenidoGenerado),
-        };
+        return res.status(200).json(contenidoGenerado);
+
     } catch (error) {
-        console.error("Fallo general de la función:", error);
-        return { statusCode: 500, body: JSON.stringify({ error: "Error interno del servidor." }) };
+        console.error(error);
+        return res.status(500).json({ error: "Error interno del servidor." });
     }
 };

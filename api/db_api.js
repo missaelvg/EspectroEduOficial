@@ -1,89 +1,145 @@
-// scripts/data_manager.js (VERSIÓN DEFINITIVA)
+// api/db_api.js (VERSIÓN COMPATIBLE CON VERCEL)
+const admin = require('firebase-admin');
 
-const DB_API_FUNCTION_URL = "/api/db_api";
+let db;
 
-// --- Función de Utilidad ---
-async function callDB(action, data = {}, method = 'POST') {
-    const options = { method };
-    let url = DB_API_FUNCTION_URL;
+// Inicialización de Firebase (solo una vez)
+if (!admin.apps.length) {
+    try {
+        if (!process.env.FIREBASE_ADMIN_CREDENTIALS) {
+            throw new Error("Falta la variable de entorno FIREBASE_ADMIN_CREDENTIALS");
+        }
+        const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+        // Corrección de saltos de línea para Vercel
+        if (serviceAccount.private_key) {
+            serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        }
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+        db = admin.firestore();
+    } catch (e) {
+        console.error('Error al inicializar Firebase:', e);
+        // No podemos hacer nada si falla la DB, así que dejamos db como undefined
+    }
+} else {
+    db = admin.firestore();
+}
 
-    if (method === 'POST') {
-        options.headers = { 'Content-Type': 'application/json' };
-        options.body = JSON.stringify({ action, data });
-    } else { // GET
-        // Construcción segura de la URL para evitar errores de sintaxis
-        const params = new URLSearchParams({ action, ...data });
-        url = `${DB_API_FUNCTION_URL}?${params.toString()}`;
+// Exportación por defecto para Vercel (req, res)
+module.exports = async (req, res) => {
+    // 1. Manejo de CORS
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
+
+    // Responder a la solicitud "preflight" OPTIONS inmediatamente
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+
+    // 2. Verificación de error inicial
+    if (!db) {
+        return res.status(500).json({ error: "Error crítico: No se pudo conectar a la base de datos." });
     }
 
     try {
-        const response = await fetch(url, options);
-        
-        // Verificar si la respuesta es JSON válido
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.error || `Error lógico del servidor: ${response.status}`);
-            }
-            return result;
-        } else {
-            // Si no es JSON (ej. error 500 de Vercel en HTML), leemos el texto para ver qué pasó
-            const text = await response.text();
-            console.error("Respuesta crítica del servidor (No JSON):", text);
-            throw new Error(`Error de Servidor (${response.status}). Posible falta de credenciales en Vercel.`);
+        let action, data;
+
+        // 3. Extracción de datos según el método (Vercel parsea req.body automáticamente)
+        if (req.method === 'POST') {
+            // En Vercel, req.body ya es un objeto si el Content-Type es application/json
+            const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+            action = body.action;
+            data = body.data;
+        } else { // GET
+            action = req.query.action;
+            data = req.query;
         }
 
-    } catch (e) {
-        console.error(`Fallo en callDB [${action}]:`, e);
-        throw e; // Lanzar el error para que la vista muestre la alerta roja
+        if (!action) {
+            return res.status(400).json({ error: "No se especificó ninguna acción." });
+        }
+
+        // --- LÓGICA DE LA BASE DE DATOS ---
+
+        // GET: Obtener Prácticas
+        if (action === 'get_all_practices') {
+            const snapshot = await db.collection('practices').get();
+            const practices = {};
+            snapshot.forEach(doc => { practices[doc.id] = { id: doc.id, ...doc.data() }; });
+            return res.status(200).json({ practices });
+        }
+
+        // GET: Obtener Usuarios
+        if (action === 'get_all_users') {
+            const snapshot = await db.collection('users').get();
+            const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return res.status(200).json({ users });
+        }
+
+        // POST: Crear Práctica
+        if (action === 'create_practice') {
+            const cleanData = {
+                title: data.title,
+                students: {},
+                generatedContent: null,
+                slidesPdfUrl: data.slidesPdfUrl || "",
+                standardPdfUrl: data.standardPdfUrl || "",
+                slidesText: data.slidesText || "",
+                createdAt: new Date().toISOString()
+            };
+            const ref = await db.collection('practices').add(cleanData);
+            return res.status(200).json({ practiceId: ref.id });
+        }
+
+        // POST: Actualizar Contenido
+        if (action === 'update_practice_content') {
+            await db.collection('practices').doc(data.practiceId).update({ generatedContent: data.content });
+            return res.status(200).json({ message: 'OK' });
+        }
+
+        // POST: Inscribir Alumno
+        if (action === 'enroll_student_to_practice') {
+            await db.collection('practices').doc(data.practiceId).update({
+                [`students.${data.studentUid}`]: { 
+                    status: 'Inscrito', 
+                    reportUrl: null, 
+                    quizScore: null, 
+                    completed: false 
+                }
+            });
+            return res.status(200).json({ message: 'OK' });
+        }
+
+        // POST: Entregar Reporte
+        if (action === 'submit_report') {
+            await db.collection('practices').doc(data.practiceId).update({
+                [`students.${data.studentUid}.reportUrl`]: data.reportUrl,
+                [`students.${data.studentUid}.status`]: 'Reporte Entregado'
+            });
+            return res.status(200).json({ message: 'OK' });
+        }
+
+        // POST: Entregar Cuestionario/Finalizar
+        if (action === 'submit_quiz') {
+            await db.collection('practices').doc(data.practiceId).update({
+                [`students.${data.studentUid}.quizScore`]: data.score,
+                [`students.${data.studentUid}.status`]: 'Práctica Finalizada',
+                [`students.${data.studentUid}.completed`]: true
+            });
+            return res.status(200).json({ message: 'OK', finalGrade: data.score });
+        }
+
+        return res.status(400).json({ error: `Acción desconocida: ${action}` });
+
+    } catch (error) {
+        console.error("API Error:", error);
+        return res.status(500).json({ error: error.message });
     }
-}
-
-// --- GESTIÓN DE ARCHIVOS ---
-async function uploadFile(file, path) {
-    if (!file) throw new Error("Archivo no proporcionado.");
-    const storageRef = firebase.storage().ref();
-    const fileRef = storageRef.child(`${path}/${file.name}`);
-    await fileRef.put(file);
-    return await fileRef.getDownloadURL();
-}
-
-// --- API DE DOCTOR ---
-async function createPractice(practiceData) {
-    const result = await callDB('create_practice', practiceData);
-    return result.practiceId;
-}
-
-async function savePracticeContent(practiceId, content) {
-    await callDB('update_practice_content', { practiceId, content });
-}
-
-async function enrollStudent(practiceId, studentUid) {
-    await callDB('enroll_student_to_practice', { practiceId, studentUid });
-}
-
-async function getAllUsers() {
-    const result = await callDB('get_all_users', {}, 'GET');
-    return result.users || [];
-}
-
-// --- API DE ALUMNO ---
-async function submitStudentReport(practiceId, studentUid, reportUrl) {
-    await callDB('submit_report', { practiceId, studentUid, reportUrl });
-}
-
-async function updateStudentProgress(practiceId, studentUid, status, quizScore) {
-    await callDB('update_student_progress', { practiceId, studentUid, status, quizScore });
-}
-
-async function submitStudentQuiz(practiceId, studentUid, score) {
-    const result = await callDB('submit_quiz', { practiceId, studentUid, score });
-    return result.finalGrade;
-}
-
-// --- API GENERAL ---
-async function getPractices() {
-    const result = await callDB('get_all_practices', {}, 'GET');
-    return result.practices || {};
-}
+};

@@ -60,14 +60,17 @@ async function enrollStudent(practiceId, studentUid) {
     await callDB('enroll_student_to_practice', { practiceId, studentUid });
 }
 
-// NUEVO: Sacar a un alumno de una práctica
 async function unenrollStudent(practiceId, studentUid) {
     await callDB('unenroll_student', { practiceId, studentUid });
 }
 
-// NUEVO: Borrar práctica
 async function deletePractice(practiceId) {
     await callDB('delete_practice', { practiceId });
+}
+
+// NUEVO: Eliminar un usuario del sistema
+async function deleteUser(uid) {
+    await callDB('delete_user', { uid });
 }
 
 async function getAllUsers() {
@@ -87,6 +90,11 @@ async function updateStudentProgress(practiceId, studentUid, status, quizScore) 
 async function submitStudentQuiz(practiceId, studentUid, score) {
     const result = await callDB('submit_quiz', { practiceId, studentUid, score });
     return result.finalGrade;
+}
+
+// NUEVO: Actualizar perfil (Nombre, Grupo, Email)
+async function updateUserProfile(uid, updateData) {
+    await callDB('update_user_profile', { uid, updateData });
 }
 
 // --- API GENERAL ---

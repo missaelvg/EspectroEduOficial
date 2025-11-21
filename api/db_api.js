@@ -1,9 +1,8 @@
-// api/db_api.js (VERSIÓN CORREGIDA PARA GUARDAR PDFs)
+// api/db_api.js (VERSIÓN CON GESTIÓN DE USUARIOS)
 const admin = require('firebase-admin');
 
 let db;
 
-// Inicialización de Firebase
 if (!admin.apps.length) {
     try {
         if (!process.env.FIREBASE_ADMIN_CREDENTIALS) {
@@ -61,6 +60,7 @@ module.exports = async (req, res) => {
 
         // --- LÓGICA DE LA BASE DE DATOS ---
 
+        // GET
         if (action === 'get_all_practices') {
             const snapshot = await db.collection('practices').get();
             const practices = {};
@@ -74,28 +74,32 @@ module.exports = async (req, res) => {
             return res.status(200).json({ users });
         }
 
+        // POST: Prácticas
         if (action === 'create_practice') {
             const cleanData = {
                 title: data.title,
                 students: {},
                 generatedContent: null,
-                slidesPdfUrl: "", // Se llenarán después
-                standardPdfUrl: "",
-                slidesText: "",
+                slidesPdfUrl: data.slidesPdfUrl || "",
+                standardPdfUrl: data.standardPdfUrl || "",
+                slidesText: data.slidesText || "",
                 createdAt: new Date().toISOString()
             };
             const ref = await db.collection('practices').add(cleanData);
             return res.status(200).json({ practiceId: ref.id });
         }
 
-        // --- CORRECCIÓN CLAVE AQUÍ ---
         if (action === 'update_practice_content') {
-            // Antes guardaba todo dentro de 'generatedContent'. 
-            // Ahora usamos data.content directamente para actualizar la raíz del documento (PDFs, texto, etc.)
             await db.collection('practices').doc(data.practiceId).update(data.content);
             return res.status(200).json({ message: 'OK' });
         }
 
+        if (action === 'delete_practice') {
+            await db.collection('practices').doc(data.practiceId).delete();
+            return res.status(200).json({ message: 'Práctica eliminada' });
+        }
+
+        // POST: Gestión de Alumnos en Prácticas
         if (action === 'enroll_student_to_practice') {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}`]: { 
@@ -115,11 +119,47 @@ module.exports = async (req, res) => {
             return res.status(200).json({ message: 'Alumno desinscrito' });
         }
 
-        if (action === 'delete_practice') {
-            await db.collection('practices').doc(data.practiceId).delete();
-            return res.status(200).json({ message: 'Práctica eliminada' });
+        // POST: Gestión de Perfiles (NUEVO)
+        
+        // Actualizar datos del alumno (excepto matrícula)
+        if (action === 'update_user_profile') {
+            if (!data.uid || !data.updateData) throw new Error("Faltan datos.");
+            
+            // Filtramos para que NO se pueda cambiar la matrícula ni el rol por seguridad
+            const { matricula, role, uid, ...allowedUpdates } = data.updateData;
+            
+            // Actualizamos Firestore
+            await db.collection('users').doc(data.uid).update(allowedUpdates);
+            
+            // Si cambió el email, intentamos actualizarlo en Auth también
+            if (allowedUpdates.email) {
+                try {
+                    await admin.auth().updateUser(data.uid, { email: allowedUpdates.email });
+                } catch(e) {
+                    console.warn("No se pudo actualizar el email en Auth (puede requerir re-login):", e);
+                }
+            }
+            return res.status(200).json({ message: 'Perfil actualizado' });
         }
 
+        // Eliminar usuario completo (Docente)
+        if (action === 'delete_user') {
+            if (!data.uid) throw new Error("Falta el UID.");
+            
+            // 1. Borrar de Authentication (Login)
+            try {
+                await admin.auth().deleteUser(data.uid);
+            } catch (e) {
+                console.warn("Usuario no encontrado en Auth o ya borrado:", e);
+            }
+
+            // 2. Borrar de Firestore (Datos)
+            await db.collection('users').doc(data.uid).delete();
+            
+            return res.status(200).json({ message: 'Usuario eliminado correctamente del sistema' });
+        }
+
+        // POST: Acciones del Alumno
         if (action === 'submit_report') {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}.reportUrl`]: data.reportUrl,

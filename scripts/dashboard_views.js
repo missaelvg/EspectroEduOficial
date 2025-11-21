@@ -1,7 +1,10 @@
-// scripts/dashboard_views.js (VERSIÓN COMPLETA CON EDICIÓN Y BORRADO)
+// scripts/dashboard_views.js (VERSIÓN CON BUSCADOR DE ALUMNOS)
 
+// Almacén de estado simple
 const AppState = {
     user: null,
+    practices: {},
+    users: [], // Guardaremos todos los usuarios aquí para poder filtrarlos
 };
 
 // ====================================================
@@ -46,7 +49,9 @@ async function renderDoctorDashboard() {
     contentDiv.innerHTML = `<h2>Dashboard del Doctor</h2><div id="practices-summary">Cargando...</div>`;
     try {
         const practices = await getPractices();
+        AppState.practices = practices; // Guardar en estado
         const practicesList = Object.values(practices);
+        
         let html = `<p>Tienes ${practicesList.length} práctica(s) creada(s).</p>`;
         if (practicesList.length === 0) {
             html += `<p>Ve a "Crear Práctica" para empezar.</p>`;
@@ -88,61 +93,91 @@ function renderCreatePracticeView() {
 
 async function renderManageStudentsView() {
     const contentDiv = document.getElementById('main-content');
-    contentDiv.innerHTML = `<h2>Gestionar Alumnos</h2><div id="students-management-area">Cargando...</div>`;
-    try {
-        const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
-        const allStudents = users.filter(u => u.role === 'alumno');
-        
-        // Mapa para saber en qué práctica está cada alumno
-        const studentPracticeMap = {};
-        Object.values(practices).forEach(p => {
-            Object.keys(p.students || {}).forEach(sid => {
-                studentPracticeMap[sid] = { id: p.id, title: p.title };
-            });
-        });
-        
-        let html = `<h3>Estado de los Alumnos</h3>`;
-        if (allStudents.length === 0) {
-            html += `<p>No hay alumnos registrados en el sistema.</p>`;
-        } else {
-            allStudents.forEach(student => {
-                const currentPractice = studentPracticeMap[student.uid];
-                html += `
-                    <div class="student-list-item">
-                        <div style="flex:1;">
-                            <strong>${student.username}</strong> <br> 
-                            <small>Matrícula: ${student.matricula}</small>
-                        </div>
-                        <div style="flex:1; text-align:right;">
-                `;
+    // Estructura base con el buscador
+    contentDiv.innerHTML = `
+        <h2>Gestionar Alumnos</h2>
+        <div class="card">
+            <input type="text" id="studentSearchInput" placeholder="🔍 Buscar por matrícula o nombre..." onkeyup="handleSearchStudent()" style="margin-bottom:0;">
+        </div>
+        <div id="students-list-container">Cargando...</div>
+    `;
 
-                if (currentPractice) {
-                    // Si ya tiene práctica, mostramos cuál es y botón de desinscribir
+    try {
+        // Cargar datos y guardarlos en el estado global
+        const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
+        AppState.practices = practices;
+        AppState.users = users.filter(u => u.role === 'alumno'); // Solo nos interesan los alumnos
+        
+        // Renderizar la lista completa inicialmente
+        renderStudentsList(AppState.users);
+
+    } catch (e) {
+        document.getElementById('students-list-container').innerHTML = `<p class="alert-error">Error al cargar alumnos: ${e.message}</p>`;
+    }
+}
+
+// Función auxiliar para renderizar la lista (se llama al inicio y al buscar)
+function renderStudentsList(studentsToRender) {
+    const container = document.getElementById('students-list-container');
+    
+    // Mapa para saber en qué práctica está cada alumno
+    const studentPracticeMap = {};
+    Object.values(AppState.practices).forEach(p => {
+        Object.keys(p.students || {}).forEach(sid => {
+            studentPracticeMap[sid] = { id: p.id, title: p.title };
+        });
+    });
+
+    let html = '';
+    if (studentsToRender.length === 0) {
+        html = `<p>No se encontraron alumnos que coincidan.</p>`;
+    } else {
+        studentsToRender.forEach(student => {
+            const currentPractice = studentPracticeMap[student.uid];
+            html += `
+                <div class="student-list-item">
+                    <div style="flex:1;">
+                        <strong>${student.username}</strong> <br> 
+                        <small>Matrícula: ${student.matricula}</small>
+                    </div>
+                    <div style="flex:1; text-align:right;">
+            `;
+
+            if (currentPractice) {
+                html += `
+                    <span style="color:#16a34a; font-weight:bold;">Inscrito en: ${currentPractice.title}</span>
+                    <button onclick="handleUnenroll('${currentPractice.id}', '${student.uid}')" style="background-color:#f39c12; margin-left:10px; font-size:0.8em;">Desinscribir</button>
+                `;
+            } else {
+                if (Object.keys(AppState.practices).length > 0) {
                     html += `
-                        <span style="color:#16a34a; font-weight:bold;">Inscrito en: ${currentPractice.title}</span>
-                        <button onclick="handleUnenroll('${currentPractice.id}', '${student.uid}')" style="background-color:#f39c12; margin-left:10px; font-size:0.8em;">Desinscribir / Editar</button>
+                        <select id="practice-select-${student.uid}" style="padding:5px; width:auto; margin-right:5px;">
+                            <option value="">Seleccionar Práctica...</option>
+                            ${Object.values(AppState.practices).map(p => `<option value="${p.id}">${p.title}</option>`).join('')}
+                        </select>
+                        <button onclick="enrollStudentHandler('${student.uid}')" style="font-size:0.8em;">Inscribir</button>
                     `;
                 } else {
-                    // Si no tiene práctica, mostramos selector para inscribir
-                    if (Object.keys(practices).length > 0) {
-                        html += `
-                            <select id="practice-select-${student.uid}" style="padding:5px; width:auto; margin-right:5px;">
-                                <option value="">Seleccionar Práctica...</option>
-                                ${Object.values(practices).map(p => `<option value="${p.id}">${p.title}</option>`).join('')}
-                            </select>
-                            <button onclick="enrollStudentHandler('${student.uid}')" style="font-size:0.8em;">Inscribir</button>
-                        `;
-                    } else {
-                        html += `<span style="color:#7f8c8d;">Crea una práctica primero</span>`;
-                    }
+                    html += `<span style="color:#7f8c8d;">Crea una práctica primero</span>`;
                 }
-                html += `</div></div>`;
-            });
-        }
-        document.getElementById('students-management-area').innerHTML = html;
-    } catch (e) {
-        document.getElementById('students-management-area').innerHTML = `<p class="alert-error">Error al cargar alumnos: ${e.message}</p>`;
+            }
+            html += `</div></div>`;
+        });
     }
+    container.innerHTML = html;
+}
+
+// Función que se ejecuta al escribir en el buscador
+function handleSearchStudent() {
+    const query = document.getElementById('studentSearchInput').value.toLowerCase();
+    
+    const filteredStudents = AppState.users.filter(user => {
+        const matricula = (user.matricula || '').toLowerCase();
+        const nombre = (user.username || '').toLowerCase();
+        return matricula.includes(query) || nombre.includes(query);
+    });
+
+    renderStudentsList(filteredStudents);
 }
 
 async function renderDoctorGradesView() {
@@ -201,8 +236,10 @@ async function handleUnenroll(practiceId, studentUid) {
     if (confirm("¿Desinscribir a este alumno? Perderá su progreso actual en esta práctica.")) {
         try {
             await unenrollStudent(practiceId, studentUid);
-            alert("Alumno desinscrito. Ahora puedes asignarlo a otra práctica.");
-            renderManageStudentsView();
+            // Actualizamos el estado local para que la UI se refresque sin recargar
+            delete AppState.practices[practiceId].students[studentUid];
+            // Volvemos a renderizar la lista actual (respetando si hay búsqueda activa)
+            handleSearchStudent(); 
         } catch (e) {
             alert("Error al desinscribir: " + e.message);
         }
@@ -264,8 +301,12 @@ async function enrollStudentHandler(studentUid) {
     }
     try {
         await enrollStudent(practiceId, studentUid);
+        // Actualizar estado local
+        if (!AppState.practices[practiceId].students) AppState.practices[practiceId].students = {};
+        AppState.practices[practiceId].students[studentUid] = { status: 'Inscrito' };
+        
         alert("¡Alumno inscrito con éxito!");
-        renderManageStudentsView();
+        handleSearchStudent(); // Refrescar la lista
     } catch (e) {
         alert(`Error al inscribir al alumno: ${e.message}`);
     }
@@ -273,7 +314,7 @@ async function enrollStudentHandler(studentUid) {
 
 
 // ====================================================
-// VISTAS DEL ALUMNO (Sin cambios mayores)
+// VISTAS DEL ALUMNO (Sin cambios)
 // ====================================================
 
 function renderStudentDashboard() {
@@ -452,7 +493,7 @@ async function handleQuizSubmit(event, practiceId) {
 
 
 // =======================================================
-// LÓGICA DEL CRUCIGRAMA (VERSIÓN MEJORADA)
+// LÓGICA DEL CRUCIGRAMA
 // =======================================================
 
 function renderCrossword(practice) {
@@ -469,7 +510,6 @@ function renderCrossword(practice) {
         clue: w.clue
     }));
 
-    // --- Lógica de Generación del Crucigrama ---
     const layout = generateCrosswordLayout(words);
     if (!layout) {
         container.innerHTML = "<p class='alert-error'>No se pudo generar el crucigrama con las palabras dadas.</p>";
@@ -478,7 +518,6 @@ function renderCrossword(practice) {
     
     const { grid, placedWordsInfo } = layout;
 
-    // --- Renderizado del HTML ---
     let gridHtml = '<table>';
     grid.forEach(row => {
         gridHtml += '<tr>';
@@ -511,7 +550,6 @@ function renderCrossword(practice) {
         <button onclick="handleCrosswordSubmit(event, '${practice.id}')">Finalizar Práctica</button>
     `;
     
-    // Añadimos un estilo pequeño para los números, que no estaba en el CSS.
     const style = document.createElement('style');
     style.innerHTML = `
         .crossword-number { position:absolute; top:1px; left:1px; font-size:9px; z-index:1; color: #333; }
@@ -519,17 +557,11 @@ function renderCrossword(practice) {
     container.appendChild(style);
 }
 
-/**
- * Intenta generar un layout para el crucigrama a partir de una lista de palabras.
- * @param {Array<{word: string, clue: string}>} words - La lista de palabras y pistas.
- * @returns {Object|null} Un objeto con la 'grid' y 'placedWordsInfo' o null si falla.
- */
 function generateCrosswordLayout(words) {
-    const gridSize = 20; // Un tamaño de rejilla más grande para mayor flexibilidad
+    const gridSize = 20;
     let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
-    let placedWords = []; // { word, row, col, orientation, clue }
+    let placedWords = [];
 
-    // 1. Coloca la primera palabra (la más larga) en el centro.
     words.sort((a, b) => b.word.length - a.word.length);
     const firstWord = words.shift();
     const startRow = Math.floor(gridSize / 2);
@@ -540,7 +572,6 @@ function generateCrosswordLayout(words) {
     }
     placedWords.push({ ...firstWord, row: startRow, col: startCol, orientation: 'across' });
 
-    // 2. Itera sobre las palabras restantes para intentar cruzarlas.
     while (words.length > 0) {
         const wordToPlace = words.shift();
         let placed = false;
@@ -549,21 +580,18 @@ function generateCrosswordLayout(words) {
             const currentPlacedWord = placedWords[i];
             for (let j = 0; j < currentPlacedWord.word.length && !placed; j++) {
                 for (let k = 0; k < wordToPlace.word.length && !placed; k++) {
-                    
                     if (currentPlacedWord.word[j] === wordToPlace.word[k]) {
-                        // Posible intersección encontrada.
                         let newRow, newCol;
                         const newOrientation = currentPlacedWord.orientation === 'across' ? 'down' : 'across';
 
                         if (currentPlacedWord.orientation === 'across') {
                             newRow = currentPlacedWord.row - k;
                             newCol = currentPlacedWord.col + j;
-                        } else { // 'down'
+                        } else { 
                             newRow = currentPlacedWord.row + j;
                             newCol = currentPlacedWord.col - k;
                         }
 
-                        // Verificar si la palabra cabe y no choca con otras.
                         if (canPlaceWord(grid, wordToPlace.word, newRow, newCol, newOrientation)) {
                             for (let l = 0; l < wordToPlace.word.length; l++) {
                                 let r = newRow, c = newCol;
@@ -577,10 +605,8 @@ function generateCrosswordLayout(words) {
                 }
             }
         }
-        if (!placed) { /* Opcional: manejar palabras que no se pudieron colocar */ }
     }
     
-    // 3. Añadir los números a la rejilla final
     const placedWordsInfo = [];
     placedWords.forEach((word, index) => {
         const { row, col } = word;
@@ -588,7 +614,6 @@ function generateCrosswordLayout(words) {
              grid[row][col].num = placedWordsInfo.length + 1;
              placedWordsInfo.push({...word, number: grid[row][col].num});
         } else {
-             // Si ya hay un número, la palabra comparte el inicio, hay que encontrarla.
              const existing = placedWordsInfo.find(p => p.number === grid[row][col].num && p.orientation !== word.orientation);
              if(existing) {
                  placedWordsInfo.push({...word, number: grid[row][col].num});
@@ -599,29 +624,23 @@ function generateCrosswordLayout(words) {
     return { grid, placedWordsInfo };
 }
 
-
-/**
- * Verifica si una palabra se puede colocar en una posición sin colisionar.
- */
 function canPlaceWord(grid, word, row, col, orientation) {
     if (row < 0 || col < 0) return false;
 
     for (let i = 0; i < word.length; i++) {
         let r = row, c = col;
         if (orientation === 'across') c += i; else r += i;
-        
-        if (r >= grid.length || c >= grid[0].length) return false; // Fuera de los límites
+        if (r >= grid.length || c >= grid[0].length) return false;
 
         const cell = grid[r][c];
         const prevCell = (orientation === 'across') ? grid[r][c-1] : grid[r-1]?.[c];
         const nextCell = (orientation === 'across') ? grid[r][c+1] : grid[r+1]?.[c];
 
-        if (cell && cell.char !== word[i]) return false; // Colisión con letra diferente
-        if (!cell && (prevCell || nextCell) && i > 0 && i < word.length-1) return false; // Paralelo a otra palabra
+        if (cell && cell.char !== word[i]) return false;
+        if (!cell && (prevCell || nextCell) && i > 0 && i < word.length-1) return false;
     }
     return true;
 }
-
 
 async function handleCrosswordSubmit(event, practiceId) {
     const button = event.target;
@@ -645,11 +664,10 @@ async function handleCrosswordSubmit(event, practiceId) {
             } else {
                  cell.style.backgroundColor = '#f8d7da';
             }
-            cell.disabled = true; // Deshabilitar celdas tras calificar
+            cell.disabled = true;
         });
 
         const crosswordScore = (totalCrosswordCells > 0) ? Math.round((correctCrosswordCells / totalCrosswordCells) * 10) : 10;
-        
         const finalGrade = Math.round((quizScore * 0.7) + (crosswordScore * 0.3));
 
         await submitStudentQuiz(practiceId, AppState.user.uid, finalGrade);

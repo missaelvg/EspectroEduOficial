@@ -1,9 +1,9 @@
-// api/generate_content.js
+// api/generate_content.js (SOLO OPCIÓN MÚLTIPLE)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 module.exports = async (req, res) => {
-    // CORS Headers
+    // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -25,10 +25,26 @@ module.exports = async (req, res) => {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         const { slidesTexto } = body;
 
+        // CAMBIO CLAVE: Pedimos explícitamente solo preguntas de opción múltiple
         const promptIA = `
-            Eres un generador de contenido educativo. Basándote en el siguiente texto de diapositivas, crea 10 preguntas para un cuestionario (5 abiertas, 5 de opción múltiple con 3 opciones cada una) y un crucigrama con 5 palabras (Horizontales y Verticales). 
-            La salida DEBE SER SOLAMENTE un objeto JSON válido que contenga estas dos claves: "cuestionario" y "crucigrama". El cuestionario debe tener las claves: tipo, pregunta, opciones (si es opcion), y correcta. El crucigrama debe tener las claves: word y clue.
-            Texto: --- ${slidesTexto} --- JSON:
+            Eres un generador de contenido educativo. Basándote en el siguiente texto, crea:
+            1. Un cuestionario de 5 preguntas de OPCIÓN MÚLTIPLE (3 opciones cada una).
+            2. Un crucigrama con 5 palabras.
+
+            La salida DEBE SER SOLAMENTE un objeto JSON válido con esta estructura:
+            {
+              "cuestionario": [
+                { "tipo": "opcion", "pregunta": "¿...?", "opciones": ["A", "B", "C"], "correcta": "La respuesta correcta" }
+              ],
+              "crucigrama": [
+                { "word": "PALABRA", "clue": "Pista..." }
+              ]
+            }
+
+            Texto base:
+            ---
+            ${slidesTexto.substring(0, 8000)} 
+            ---
         `;
 
         const response = await fetch(API_URL, {
@@ -36,7 +52,7 @@ module.exports = async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [{ role: "user", parts: [{ text: promptIA }] }],
-                generationConfig: { temperature: 0.4 },
+                generationConfig: { temperature: 0.3 }, // Bajamos temperatura para ser más precisos
             })
         });
 
@@ -46,7 +62,6 @@ module.exports = async (req, res) => {
 
         const data = await response.json();
         const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        // Limpiar el texto por si la IA pone ```json ... ```
         const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {

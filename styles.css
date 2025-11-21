@@ -1,27 +1,22 @@
 /* styles.css - Diseño Minimalista y Responsivo EspectroEdu */
 
 :root {
-    /* Paleta de colores */
-    --primary-color: #16a34a;       /* Verde principal */
-    --primary-hover: #15803d;       /* Verde más oscuro para hover */
-    --bg-color: #f8fafc;            /* Fondo gris muy claro */
-    --card-bg: #ffffff;             /* Fondo de tarjetas */
-    --text-main: #1e293b;           /* Texto principal (casi negro) */
-    --text-muted: #64748b;          /* Texto secundario (gris) */
-    --border-color: #e2e8f0;        /* Bordes sutiles */
-    --danger-color: #ef4444;        /* Rojo para errores/borrar */
-    --warning-color: #f59e0b;       /* Amarillo para advertencias */
+    --primary-color: #16a34a;       
+    --primary-hover: #15803d;       
+    --bg-color: #f8fafc;            
+    --card-bg: #ffffff;             
+    --text-main: #1e293b;           
+    --text-muted: #64748b;          
+    --border-color: #e2e8f0;        
+    --danger-color: #ef4444;        
     
-    /* Espaciado y Radios */
     --radius-md: 12px;
     --radius-sm: 8px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
 }
 
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -35,8 +30,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- HEADER Y NAVEGACIÓN --- */
-
+/* --- HEADER (Solo para Dashboard) --- */
 header {
     background: var(--primary-color);
     color: white;
@@ -44,29 +38,18 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
-#header-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-}
+#header-title { font-size: 1.5rem; font-weight: 700; }
 
-/* Header centrado para Login (sin ID header) */
-header:not([id='header']) {
-    justify-content: center;
-}
+/* Ocultar el header viejo en la página de login si existe */
+body.login-page header { display: none; }
 
-nav#navbar {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto; /* Permite scroll en móviles si hay muchos botones */
-    padding-bottom: 2px; /* Espacio para scrollbar */
-}
+nav#navbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
 
 nav#navbar button {
     background: rgba(255, 255, 255, 0.1);
@@ -74,22 +57,14 @@ nav#navbar button {
     color: white;
     font-size: 0.95rem;
     padding: 8px 16px;
-    border-radius: 20px; /* Estilo píldora */
+    border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
 }
 
-nav#navbar button:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-nav#navbar button.active {
-    background: white;
-    color: var(--primary-color);
-    font-weight: 600;
-    box-shadow: var(--shadow-sm);
-}
+nav#navbar button:hover { background: rgba(255, 255, 255, 0.25); }
+nav#navbar button.active { background: white; color: var(--primary-color); font-weight: 600; box-shadow: var(--shadow-sm); }
 
 #logoutButton {
     background: rgba(0,0,0,0.2);
@@ -103,22 +78,94 @@ nav#navbar button.active {
     transition: background 0.2s;
     margin-left: 15px;
 }
+#logoutButton:hover { background: var(--danger-color); }
 
-#logoutButton:hover {
-    background: var(--danger-color);
+/* --- LAYOUT LOGIN (NUEVO DISEÑO DIVIDIDO) --- */
+
+body.login-page {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    justify-content: center;
+    align-items: center;
 }
 
-/* --- LAYOUT PRINCIPAL --- */
-
-main {
-    flex: 1;
+.login-container {
+    display: flex;
     width: 100%;
-    max-width: 1100px; /* Ancho máximo contenido */
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
+    max-width: 1000px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    min-height: 600px; /* Altura mínima para que se vea imponente */
+    margin: 20px;
 }
 
-/* --- TARJETAS (CARDS) --- */
+/* Lado Izquierdo: Bienvenida */
+.welcome-side {
+    flex: 1;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Patrón de fondo sutil para darle textura */
+.welcome-side::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 20%), 
+                      radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 20%);
+    pointer-events: none;
+}
+
+.logo-img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    background: white;
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.welcome-side h1 { font-size: 2.5rem; margin: 0; font-weight: 800; letter-spacing: -1px; }
+.welcome-side .subtitle { font-size: 1.1rem; margin-top: 10px; opacity: 0.9; font-weight: 500; }
+.welcome-text { margin-top: 2rem; font-size: 0.95rem; line-height: 1.6; opacity: 0.85; max-width: 80%; margin-left: auto; margin-right: auto; }
+
+/* Lado Derecho: Formularios */
+.forms-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem;
+    background: white;
+}
+
+.form-card {
+    box-shadow: none !important; /* Quitamos sombra de la card interna */
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.form-instruction { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted); }
+.forgot-link { font-size: 0.85rem; color: var(--primary-color); }
+
+.btn-full { width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px; }
+
+/* --- ESTILOS GENERALES DASHBOARD --- */
+
+main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
 .card {
     background: var(--card-bg);
@@ -129,58 +176,35 @@ main {
     border: 1px solid var(--border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.card:hover { box-shadow: var(--shadow-md); } /* Efecto hover solo en dashboard cards */
+.form-card:hover { box-shadow: none; transform: none; } /* Excepción para el login */
 
-.card:hover {
-    box-shadow: var(--shadow-md);
-    /* Efecto sutil de elevación */
-    transform: translateY(-2px); 
-}
+.card h2, .card h3, .card h4 { margin-top: 0; color: var(--text-main); margin-bottom: 1rem; }
+.card h4 { color: var(--primary-color); font-weight: 700; }
 
-.card h2, .card h3, .card h4, .card h5 {
-    margin-top: 0;
-    color: var(--text-main);
-    margin-bottom: 1rem;
-}
+/* --- FORMULARIOS ELEMENTOS --- */
 
-.card h4 {
-    color: var(--primary-color);
-    font-weight: 700;
-}
-
-/* --- FORMULARIOS --- */
-
-input[type="text"], 
-input[type="email"], 
-input[type="password"], 
-input[type="file"], 
-textarea, 
-select {
+input, select, textarea {
     width: 100%;
     padding: 12px 16px;
     margin-top: 6px;
     margin-bottom: 20px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    background-color: #fff;
+    background-color: #f8fafc; /* Fondo input sutil */
     font-size: 1rem;
     color: var(--text-main);
-    transition: border-color 0.2s, box-shadow 0.2s;
-    font-family: inherit;
+    transition: all 0.2s;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--primary-color);
+    background-color: white;
     box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 
-label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-
-/* --- BOTONES --- */
+label { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
 
 button, .btn {
     display: inline-flex;
@@ -191,233 +215,55 @@ button, .btn {
     border: none;
     border-radius: var(--radius-sm);
     padding: 12px 24px;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.1s;
-    text-decoration: none; /* Para los links .btn */
+    text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-size: 0.9rem;
 }
 
-button:hover, .btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-}
+button:hover, .btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+button:disabled { background-color: #cbd5e1; cursor: not-allowed; transform: none; }
 
-button:active {
-    transform: translateY(0);
-}
+.btn-secondary { background-color: white; color: var(--text-muted); border: 1px solid var(--border-color); }
+.btn-secondary:hover { background-color: #f1f5f9; color: var(--text-main); border-color: #cbd5e1; }
 
-button:disabled {
-    background-color: #cbd5e1;
-    cursor: not-allowed;
-    transform: none;
-}
+/* --- UTILIDADES Y TABLAS --- */
+.student-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border-color); }
+.student-list-item:last-child { border-bottom: none; }
+.student-list-item:hover { background-color: #f8fafc; }
 
-.btn-secondary {
-    background-color: white;
-    color: var(--text-muted);
-    border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-    background-color: #f1f5f9;
-    color: var(--text-main);
-    border-color: #cbd5e1;
-}
-
-/* --- LISTAS Y TABLAS (Estilo limpio) --- */
-
-.student-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid var(--border-color);
-    transition: background 0.1s;
-}
-
-.student-list-item:last-child {
-    border-bottom: none;
-}
-
-.student-list-item:hover {
-    background-color: #f8fafc;
-}
+.alert-error { background-color: #fef2f2; color: var(--danger-color); padding: 12px; border-radius: var(--radius-sm); border: 1px solid #fecaca; margin-top: 15px; font-weight: 600; font-size: 0.9rem; }
+.alert-success { background-color: #f0fdf4; color: var(--primary-color); padding: 12px; border-radius: var(--radius-sm); border: 1px solid #bbf7d0; margin-top: 15px; font-weight: 600; font-size: 0.9rem; }
+.score { font-size: 2rem; color: var(--primary-color); font-weight: 800; display: block; margin-top: 10px; }
+a { color: var(--primary-color); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+a:hover { color: var(--primary-hover); text-decoration: underline; }
 
 /* --- CRUCIGRAMA --- */
-
-.crossword-container {
-    display: flex;
-    gap: 40px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    justify-content: center;
-}
-
-.crossword-grid {
-    /* Sombra suave para el tablero */
-    box-shadow: var(--shadow-md);
-    padding: 10px;
-    background: white;
-    border-radius: var(--radius-sm);
-}
-
-.crossword-grid table {
-    border-collapse: collapse;
-    background: #fff;
-}
-
-.crossword-grid td {
-    width: 36px; /* Celdas un poco más grandes */
-    height: 36px;
-    border: 1px solid #cbd5e1;
-    text-align: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-    position: relative;
-    padding: 0;
-}
-
-.crossword-grid .empty {
-    background: #1e293b; /* Fondo oscuro para vacíos */
-    border-color: #1e293b;
-}
-
-.crossword-grid input {
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    margin: 0;
-    text-align: center;
-    border: none;
-    font-size: 1.2rem;
-    font-family: monospace;
-    text-transform: uppercase;
-    background: transparent;
-    color: var(--primary-color);
-}
-
-.crossword-grid input:focus {
-    background-color: #f0fdf4;
-    box-shadow: none;
-}
-
-.crossword-number {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    font-size: 9px;
-    line-height: 1;
-    color: #64748b;
-    pointer-events: none;
-}
-
-.crossword-clues {
-    flex: 1;
-    min-width: 300px;
-    background: #f8fafc;
-    padding: 20px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-}
-
-.crossword-clues h5 {
-    margin-top: 0;
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-/* --- UTILIDADES Y ESTADOS --- */
-
-.alert-error {
-    background-color: #fef2f2;
-    color: var(--danger-color);
-    padding: 12px;
-    border-radius: var(--radius-sm);
-    border: 1px solid #fecaca;
-    margin-top: 15px;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.alert-success {
-    background-color: #f0fdf4;
-    color: var(--primary-color);
-    padding: 12px;
-    border-radius: var(--radius-sm);
-    border: 1px solid #bbf7d0;
-    margin-top: 15px;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.score {
-    font-size: 2rem;
-    color: var(--primary-color);
-    font-weight: 800;
-    display: block;
-    margin-top: 10px;
-}
-
-/* Estilo para enlaces de texto simple (como 'olvidé contraseña') */
-a {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-a:hover {
-    color: var(--primary-hover);
-    text-decoration: underline;
-}
+.crossword-container { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+.crossword-grid { box-shadow: var(--shadow-md); padding: 10px; background: white; border-radius: var(--radius-sm); }
+.crossword-grid table { border-collapse: collapse; background: #fff; }
+.crossword-grid td { width: 36px; height: 36px; border: 1px solid #cbd5e1; text-align: center; font-size: 1.2rem; font-weight: bold; position: relative; padding: 0; }
+.crossword-grid .empty { background: #1e293b; border-color: #1e293b; }
+.crossword-grid input { width: 100%; height: 100%; padding: 0; margin: 0; text-align: center; border: none; font-size: 1.2rem; font-family: monospace; text-transform: uppercase; background: transparent; color: var(--primary-color); }
+.crossword-grid input:focus { background-color: #f0fdf4; box-shadow: none; }
+.crossword-number { position: absolute; top: 2px; left: 2px; font-size: 9px; line-height: 1; color: #64748b; pointer-events: none; }
+.crossword-clues { flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+.crossword-clues h5 { margin-top: 0; color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
 
 /* --- RESPONSIVE (MÓVIL) --- */
-
 @media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        gap: 15px;
-        padding: 1rem;
-        text-align: center;
-    }
-
-    nav#navbar {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    main {
-        padding: 1rem;
-    }
-
-    .card {
-        padding: 1.5rem;
-    }
-
-    .student-list-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
+    .login-container { flex-direction: column; min-height: auto; margin: 10px; }
+    .welcome-side { padding: 2rem 1.5rem; }
+    .forms-side { padding: 2rem 1.5rem; }
     
-    .student-list-item > div {
-        width: 100%;
-        text-align: left !important;
-    }
-
-    .crossword-container {
-        flex-direction: column;
-    }
+    header { flex-direction: column; gap: 15px; padding: 1rem; text-align: center; }
+    nav#navbar { width: 100%; justify-content: center; flex-wrap: wrap; }
+    main { padding: 1rem; }
     
-    /* Ajustes para tablas en móvil (si hubiera) */
-    .table-responsive {
-        overflow-x: auto;
-    }
+    .student-list-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .student-list-item > div { width: 100%; text-align: left !important; }
 }

@@ -3,63 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - EspectroEdu</title>
+<title>Bienvenido - EspectroEdu</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="styles.css">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script> </head>
-<body>
-<header>EspectroEdu: Laboratorio de Óptica</header>
-<main>
-    <div class="card">
-        <div id="loginForm">
-            <h2>Iniciar Sesión</h2>
-            <input type="email" id="loginEmail" placeholder="Correo Electrónico">
-            <input type="password" id="loginPassword" placeholder="Contraseña">
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+</head>
+<body class="login-page">
+
+<main class="login-container">
+    
+    <section class="welcome-side">
+        <div class="brand-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" alt="Logo EspectroEdu" class="logo-img">
             
-            <div style="text-align: right; margin-bottom: 15px;">
-                <a href="#" onclick="showRecovery()" style="font-size: 0.9em; color: #16a34a;">¿Olvidaste tu contraseña?</a>
+            <h1>EspectroEdu</h1>
+            <p class="subtitle">Plataforma Inteligente para Laboratorios de Óptica</p>
+            
+            <div class="welcome-text">
+                <p>Gestiona tus prácticas, reportes y calificaciones en un solo lugar. Potenciado con IA para mejorar tu aprendizaje.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="forms-side">
+        <div class="card form-card">
+            
+            <div id="loginForm">
+                <h2>Iniciar Sesión</h2>
+                <p class="form-instruction">Ingresa tus credenciales para continuar</p>
+                
+                <input type="email" id="loginEmail" placeholder="Correo Electrónico">
+                <input type="password" id="loginPassword" placeholder="Contraseña">
+                
+                <div style="text-align: right; margin-bottom: 20px;">
+                    <a href="#" onclick="showRecovery()" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button onclick="handleLogin()" class="btn-full">ENTRAR</button>
+                
+                <div class="form-footer">
+                    ¿Nuevo usuario? <a href="#" onclick="showRegister()">Crea una cuenta</a>
+                </div>
             </div>
 
-            <button onclick="handleLogin()">ENTRAR</button>
-            <p style="margin-top: 15px;">¿Nuevo usuario? <a href="#" onclick="showRegister()">Regístrate aquí</a></p>
+            <div id="registerForm" style="display:none;">
+                <h3>Crear Cuenta</h3>
+                <p class="form-instruction">Únete a la comunidad educativa</p>
+                
+                <label for="regRole" style="display:block; margin-bottom:5px;">Soy:</label>
+                <select id="regRole" onchange="toggleGroupInput()">
+                    <option value="alumno">Alumno</option>
+                    <option value="doctor">Doctor / Docente</option>
+                </select>
+
+                <input type="text" id="regName" placeholder="Nombre Completo" required>
+                <input type="text" id="regMatricula" placeholder="Matrícula / ID" required>
+                <input type="text" id="regGroup" placeholder="Grupo" required>
+                <input type="email" id="regEmail" placeholder="Correo Electrónico" required>
+                <input type="password" id="regPassword" placeholder="Contraseña" required>
+                
+                <button onclick="handleRegister()" class="btn-full">REGISTRARME</button>
+                
+                <div class="form-footer">
+                    ¿Ya tienes cuenta? <a href="#" onclick="showLogin()">Inicia Sesión</a>
+                </div>
+            </div>
+
+            <div id="recoveryForm" style="display:none;">
+                <h3>Recuperar Acceso</h3>
+                <p class="form-instruction">
+                    Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+                </p>
+                <input type="email" id="recoveryEmail" placeholder="Tu Correo Electrónico">
+                <button onclick="handleRecovery()" class="btn-full">ENVIAR CORREO</button>
+                
+                <div class="form-footer">
+                    <a href="#" onclick="showLogin()">Volver al inicio</a>
+                </div>
+            </div>
+
         </div>
+    </section>
 
-        <div id="registerForm" style="display:none;">
-            <h3>Registro de Usuarios</h3>
-            
-            <label for="regRole" style="display:block; margin-bottom:5px; font-weight:bold;">Soy:</label>
-            <select id="regRole" onchange="toggleGroupInput()">
-                <option value="alumno">Alumno</option>
-                <option value="doctor">Doctor / Docente</option>
-            </select>
-
-            <input type="text" id="regName" placeholder="Nombre Completo" required>
-            <input type="text" id="regMatricula" placeholder="Matrícula / ID Empleado" required>
-            
-            <input type="text" id="regGroup" placeholder="Grupo" required>
-            
-            <input type="email" id="regEmail" placeholder="Correo Electrónico" required>
-            <input type="password" id="regPassword" placeholder="Contraseña" required>
-            
-            <button onclick="handleRegister()">REGISTRARME</button>
-            <p><a href="#" onclick="showLogin()">Volver a Iniciar Sesión</a></p>
-        </div>
-
-        <div id="recoveryForm" style="display:none;">
-            <h3>Recuperar Contraseña</h3>
-            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
-                Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
-            </p>
-            <input type="email" id="recoveryEmail" placeholder="Tu Correo Electrónico">
-            <button onclick="handleRecovery()">ENVIAR CORREO</button>
-            <p><a href="#" onclick="showLogin()">Cancelar y volver</a></p>
-        </div>
-
-    </div>
 </main>
 
 <script src="scripts/firebase_config.js"></script> 
@@ -73,18 +102,10 @@
     }
     checkInitialAuthAndRun();
 
-    function showRegister() {
-        hideAllForms();
-        document.getElementById('registerForm').style.display = 'block';
-    }
-    function showLogin() {
-        hideAllForms();
-        document.getElementById('loginForm').style.display = 'block';
-    }
-    function showRecovery() {
-        hideAllForms();
-        document.getElementById('recoveryForm').style.display = 'block';
-    }
+    // --- MANEJADORES DE UI ---
+    function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }
+    function showLogin() { hideAllForms(); document.getElementById('loginForm').style.display = 'block'; }
+    function showRecovery() { hideAllForms(); document.getElementById('recoveryForm').style.display = 'block'; }
     function hideAllForms() {
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('registerForm').style.display = 'none';
@@ -103,11 +124,11 @@
         }
     }
 
+    // --- LÓGICA ---
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
         if (!email || !password) return alert("Por favor ingresa correo y contraseña.");
-
         const success = await loginUser(email, password); 
         if (success) window.location.href = 'dashboard.html';
         else alert('Credenciales incorrectas o usuario no existe.');
@@ -120,29 +141,19 @@
         const password = document.getElementById('regPassword').value;
         let group = document.getElementById('regGroup').value;
         const email = document.getElementById('regEmail').value;
-        
         if (role === 'doctor') group = 'N/A';
 
         if (name && matricula && password && email && (role === 'doctor' || group)) {
             const success = await registerUser(name, matricula, password, group, email, role);
-            if(success) {
-                alert('Registro exitoso. Ya puedes iniciar sesión.');
-                showLogin();
-            }
-        } else {
-            alert('Por favor, rellena todos los campos.');
-        }
+            if(success) { alert('Registro exitoso.'); showLogin(); }
+        } else { alert('Por favor, rellena todos los campos.'); }
     }
 
     async function handleRecovery() {
         const email = document.getElementById('recoveryEmail').value.trim();
         if (!email) return alert("Por favor ingresa tu correo.");
-
         const success = await resetPassword(email);
-        if (success) {
-            alert(`Se ha enviado un correo a ${email}. Revisa tu bandeja de entrada para restablecer tu contraseña.`);
-            showLogin();
-        }
+        if (success) { alert(`Correo enviado a ${email}.`); showLogin(); }
     }
 </script>
 </body>

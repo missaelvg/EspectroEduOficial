@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL MEJORADA)
+// scripts/dashboard_views.js (VERSIÓN DISEÑO MINIMALISTA FINAL)
 
 const AppState = {
     user: null,
@@ -7,7 +7,7 @@ const AppState = {
 };
 
 // ====================================================
-// RENDERIZADO PRINCIPAL
+// RENDERIZADO PRINCIPAL Y NAVEGACIÓN
 // ====================================================
 
 function renderDoctorLayout(user) {
@@ -48,35 +48,35 @@ function setActive(button) {
 
 async function renderDoctorDashboard() {
     const contentDiv = document.getElementById('main-content');
-    contentDiv.innerHTML = `<h2>Bienvenido, Dr. ${AppState.user.username}</h2><div id="practices-summary">Cargando...</div>`;
+    contentDiv.innerHTML = `<h2>Dashboard del Doctor</h2><div id="practices-summary">Cargando...</div>`;
     try {
         const practices = await getPractices();
         AppState.practices = practices;
         const practicesList = Object.values(practices);
         
-        let html = `<p style="margin-bottom:20px;">Aquí tienes un resumen de tus prácticas activas.</p>`;
+        let html = `<p>Tienes ${practicesList.length} práctica(s) creada(s).</p>`;
         if (practicesList.length === 0) {
-            html += `<div class="card"><p>No has creado ninguna práctica aún. Ve a la pestaña "Crear Práctica".</p></div>`;
+            html += `<p>Ve a "Crear Práctica" para empezar.</p>`;
         } else {
             practicesList.forEach(p => {
                 const studentCount = Object.keys(p.students || {}).length;
                 
                 const slidesBtn = p.slidesPdfUrl && p.slidesPdfUrl.length > 5
-                    ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Ver Diapositivas</a>`
+                    ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a>`
                     : `<button class="btn btn-secondary" disabled style="opacity:0.5">Sin Diapositivas</button>`;
 
                 const stdBtn = p.standardPdfUrl && p.standardPdfUrl.length > 5
-                    ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Ver Estándar</a>`
+                    ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar</a>`
                     : `<button class="btn btn-secondary" disabled style="opacity:0.5">Sin Estándar</button>`;
 
                 html += `
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <h4>${p.title}</h4>
-                            <button onclick="handleDeletePractice('${p.id}')" style="background-color:#dc2626; font-size:0.8em; padding:6px 12px;">Borrar</button>
+                            <button onclick="handleDeletePractice('${p.id}')" style="background-color:#ef4444; font-size:0.8em; padding:6px 12px; border:none; color:white;">Borrar</button>
                         </div>
-                        <p style="color:#64748b;">${studentCount} alumno(s) inscrito(s)</p>
-                        <div style="margin-top:15px; display:flex; gap:10px;">
+                        <p style="color:#64748b; margin-bottom:15px;">${studentCount} alumno(s) inscrito(s)</p>
+                        <div style="display:flex; gap:10px;">
                             ${slidesBtn}
                             ${stdBtn}
                         </div>
@@ -93,18 +93,14 @@ function renderCreatePracticeView() {
     document.getElementById('main-content').innerHTML = `
         <h2>Crear Nueva Práctica</h2>
         <div class="card">
-            <p style="margin-bottom:20px; color:#64748b;">Sube los materiales necesarios. La IA generará automáticamente el cuestionario.</p>
-            <label>Título de la Práctica</label>
+            <label for="practiceTitle">Título de la Práctica</label>
             <input type="text" id="practiceTitle" placeholder="Ej. Espectroscopía Óptica #1">
             
-            <label>Diapositivas (PDF)</label>
+            <label for="slidesFile">Diapositivas (PDF)</label>
             <input type="file" id="slidesFile" accept="application/pdf">
-            <small style="color:#64748b; display:block; margin-bottom:15px;">* Usado para generar el cuestionario y crucigrama.</small>
-            
-            <label>Estándar del Reporte (PDF)</label>
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* La IA generará un cuestionario basado en este archivo.</small>
+            <label for="standardFile">Estándar del Reporte (PDF)</label>
             <input type="file" id="standardFile" accept="application/pdf">
-            <small style="color:#64748b; display:block; margin-bottom:15px;">* Usado para evaluar los reportes de los alumnos.</small>
-            
             <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
             <div id="creationLog" style="margin-top: 15px; font-family:monospace;"></div>
         </div>`;
@@ -145,10 +141,10 @@ async function handlePracticeCreation() {
             try {
                 const gen = await callAIGenerate(slidesText);
                 await savePracticeContent(pid, { generatedContent: gen });
-                logDiv.innerHTML = '<p class="alert-success">✅ ¡Listo con IA!</p>';
-            } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada sin Cuestionario (Fallo IA).</p>'; }
+                logDiv.innerHTML = '<p class="alert-success">Listo con IA</p>';
+            } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada sin Cuestionario (Fallo IA).</p>'; }
         } else {
-            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada (PDF imagen, sin IA).</p>';
+            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada (PDF imagen, sin IA).</p>';
         }
         setTimeout(() => { document.querySelector('#navbar button').click(); }, 3000);
     } catch (e) { logDiv.innerHTML = `<p class="alert-error">Error: ${e.message}</p>`; button.disabled = false; }
@@ -157,7 +153,7 @@ async function handlePracticeCreation() {
 // --- GESTIÓN DE ALUMNOS (DOCTOR) ---
 async function renderManageStudentsView() {
     const contentDiv = document.getElementById('main-content');
-    contentDiv.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="studentSearchInput" placeholder="🔍 Buscar por nombre o matrícula..." onkeyup="handleSearchStudent()" style="margin-bottom:0;"></div><div id="students-list-container">Cargando...</div>`;
+    contentDiv.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="studentSearchInput" placeholder="Buscar por nombre o matrícula..." onkeyup="handleSearchStudent()" style="margin-bottom:0;"></div><div id="students-list-container">Cargando...</div>`;
     try {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
         AppState.practices = practices;
@@ -183,22 +179,22 @@ function renderStudentsList(studentsToRender) {
                 <div class="student-list-item">
                     <div style="flex:1;">
                         <strong>${student.username}</strong> <span style="color:#666; font-size:0.9em;">${groupDisplay}</span><br> 
-                        <small>Matrícula: ${student.matricula}</small>
+                        <small style="color:#94a3b8;">${student.matricula}</small>
                     </div>
                     <div style="flex:1; text-align:right;">`;
             if (currentPractice) {
-                html += `<span style="color:#16a34a; font-weight:bold; margin-right:10px;">Inscrito: ${currentPractice.title}</span>
-                         <button onclick="handleUnenroll('${currentPractice.id}', '${student.uid}')" style="background-color:#f39c12; font-size:0.7em; padding:5px 8px;">Desinscribir</button>`;
+                html += `<span style="color:#3b82f6; font-weight:600; margin-right:10px; font-size:0.9em;">${currentPractice.title}</span>
+                         <button onclick="handleUnenroll('${currentPractice.id}', '${student.uid}')" style="background-color:#f59e0b; font-size:0.75em; padding:6px 12px;">Desinscribir</button>`;
             } else {
                 if (Object.keys(AppState.practices).length > 0) {
-                    html += `<select id="practice-select-${student.uid}" style="padding:5px; width:auto; margin-right:5px;">
+                    html += `<select id="practice-select-${student.uid}" style="padding:6px; width:auto; margin-right:5px; border-radius:6px; border:1px solid #cbd5e1;">
                                 <option value="">Seleccionar...</option>
                                 ${Object.values(AppState.practices).map(p => `<option value="${p.id}">${p.title}</option>`).join('')}
                              </select>
-                             <button onclick="enrollStudentHandler('${student.uid}')" style="font-size:0.7em; padding:5px 8px;">Inscribir</button>`;
-                } else { html += `<span style="color:#7f8c8d;">Sin prácticas</span>`; }
+                             <button onclick="enrollStudentHandler('${student.uid}')" style="font-size:0.75em; padding:6px 12px;">Inscribir</button>`;
+                } else { html += `<span style="color:#94a3b8;">Sin prácticas</span>`; }
             }
-            html += `<button onclick="handleDeleteUser('${student.uid}')" style="background-color:#dc2626; font-size:0.7em; padding:5px 8px; margin-left:5px;">X</button></div></div>`;
+            html += `<button onclick="handleDeleteUser('${student.uid}')" style="background-color:#ef4444; font-size:0.75em; padding:6px 12px; margin-left:5px;">X</button></div></div>`;
         });
     }
     container.innerHTML = html;
@@ -230,13 +226,23 @@ async function renderDoctorGradesView() {
                     html += '<p style="color:#64748b;">No hay alumnos inscritos.</p>';
                 } else {
                     html += `<div class="table-container"><table class="styled-table">
-                            <thead><tr><th>Alumno</th><th>Matrícula</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Final</th></tr></thead><tbody>`;
+                            <thead>
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th>Matrícula</th>
+                                    <th>Grupo</th> <th>Reporte</th>
+                                    <th>Cuestionario</th>
+                                    <th>Crucigrama</th>
+                                    <th>Final</th>
+                                </tr>
+                            </thead><tbody>`;
                     
                     for (const sid in students) {
                         const sData = students[sid];
                         const sInfo = usersMap.get(sid);
-                        const name = sInfo ? sInfo.username : "Usuario desconocido";
+                        const name = sInfo ? sInfo.username : "Desconocido";
                         const matricula = sInfo ? sInfo.matricula : sid;
+                        const grupo = sInfo ? (sInfo.grupo || '-') : '-'; // DATO DE GRUPO
                         
                         let avg = 0, count = 0;
                         if(sData.reportScore !== undefined) { avg += sData.reportScore; count++; }
@@ -247,6 +253,7 @@ async function renderDoctorGradesView() {
                         html += `<tr>
                                 <td>${name}</td>
                                 <td>${matricula}</td>
+                                <td>${grupo}</td>
                                 <td>${sData.reportScore ?? '-'}</td>
                                 <td>${sData.quizScore ?? '-'}</td>
                                 <td>${sData.crosswordScore ?? '-'}</td>
@@ -293,7 +300,14 @@ async function enrollStudentHandler(uid) {
 // ====================================================
 
 function renderStudentDashboard() {
-    document.getElementById('main-content').innerHTML = `<h2>¡Hola, ${AppState.user.username}!</h2><div class="card"><p>Bienvenido a tu espacio de aprendizaje. Aquí podrás gestionar tus prácticas y ver tu progreso.</p><p>Selecciona una opción del menú superior para comenzar.</p></div>`;
+    document.getElementById('main-content').innerHTML = `
+        <div style="margin-bottom:30px;">
+            <h2 style="margin-bottom:5px; color:#0f172a;">¡Hola, ${AppState.user.username}!</h2>
+            <p style="color:#64748b; margin-top:0;">Bienvenido a tu espacio de aprendizaje.</p>
+        </div>
+        <div class="card" style="border-left: 4px solid var(--primary-color);">
+            <p>Selecciona una opción del menú superior para comenzar tus actividades.</p>
+        </div>`;
 }
 
 // --- 1. MIS PRÁCTICAS (REPORTE) ---
@@ -313,15 +327,41 @@ async function renderStudentPracticesView() {
             let body = '';
             
             if (hasReport) {
-                const scoreDisplay = st.reportScore ? `<br><strong style="color:#16a34a">Calificación IA: ${st.reportScore}/10</strong>` : '<br><em>Evaluando...</em>';
-                const feedbackDisplay = st.reportFeedback ? `<p style="font-size:0.9em; background:#f0fdf4; padding:10px; border-radius:5px; margin-top:5px;"><strong>IA:</strong> ${st.reportFeedback}</p>` : '';
+                // DISEÑO MINIMALISTA DE ÉXITO (SIN EMOJIS)
+                const scoreDisplay = st.reportScore ? `<span style="display:block; margin-top:5px; font-weight:bold; color:#15803d;">Calificación IA: ${st.reportScore}/10</span>` : '<span style="display:block; margin-top:5px; font-style:italic; color:#64748b;">Evaluando...</span>';
                 
-                body = `<div class="alert-success">✅ Reporte Entregado ${scoreDisplay}</div>${feedbackDisplay}
-                        <div style="margin-top:10px;"><a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a> <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar</a></div>`;
+                // Feedback limpio
+                const feedbackDisplay = st.reportFeedback ? `
+                    <div style="margin-top:15px; padding:15px; background-color:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; color:#334155; font-size:0.95rem; line-height:1.6;">
+                        <strong style="display:block; margin-bottom:5px; color:#0f172a;">Retroalimentación:</strong>
+                        ${st.reportFeedback}
+                    </div>` : '';
+                
+                body = `
+                    <div style="background-color:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534;">
+                        <strong>Reporte Entregado</strong>
+                        ${scoreDisplay}
+                    </div>
+                    ${feedbackDisplay}
+                    <div style="margin-top:20px; display:flex; gap:10px;">
+                        <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">Diapositivas</a> 
+                        <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">Estándar</a>
+                    </div>`;
             } else {
-                body = `<p>Descarga materiales y sube tu PDF para evaluación inmediata con IA:</p>
-                        <a href="${p.slidesPdfUrl}" target="_blank" class="btn">⬇️ Diapositivas</a> <a href="${p.standardPdfUrl}" target="_blank" class="btn">⬇️ Estándar</a>
-                        <hr><input type="file" id="rep-${p.id}" accept="application/pdf"><button onclick="handleReportUpload('${p.id}')">Evaluar y Entregar</button><div id="log-${p.id}"></div>`;
+                // DISEÑO LIMPIO DE SUBIDA
+                body = `
+                    <p style="color:#64748b; margin-bottom:15px;">Descarga los materiales y sube tu PDF para evaluación inmediata con IA.</p>
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">Descargar Diapositivas</a> 
+                        <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">Descargar Estándar</a>
+                    </div>
+                    <hr style="border:0; border-top:1px solid #e2e8f0; margin:20px 0;">
+                    
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#334155;">Coloca aquí tu reporte:</label>
+                    <input type="file" id="rep-${p.id}" accept="application/pdf" style="margin-bottom:15px;">
+                    
+                    <button onclick="handleReportUpload('${p.id}')">Entregar</button>
+                    <div id="log-${p.id}" style="margin-top:10px; font-size:0.9rem; color:#64748b;"></div>`;
             }
             return `<div class="card"><h4>${p.title}</h4>${body}</div>`;
         }).join('');
@@ -343,8 +383,8 @@ async function renderStudentActivitiesView() {
 
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
-            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9; padding:20px; border-radius:8px; text-align:center;">🔒 <strong>Bloqueado</strong><br>Entrega tu reporte primero.</div></div>`;
-            if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success">🎉 Actividades Completadas.</div></div>`;
+            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9; padding:20px; border-radius:8px; text-align:center; color:#64748b;">Bloqueado: Entrega tu reporte primero.</div></div>`;
+            if (st.completed) return `<div class="card"><h4>${p.title}</h4><div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534;">Actividades Completadas.</div></div>`;
             
             const containerId = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             return `<div class="card"><h4>${p.title}</h4><div id="${containerId}">Cargando actividad...</div></div>`;
@@ -414,13 +454,13 @@ async function handleReportUpload(pid) {
     const log = document.getElementById(`log-${pid}`);
     if(!f) return alert("Elige archivo");
     
-    log.innerText = "1/3 Subiendo...";
+    log.innerText = "Subiendo...";
     const btn = log.previousElementSibling;
     btn.disabled = true;
 
     try {
         const url = await uploadFile(f, `reports/${pid}/${AppState.user.uid}`);
-        log.innerText = "2/3 Evaluando con IA...";
+        log.innerText = "Evaluando con IA...";
         let reportScore = null, reportFeedback = null;
         try {
             const reportText = await extractTextFromPDF(f);
@@ -433,7 +473,7 @@ async function handleReportUpload(pid) {
             }
         } catch (aiErr) { console.warn("Fallo IA:", aiErr); }
 
-        log.innerText = "3/3 Guardando...";
+        log.innerText = "Guardando...";
         await callDB('submit_report', { 
             practiceId: pid, studentUid: AppState.user.uid, 
             reportUrl: url, reportScore: reportScore, reportFeedback: reportFeedback
@@ -559,7 +599,6 @@ async function finCross(e, pid) {
     });
     const cScore = tot>0 ? Math.round((corr/tot)*10) : 0;
     
-    // Guardar nota específica del crucigrama y marcar completado
     await updateStudentProgress(pid, AppState.user.uid, { completed: true, status: 'Finalizado', crosswordScore: cScore });
     alert(`Crucigrama: ${cScore}/10`);
     renderStudentActivitiesView();

@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL CON CRUCIGRAMA COMPLETO)
+// scripts/dashboard_views.js (VERSIÓN SEGURA Y BLINDADA)
 
 const AppState = {
     user: null,
@@ -94,11 +94,16 @@ function renderCreatePracticeView() {
         <div class="card">
             <label for="practiceTitle">Título de la Práctica</label>
             <input type="text" id="practiceTitle" placeholder="Ej. Espectroscopía Óptica #1">
+            
             <label for="slidesFile">Diapositivas (PDF)</label>
             <input type="file" id="slidesFile" accept="application/pdf">
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* La IA generará un cuestionario de opción múltiple basado en este archivo.</small>
+            
             <label for="standardFile">Estándar del Reporte (PDF)</label>
             <input type="file" id="standardFile" accept="application/pdf">
+            
             <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
+            
             <div id="creationLog" style="margin-top: 15px; font-family:monospace; font-size:0.9em;"></div>
         </div>`;
 }
@@ -172,6 +177,7 @@ async function renderManageStudentsView() {
         renderStudentsList(AppState.users);
     } catch (e) { document.getElementById('students-list-container').innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
+
 function renderStudentsList(studentsToRender) {
     const container = document.getElementById('students-list-container');
     const studentPracticeMap = {};
@@ -195,11 +201,13 @@ function renderStudentsList(studentsToRender) {
     }
     container.innerHTML = html;
 }
+
 function handleSearchStudent() {
     const query = document.getElementById('studentSearchInput').value.toLowerCase();
     const filtered = AppState.users.filter(u => (u.matricula||'').toLowerCase().includes(query) || (u.username||'').toLowerCase().includes(query));
     renderStudentsList(filtered);
 }
+
 async function renderDoctorGradesView() {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = `<h2>Calificaciones</h2><div id="grades-by-practice">Cargando...</div>`;
@@ -227,16 +235,36 @@ async function renderDoctorGradesView() {
         document.getElementById('grades-by-practice').innerHTML = html || '<p>No hay prácticas.</p>';
     } catch (e) { contentDiv.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
+
 async function handleDeletePractice(pid) { if(confirm("¿Borrar práctica?")) { await deletePractice(pid); renderDoctorDashboard(); } }
 async function handleDeleteUser(uid) { if(confirm("¿Borrar usuario?")) { await deleteUser(uid); renderManageStudentsView(); } }
-async function handleUnenroll(pid, uid) { if(confirm("¿Desinscribir?")) { await unenrollStudent(pid, uid); delete AppState.practices[pid].students[uid]; handleSearchStudent(); } }
+
+// CORRECCIÓN AQUÍ: Verificar que la práctica existe en AppState antes de intentar borrar
+async function handleUnenroll(pid, uid) { 
+    if(confirm("¿Desinscribir?")) { 
+        try {
+            await unenrollStudent(pid, uid); 
+            // Solo actualizamos localmente si la estructura existe
+            if (AppState.practices[pid] && AppState.practices[pid].students) {
+                delete AppState.practices[pid].students[uid]; 
+            }
+            handleSearchStudent(); 
+        } catch (e) { alert(e.message); }
+    } 
+}
+
+// CORRECCIÓN AQUÍ: Verificar existencia antes de asignar
 async function enrollStudentHandler(uid) {
     const pid = document.getElementById(`practice-select-${uid}`).value;
     if(!pid) return;
-    await enrollStudent(pid, uid);
-    if(!AppState.practices[pid].students) AppState.practices[pid].students = {};
-    AppState.practices[pid].students[uid] = { status: 'Inscrito' };
-    handleSearchStudent();
+    try {
+        await enrollStudent(pid, uid);
+        if(AppState.practices[pid]) {
+            if(!AppState.practices[pid].students) AppState.practices[pid].students = {};
+            AppState.practices[pid].students[uid] = { status: 'Inscrito' };
+        }
+        handleSearchStudent();
+    } catch (e) { alert(e.message); }
 }
 
 // ====================================================
@@ -358,7 +386,16 @@ function renderQuiz(practice) {
 
 async function handleQuizSubmit(event, practiceId) {
     const button = event.target;
-    const practice = AppState.practices[practiceId] || (await getPractices())[practiceId];
+    // CORRECCIÓN: Asegurar que tenemos la práctica, si no está en local, la buscamos.
+    let practice = AppState.practices[practiceId];
+    if (!practice) {
+        const allPractices = await getPractices();
+        practice = allPractices[practiceId];
+        AppState.practices = allPractices; // Actualizar caché global
+    }
+
+    if (!practice) { alert("Error crítico: Práctica no encontrada."); return; }
+
     const questions = practice.generatedContent.cuestionario;
     
     let answeredCount = 0;
@@ -396,7 +433,7 @@ async function handleQuizSubmit(event, practiceId) {
     }
 }
 
-// --- LÓGICA DE CRUCIGRAMA ROBUSTA ---
+// --- CRUCIGRAMA SEGURO ---
 function renderCrossword(practice) {
     const container = document.getElementById(`crossword-container-${practice.id}`);
     const crosswordData = practice.generatedContent?.crucigrama;
@@ -407,7 +444,7 @@ function renderCrossword(practice) {
     }
 
     const words = crosswordData.map(w => ({ word: w.word.toUpperCase().trim(), clue: w.clue }));
-    const layout = generateCrosswordLayout(words); // AHORA SÍ LLAMA A LA FUNCIÓN REAL
+    const layout = generateCrosswordLayout(words);
     
     if (!layout) {
         container.innerHTML = "<p class='alert-error'>No se pudo generar la cuadrícula del crucigrama.</p>";
@@ -442,16 +479,13 @@ function renderCrossword(practice) {
     container.appendChild(style);
 }
 
-// --- ALGORITMO DE CRUCIGRAMA REAL (No dummy) ---
 function generateCrosswordLayout(words) {
     const gridSize = 20;
     let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
     let placedWords = [];
 
-    // Ordenar: las palabras más largas primero para mejor anclaje
     words.sort((a, b) => b.word.length - a.word.length);
     
-    // Colocar la primera palabra en el centro
     if(words.length === 0) return null;
     const firstWord = words.shift();
     const startRow = Math.floor(gridSize / 2);
@@ -462,7 +496,6 @@ function generateCrosswordLayout(words) {
     }
     placedWords.push({ ...firstWord, row: startRow, col: startCol, orientation: 'across' });
 
-    // Intentar colocar el resto
     let attempts = 0;
     while (words.length > 0 && attempts < 100) {
         const wordToPlace = words.shift();
@@ -473,7 +506,6 @@ function generateCrosswordLayout(words) {
             for (let j = 0; j < current.word.length && !placed; j++) {
                 for (let k = 0; k < wordToPlace.word.length && !placed; k++) {
                     if (current.word[j] === wordToPlace.word[k]) {
-                        // Cruce encontrado
                         const newOrientation = current.orientation === 'across' ? 'down' : 'across';
                         let newRow, newCol;
 
@@ -501,7 +533,6 @@ function generateCrosswordLayout(words) {
         attempts++;
     }
     
-    // Asignar números
     const placedWordsInfo = [];
     placedWords.forEach(w => {
         const cell = grid[w.row][w.col];
@@ -515,7 +546,6 @@ function generateCrosswordLayout(words) {
 function canPlaceWord(grid, word, row, col, orientation) {
     if (row < 0 || col < 0 || row >= grid.length || col >= grid[0].length) return false;
     
-    // Límite final
     if (orientation === 'across') { if (col + word.length > grid[0].length) return false; } 
     else { if (row + word.length > grid.length) return false; }
 
@@ -523,7 +553,6 @@ function canPlaceWord(grid, word, row, col, orientation) {
         let r = row + (orientation === 'down' ? i : 0);
         let c = col + (orientation === 'across' ? i : 0);
         const cell = grid[r][c];
-        // Si la celda está ocupada, debe ser la misma letra
         if (cell && cell.char !== word[i]) return false;
     }
     return true;
@@ -535,7 +564,18 @@ async function handleCrosswordSubmit(event, practiceId) {
     button.textContent = "Finalizando...";
 
     try {
-        const practice = AppState.practices[practiceId];
+        // CORRECCIÓN: Volver a buscar la práctica si no está en caché
+        let practice = AppState.practices[practiceId];
+        if (!practice) {
+            const practices = await getPractices();
+            practice = practices[practiceId];
+        }
+
+        // CORRECCIÓN CLAVE: Verificar si 'students' y el usuario existen
+        if (!practice || !practice.students || !practice.students[AppState.user.uid]) {
+            throw new Error("Datos de estudiante no encontrados. Recarga la página.");
+        }
+
         const quizScore = practice.students[AppState.user.uid].quizScore || 0;
 
         let correct = 0, total = 0;
@@ -550,7 +590,6 @@ async function handleCrosswordSubmit(event, practiceId) {
             cell.disabled = true;
         });
 
-        // Cálculo de nota: 70% Quiz + 30% Crucigrama
         const crossScore = total > 0 ? (correct / total) * 10 : 0;
         const finalGrade = Math.round((quizScore * 0.7) + (crossScore * 0.3));
 

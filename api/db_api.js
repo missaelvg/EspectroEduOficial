@@ -1,4 +1,4 @@
-// api/db_api.js (VERSIÓN FINAL: EVALUACIÓN IA + CORRECCIONES)
+// api/db_api.js (VERSIÓN CON FECHAS DE ENTREGA)
 const admin = require('firebase-admin');
 
 let db;
@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
                 title: data.title,
                 students: {},
                 generatedContent: null,
-                slidesPdfUrl: "", standardPdfUrl: "", slidesText: "", standardText: "", // Nuevo campo para texto del estándar
+                slidesPdfUrl: "", standardPdfUrl: "", slidesText: "", standardText: "",
                 createdAt: new Date().toISOString()
             };
             const ref = await db.collection('practices').add(cleanData);
@@ -109,12 +109,12 @@ module.exports = async (req, res) => {
             return res.status(200).json({ message: 'OK' });
         }
 
-        // --- PROGRESO Y EVALUACIÓN ---
+        // --- PROGRESO CON FECHAS ---
         if (action === 'submit_report') {
-            // Guardamos URL y también la calificación de la IA si viene
             const updateData = {
                 [`students.${data.studentUid}.reportUrl`]: data.reportUrl,
-                [`students.${data.studentUid}.status`]: 'Reporte Evaluado'
+                [`students.${data.studentUid}.status`]: 'Reporte Evaluado',
+                [`students.${data.studentUid}.reportSubmittedAt`]: new Date().toISOString() // FECHA REPORTE
             };
             if (data.reportScore) updateData[`students.${data.studentUid}.reportScore`] = data.reportScore;
             if (data.reportFeedback) updateData[`students.${data.studentUid}.reportFeedback`] = data.reportFeedback;
@@ -129,7 +129,13 @@ module.exports = async (req, res) => {
             if (data.status) updateData[`students.${data.studentUid}.status`] = data.status;
             if (data.quizScore !== undefined) updateData[`students.${data.studentUid}.quizScore`] = data.quizScore;
             if (data.crosswordScore !== undefined) updateData[`students.${data.studentUid}.crosswordScore`] = data.crosswordScore;
-            if (data.completed !== undefined) updateData[`students.${data.studentUid}.completed`] = data.completed;
+            
+            if (data.completed !== undefined) {
+                updateData[`students.${data.studentUid}.completed`] = data.completed;
+                if (data.completed === true) {
+                    updateData[`students.${data.studentUid}.completedAt`] = new Date().toISOString(); // FECHA FINALIZACIÓN
+                }
+            }
             
             await practiceRef.update(updateData);
             return res.status(200).json({ message: 'OK' });
@@ -139,7 +145,8 @@ module.exports = async (req, res) => {
             await db.collection('practices').doc(data.practiceId).update({
                 [`students.${data.studentUid}.quizScore`]: data.score,
                 [`students.${data.studentUid}.status`]: 'Práctica Finalizada',
-                [`students.${data.studentUid}.completed`]: true
+                [`students.${data.studentUid}.completed`]: true,
+                [`students.${data.studentUid}.completedAt`]: new Date().toISOString() // FECHA FINALIZACIÓN
             });
             return res.status(200).json({ message: 'OK' });
         }

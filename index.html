@@ -19,12 +19,9 @@
     <section class="welcome-side">
         <div class="brand-content">
             <img src="logo.png" alt="Logo EspectroEdu" class="logo-img">
-            
             <h1>EspectroEdu</h1>
             <p class="subtitle">Laboratorios de Óptica</p>
-            
             <div class="spectrum-bar"></div>
-            
             <div class="welcome-text">
                 <p>Plataforma inteligente para la gestión, análisis y aprendizaje en óptica biomédica.</p>
             </div>
@@ -42,7 +39,10 @@
                 <input type="email" id="loginEmail" placeholder="ejemplo@espectro.edu">
                 
                 <label>Contraseña</label>
-                <input type="password" id="loginPassword" placeholder="••••••••">
+                <div class="password-wrapper">
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                    <span class="toggle-password" onclick="togglePassword('loginPassword')">👁️</span>
+                </div>
                 
                 <div style="text-align: right; margin-bottom: 20px; margin-top: -10px;">
                     <a href="#" onclick="showRecovery()" class="forgot-link">¿Olvidaste tu contraseña?</a>
@@ -69,7 +69,17 @@
                 <input type="text" id="regMatricula" placeholder="Matrícula / ID" required>
                 <input type="text" id="regGroup" placeholder="Grupo" required>
                 <input type="email" id="regEmail" placeholder="Correo Institucional" required>
-                <input type="password" id="regPassword" placeholder="Contraseña" required>
+                
+                <label>Contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="regPassword" placeholder="••••••••" required>
+                    <span class="toggle-password" onclick="togglePassword('regPassword')">👁️</span>
+                </div>
+
+                <label>Confirmar Contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="regPasswordConfirm" placeholder="Repite la contraseña" required>
+                </div>
                 
                 <button onclick="handleRegister()" class="btn-full">REGISTRARME</button>
                 
@@ -105,6 +115,7 @@
     }
     checkInitialAuthAndRun();
 
+    // --- NAVEGACIÓN ENTRE FORMULARIOS ---
     function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }
     function showLogin() { hideAllForms(); document.getElementById('loginForm').style.display = 'block'; }
     function showRecovery() { hideAllForms(); document.getElementById('recoveryForm').style.display = 'block'; }
@@ -126,6 +137,17 @@
         }
     }
 
+    // --- MOSTRAR/OCULTAR CONTRASEÑA ---
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+        } else {
+            input.type = "password";
+        }
+    }
+
+    // --- LÓGICA DE AUTENTICACIÓN ---
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
@@ -139,22 +161,42 @@
         const role = document.getElementById('regRole').value;
         const name = document.getElementById('regName').value;
         const matricula = document.getElementById('regMatricula').value;
-        const password = document.getElementById('regPassword').value;
-        let group = document.getElementById('regGroup').value;
+        const group = role === 'doctor' ? 'N/A' : document.getElementById('regGroup').value;
         const email = document.getElementById('regEmail').value;
-        if (role === 'doctor') group = 'N/A';
+        const password = document.getElementById('regPassword').value;
+        const confirmPass = document.getElementById('regPasswordConfirm').value;
 
-        if (name && matricula && password && email && (role === 'doctor' || group)) {
-            const success = await registerUser(name, matricula, password, group, email, role);
-            if(success) { alert('Registro exitoso.'); showLogin(); }
-        } else { alert('Por favor, rellena todos los campos.'); }
+        // VALIDACIÓN DE CAMPOS VACÍOS
+        if (!name || !matricula || !group || !email || !password) {
+            return alert('Por favor, rellena todos los campos.');
+        }
+
+        // VALIDACIÓN DE CONTRASEÑA
+        if (password !== confirmPass) {
+            return alert('Las contraseñas no coinciden. Inténtalo de nuevo.');
+        }
+        
+        if (password.length < 6) {
+            return alert('La contraseña debe tener al menos 6 caracteres.');
+        }
+
+        const success = await registerUser(name, matricula, password, group, email, role);
+        if(success) { alert('Registro exitoso.'); showLogin(); }
     }
 
     async function handleRecovery() {
         const email = document.getElementById('recoveryEmail').value.trim();
         if (!email) return alert("Ingresa tu correo.");
+        
+        // Usamos la función de auth.js
         const success = await resetPassword(email);
-        if (success) { alert(`Correo enviado a ${email}.`); showLogin(); }
+        
+        // IMPORTANTE: Firebase a veces no devuelve error si el correo no existe por seguridad,
+        // pero si success es true, le decimos al usuario que revise.
+        if (success) { 
+            alert(`Si el correo ${email} está registrado, recibirás un enlace en unos momentos.\n\nIMPORTANTE: Revisa tu carpeta de SPAM o Correo No Deseado.`); 
+            showLogin(); 
+        }
     }
 </script>
 </body>

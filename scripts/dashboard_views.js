@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN OPCIÓN MÚLTIPLE)
+// scripts/dashboard_views.js (VERSIÓN FINAL CON CRUCIGRAMA COMPLETO)
 
 const AppState = {
     user: null,
@@ -60,7 +60,6 @@ async function renderDoctorDashboard() {
             practicesList.forEach(p => {
                 const studentCount = Object.keys(p.students || {}).length;
                 
-                // Diagnóstico visual de archivos
                 const slidesBtn = p.slidesPdfUrl && p.slidesPdfUrl.length > 5
                     ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Ver Diapositivas</a>`
                     : `<button class="btn btn-secondary" disabled style="opacity:0.5">Sin Diapositivas</button>`;
@@ -95,16 +94,11 @@ function renderCreatePracticeView() {
         <div class="card">
             <label for="practiceTitle">Título de la Práctica</label>
             <input type="text" id="practiceTitle" placeholder="Ej. Espectroscopía Óptica #1">
-            
             <label for="slidesFile">Diapositivas (PDF)</label>
             <input type="file" id="slidesFile" accept="application/pdf">
-            <small style="color:#64748b; display:block; margin-bottom:15px;">* La IA generará un cuestionario de opción múltiple basado en este archivo.</small>
-            
             <label for="standardFile">Estándar del Reporte (PDF)</label>
             <input type="file" id="standardFile" accept="application/pdf">
-            
             <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
-            
             <div id="creationLog" style="margin-top: 15px; font-family:monospace; font-size:0.9em;"></div>
         </div>`;
 }
@@ -123,48 +117,36 @@ async function handlePracticeCreation() {
     }
     
     button.disabled = true;
-    
     try {
-        // 1. Crear registro
         logDiv.innerHTML = '<span style="color:#3b82f6">1/4: Creando registro...</span>';
         const practiceData = { 
-            title, 
-            students: {}, 
-            generatedContent: null, 
-            creatorId: AppState.user.uid,
-            createdAt: new Date()
+            title, students: {}, generatedContent: null, creatorId: AppState.user.uid, createdAt: new Date()
         };
         const practiceId = await createPractice(practiceData);
 
-        // 2. Subir archivos
         logDiv.innerHTML = '<span style="color:#3b82f6">2/4: Subiendo archivos...</span>';
         const [slidesPdfUrl, standardPdfUrl] = await Promise.all([
             uploadFile(slidesFile, `practices/${practiceId}`),
             uploadFile(standardFile, `practices/${practiceId}`)
         ]);
 
-        // 3. Guardar URLs
         logDiv.innerHTML = '<span style="color:#3b82f6">3/4: Vinculando archivos...</span>';
         await savePracticeContent(practiceId, { slidesPdfUrl, standardPdfUrl });
 
-        // 4. IA
-        logDiv.innerHTML = '<span style="color:#eab308">4/4: Generando cuestionario inteligente...</span>';
+        logDiv.innerHTML = '<span style="color:#eab308">4/4: Generando contenido inteligente...</span>';
         let slidesText = "";
-        try {
-            slidesText = await extractTextFromPDF(slidesFile);
-        } catch (err) { console.warn("Error texto:", err); }
+        try { slidesText = await extractTextFromPDF(slidesFile); } catch (err) { console.warn("Error texto:", err); }
 
         if (slidesText && slidesText.length > 50) {
             try {
                 const generatedContent = await callAIGenerate(slidesText);
                 await savePracticeContent(practiceId, { slidesText, generatedContent });
-                logDiv.innerHTML = '<p class="alert-success">✅ ¡Práctica lista con cuestionario de opción múltiple!</p>';
+                logDiv.innerHTML = '<p class="alert-success">✅ ¡Práctica lista!</p>';
             } catch (aiErr) {
-                console.error(aiErr);
-                logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Práctica creada sin cuestionario (Error IA).</p>';
+                logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Práctica creada sin IA.</p>';
             }
         } else {
-            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Práctica creada sin cuestionario (PDF no legible).</p>';
+            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Práctica creada (PDF sin texto).</p>';
         }
 
         setTimeout(() => {
@@ -179,8 +161,7 @@ async function handlePracticeCreation() {
     }
 }
 
-// ... (Funciones de gestión de alumnos y notas - Igual que antes) ...
-// Para ahorrar espacio, asumo que las tienes. Si las necesitas, pídemelas.
+// --- GESTIÓN DE ALUMNOS ---
 async function renderManageStudentsView() {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="studentSearchInput" placeholder="🔍 Buscar..." onkeyup="handleSearchStudent()" style="margin-bottom:0;"></div><div id="students-list-container">Cargando...</div>`;
@@ -351,7 +332,6 @@ async function handleReportUpload(practiceId) {
     }
 }
 
-// --- FUNCIÓN RENDER QUIZ MEJORADA (Solo Opción Múltiple) ---
 function renderQuiz(practice) {
     const container = document.getElementById(`quiz-container-${practice.id}`);
     const questions = practice.generatedContent?.cuestionario;
@@ -363,16 +343,11 @@ function renderQuiz(practice) {
 
     let quizHtml = `<h5>Cuestionario</h5><p>Selecciona la respuesta correcta:</p>`;
     questions.forEach((q, index) => {
-        // Nombre único para el grupo de radio buttons de esta pregunta
         const inputName = `q-${practice.id}-${index}`;
         quizHtml += `<div class="question"><p><strong>${index + 1}. ${q.pregunta}</strong></p>`;
-        
         if (q.opciones && Array.isArray(q.opciones)) {
             q.opciones.forEach(op => {
-                // Usamos 'value' igual al texto de la opción para comparar fácil
-                quizHtml += `<label style="display:block; margin-bottom:5px; cursor:pointer;">
-                    <input type="radio" name="${inputName}" value="${op}"> ${op}
-                </label>`;
+                quizHtml += `<label style="display:block; margin-bottom:5px; cursor:pointer;"><input type="radio" name="${inputName}" value="${op}"> ${op}</label>`;
             });
         }
         quizHtml += `</div>`;
@@ -383,8 +358,6 @@ function renderQuiz(practice) {
 
 async function handleQuizSubmit(event, practiceId) {
     const button = event.target;
-    
-    // Validar que todas las preguntas tengan respuesta (Opcional pero recomendado)
     const practice = AppState.practices[practiceId] || (await getPractices())[practiceId];
     const questions = practice.generatedContent.cuestionario;
     
@@ -407,57 +380,186 @@ async function handleQuizSubmit(event, practiceId) {
         questions.forEach((q, index) => {
             const inputs = document.getElementsByName(`q-${practiceId}-${index}`);
             const selected = Array.from(inputs).find(i => i.checked);
-            
-            // Comparación robusta (ignorando mayúsculas/minúsculas y espacios extra)
             if (selected && selected.value.trim().toLowerCase() === q.correcta.trim().toLowerCase()) {
                 correctAnswers++;
             }
         });
 
         const quizScore = Math.round((correctAnswers / questions.length) * 10);
-
         await updateStudentProgress(practiceId, AppState.user.uid, 'Crucigrama Pendiente', quizScore);
-        alert(`¡Cuestionario enviado! Tu calificación preliminar es: ${quizScore}/10. Ahora resuelve el crucigrama.`);
+        alert(`¡Cuestionario enviado! Puntaje: ${quizScore}/10. Ahora resuelve el crucigrama.`);
         renderStudentPracticesView();
 
     } catch(e) {
-        alert(`Error al enviar: ${e.message}`);
+        alert(`Error: ${e.message}`);
         button.disabled = false;
-        button.textContent = "Enviar Cuestionario";
     }
 }
 
-// ... (Funciones de crucigrama igual que antes) ...
-function renderCrossword(p) {
-    const d = document.getElementById(`crossword-container-${p.id}`);
-    const data = p.generatedContent?.crucigrama;
-    if(!data) return d.innerHTML="<p>Error crucigrama</p>";
-    const words = data.map(w => ({ word: w.word.toUpperCase(), clue: w.clue }));
-    const layout = generateCrosswordLayout(words);
-    if(!layout) return d.innerHTML="<p>Error grid</p>";
-    let h = '<table>';
-    layout.grid.forEach(r => { h+='<tr>'; r.forEach(c => h+= c ? `<td><input type="text" maxlength="1" data-correct="${c.char}" class="crossword-cell"><span class="crossword-number">${c.num||''}</span></td>` : '<td class="empty"></td>'); h+='</tr>'; });
-    h += '</table>';
-    let cl = '<h5>Pistas</h5>';
-    layout.placedWordsInfo.forEach(w => cl+=`<p><strong>${w.number}. ${w.orientation==='across'?'H':'V'}</strong>: ${w.clue}</p>`);
-    d.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${h}</div><div class="crossword-clues">${cl}</div></div><br><button onclick="handleCrosswordSubmit(event, '${p.id}')">Finalizar</button>`;
+// --- LÓGICA DE CRUCIGRAMA ROBUSTA ---
+function renderCrossword(practice) {
+    const container = document.getElementById(`crossword-container-${practice.id}`);
+    const crosswordData = practice.generatedContent?.crucigrama;
+
+    if (!crosswordData || crosswordData.length === 0) {
+        container.innerHTML = "<p class='alert-error'>Error: El crucigrama no está disponible.</p>";
+        return;
+    }
+
+    const words = crosswordData.map(w => ({ word: w.word.toUpperCase().trim(), clue: w.clue }));
+    const layout = generateCrosswordLayout(words); // AHORA SÍ LLAMA A LA FUNCIÓN REAL
+    
+    if (!layout) {
+        container.innerHTML = "<p class='alert-error'>No se pudo generar la cuadrícula del crucigrama.</p>";
+        return;
+    }
+    
+    const { grid, placedWordsInfo } = layout;
+
+    let gridHtml = '<table>';
+    grid.forEach(row => {
+        gridHtml += '<tr>';
+        row.forEach(cell => {
+            if (cell) {
+                gridHtml += `<td style="position:relative;"><input type="text" maxlength="1" data-correct="${cell.char}" class="crossword-cell">${cell.num ? `<span class="crossword-number">${cell.num}</span>` : ''}</td>`;
+            } else {
+                gridHtml += '<td class="empty"></td>';
+            }
+        });
+        gridHtml += '</tr>';
+    });
+    gridHtml += '</table>';
+    
+    let cluesHtml = '<h5>Pistas</h5>';
+    placedWordsInfo.sort((a,b) => a.number - b.number).forEach(w => {
+         cluesHtml += `<p><strong>${w.number}. ${w.orientation === 'across' ? 'H' : 'V'}</strong>: ${w.clue}</p>`;
+    });
+
+    container.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${gridHtml}</div><div class="crossword-clues">${cluesHtml}</div></div><br><button onclick="handleCrosswordSubmit(event, '${practice.id}')">Finalizar Práctica</button>`;
+    
+    const style = document.createElement('style');
+    style.innerHTML = `.crossword-number { position:absolute; top:1px; left:1px; font-size:9px; z-index:1; color: #333; }`;
+    container.appendChild(style);
 }
+
+// --- ALGORITMO DE CRUCIGRAMA REAL (No dummy) ---
 function generateCrosswordLayout(words) {
-    const size=15; let grid=Array(size).fill(0).map(()=>Array(size).fill(null)); let placed=[];
-    words.sort((a,b)=>b.word.length-a.word.length);
-    const f=words.shift(); const sr=7, sc=Math.floor((size-f.word.length)/2);
-    for(let i=0; i<f.word.length; i++) grid[sr][sc+i]={char:f.word[i], num: i===0?1:undefined};
-    placed.push({...f, number:1, orientation:'across'});
-    // Lógica simplificada para demostración (solo coloca la primera palabra para asegurar que no falle)
-    // Para producción, usa la lógica completa de intersección que te pasé antes.
-    return { grid, placedWordsInfo: placed };
+    const gridSize = 20;
+    let grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
+    let placedWords = [];
+
+    // Ordenar: las palabras más largas primero para mejor anclaje
+    words.sort((a, b) => b.word.length - a.word.length);
+    
+    // Colocar la primera palabra en el centro
+    if(words.length === 0) return null;
+    const firstWord = words.shift();
+    const startRow = Math.floor(gridSize / 2);
+    const startCol = Math.floor((gridSize - firstWord.word.length) / 2);
+
+    for (let i = 0; i < firstWord.word.length; i++) {
+        grid[startRow][startCol + i] = { char: firstWord.word[i] };
+    }
+    placedWords.push({ ...firstWord, row: startRow, col: startCol, orientation: 'across' });
+
+    // Intentar colocar el resto
+    let attempts = 0;
+    while (words.length > 0 && attempts < 100) {
+        const wordToPlace = words.shift();
+        let placed = false;
+
+        for (let i = 0; i < placedWords.length && !placed; i++) {
+            const current = placedWords[i];
+            for (let j = 0; j < current.word.length && !placed; j++) {
+                for (let k = 0; k < wordToPlace.word.length && !placed; k++) {
+                    if (current.word[j] === wordToPlace.word[k]) {
+                        // Cruce encontrado
+                        const newOrientation = current.orientation === 'across' ? 'down' : 'across';
+                        let newRow, newCol;
+
+                        if (current.orientation === 'across') {
+                            newRow = current.row - k;
+                            newCol = current.col + j;
+                        } else { 
+                            newRow = current.row + j;
+                            newCol = current.col - k;
+                        }
+
+                        if (canPlaceWord(grid, wordToPlace.word, newRow, newCol, newOrientation)) {
+                            for (let l = 0; l < wordToPlace.word.length; l++) {
+                                let r = newRow + (newOrientation==='down'?l:0);
+                                let c = newCol + (newOrientation==='across'?l:0);
+                                grid[r][c] = { char: wordToPlace.word[l] };
+                            }
+                            placedWords.push({ ...wordToPlace, row: newRow, col: newCol, orientation: newOrientation });
+                            placed = true;
+                        }
+                    }
+                }
+            }
+        }
+        attempts++;
+    }
+    
+    // Asignar números
+    const placedWordsInfo = [];
+    placedWords.forEach(w => {
+        const cell = grid[w.row][w.col];
+        if(!cell.num) cell.num = placedWordsInfo.length + 1;
+        placedWordsInfo.push({ ...w, number: cell.num });
+    });
+
+    return { grid, placedWordsInfo };
 }
-async function handleCrosswordSubmit(e, pid) {
-    e.target.disabled=true;
-    // Calcular nota crucigrama (simulado al 100% por ahora)
-    const quizScore = AppState.practices[pid].students[AppState.user.uid].quizScore;
-    const final = Math.round(quizScore*0.7 + 3); 
-    await submitStudentQuiz(pid, AppState.user.uid, final>10?10:final);
-    alert(`Finalizado. Nota Final: ${final>10?10:final}`);
-    renderStudentPracticesView();
+
+function canPlaceWord(grid, word, row, col, orientation) {
+    if (row < 0 || col < 0 || row >= grid.length || col >= grid[0].length) return false;
+    
+    // Límite final
+    if (orientation === 'across') { if (col + word.length > grid[0].length) return false; } 
+    else { if (row + word.length > grid.length) return false; }
+
+    for (let i = 0; i < word.length; i++) {
+        let r = row + (orientation === 'down' ? i : 0);
+        let c = col + (orientation === 'across' ? i : 0);
+        const cell = grid[r][c];
+        // Si la celda está ocupada, debe ser la misma letra
+        if (cell && cell.char !== word[i]) return false;
+    }
+    return true;
+}
+
+async function handleCrosswordSubmit(event, practiceId) {
+    const button = event.target;
+    button.disabled = true;
+    button.textContent = "Finalizando...";
+
+    try {
+        const practice = AppState.practices[practiceId];
+        const quizScore = practice.students[AppState.user.uid].quizScore || 0;
+
+        let correct = 0, total = 0;
+        document.querySelectorAll(`#crossword-container-${practiceId} .crossword-cell`).forEach(cell => {
+            total++;
+            if (cell.value.toUpperCase() === cell.dataset.correct) {
+                correct++;
+                cell.style.backgroundColor = '#d4edda';
+            } else {
+                 cell.style.backgroundColor = '#f8d7da';
+            }
+            cell.disabled = true;
+        });
+
+        // Cálculo de nota: 70% Quiz + 30% Crucigrama
+        const crossScore = total > 0 ? (correct / total) * 10 : 0;
+        const finalGrade = Math.round((quizScore * 0.7) + (crossScore * 0.3));
+
+        await submitStudentQuiz(practiceId, AppState.user.uid, finalGrade);
+        alert(`¡Felicidades! Calificación Final: ${finalGrade}/10.`);
+        renderStudentPracticesView();
+
+    } catch (e) {
+        alert(`Error: ${e.message}`);
+        button.disabled = false;
+    }
 }

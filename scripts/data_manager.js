@@ -17,7 +17,6 @@ async function callDB(action, data = {}, method = 'POST') {
 
     try {
         const response = await fetch(url, options);
-        
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
             const result = await response.json();
@@ -28,9 +27,8 @@ async function callDB(action, data = {}, method = 'POST') {
         } else {
             const text = await response.text();
             console.error("Respuesta crítica del servidor (No JSON):", text);
-            throw new Error(`Error de Servidor (${response.status}). Posible falta de credenciales en Vercel.`);
+            throw new Error(`Error de Servidor (${response.status}).`);
         }
-
     } catch (e) {
         console.error(`Fallo en callDB [${action}]:`, e);
         throw e;
@@ -51,28 +49,21 @@ async function createPractice(practiceData) {
     const result = await callDB('create_practice', practiceData);
     return result.practiceId;
 }
-
 async function savePracticeContent(practiceId, content) {
     await callDB('update_practice_content', { practiceId, content });
 }
-
 async function enrollStudent(practiceId, studentUid) {
     await callDB('enroll_student_to_practice', { practiceId, studentUid });
 }
-
 async function unenrollStudent(practiceId, studentUid) {
     await callDB('unenroll_student', { practiceId, studentUid });
 }
-
 async function deletePractice(practiceId) {
     await callDB('delete_practice', { practiceId });
 }
-
-// NUEVO: Eliminar un usuario del sistema
 async function deleteUser(uid) {
     await callDB('delete_user', { uid });
 }
-
 async function getAllUsers() {
     const result = await callDB('get_all_users', {}, 'GET');
     return result.users || [];
@@ -83,16 +74,11 @@ async function submitStudentReport(practiceId, studentUid, reportUrl) {
     await callDB('submit_report', { practiceId, studentUid, reportUrl });
 }
 
-async function updateStudentProgress(practiceId, studentUid, status, quizScore) {
-    await callDB('update_student_progress', { practiceId, studentUid, status, quizScore });
+// Modificada para aceptar más datos (crosswordScore, etc.)
+async function updateStudentProgress(practiceId, studentUid, data) {
+    await callDB('update_student_progress', { practiceId, studentUid, ...data });
 }
 
-async function submitStudentQuiz(practiceId, studentUid, score) {
-    const result = await callDB('submit_quiz', { practiceId, studentUid, score });
-    return result.finalGrade;
-}
-
-// NUEVO: Actualizar perfil (Nombre, Grupo, Email)
 async function updateUserProfile(uid, updateData) {
     await callDB('update_user_profile', { uid, updateData });
 }

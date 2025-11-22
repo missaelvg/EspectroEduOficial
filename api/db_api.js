@@ -1,4 +1,4 @@
-// api/db_api.js (VERSIÓN COMPLETA DEFINITIVA)
+// api/db_api.js (VERSIÓN DEFINITIVA PARA CALIFICACIONES DETALLADAS)
 const admin = require('firebase-admin');
 
 let db;
@@ -24,7 +24,7 @@ if (!admin.apps.length) {
 }
 
 module.exports = async (req, res) => {
-    // CORS
+    // Headers CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -104,7 +104,8 @@ module.exports = async (req, res) => {
                 [`students.${data.studentUid}`]: { 
                     status: 'Inscrito', 
                     reportUrl: null, 
-                    quizScore: null, 
+                    quizScore: null,
+                    crosswordScore: null,
                     completed: false 
                 }
             });
@@ -124,9 +125,6 @@ module.exports = async (req, res) => {
             if (!data.uid || !data.updateData) throw new Error("Faltan datos.");
             const { matricula, role, uid, ...allowedUpdates } = data.updateData;
             await db.collection('users').doc(data.uid).update(allowedUpdates);
-            if (allowedUpdates.email) {
-                try { await admin.auth().updateUser(data.uid, { email: allowedUpdates.email }); } catch(e) {}
-            }
             return res.status(200).json({ message: 'OK' });
         }
 
@@ -137,7 +135,7 @@ module.exports = async (req, res) => {
             return res.status(200).json({ message: 'OK' });
         }
 
-        // --- PROGRESO DEL ALUMNO ---
+        // --- PROGRESO DEL ALUMNO (ACTUALIZADO) ---
 
         if (action === 'submit_report') {
             await db.collection('practices').doc(data.practiceId).update({
@@ -147,27 +145,18 @@ module.exports = async (req, res) => {
             return res.status(200).json({ message: 'OK' });
         }
 
-        // ESTA ES LA FUNCIÓN QUE FALTABA:
         if (action === 'update_student_progress') {
             const practiceRef = db.collection('practices').doc(data.practiceId);
-            const updateData = {
-                [`students.${data.studentUid}.status`]: data.status
-            };
-            // Si viene el puntaje, lo guardamos también
-            if (typeof data.quizScore !== 'undefined') {
-                updateData[`students.${data.studentUid}.quizScore`] = data.quizScore;
-            }
+            const updateData = {};
+            
+            // Actualizamos solo los campos que nos envíen
+            if (data.status) updateData[`students.${data.studentUid}.status`] = data.status;
+            if (typeof data.quizScore !== 'undefined') updateData[`students.${data.studentUid}.quizScore`] = data.quizScore;
+            if (typeof data.crosswordScore !== 'undefined') updateData[`students.${data.studentUid}.crosswordScore`] = data.crosswordScore;
+            if (typeof data.completed !== 'undefined') updateData[`students.${data.studentUid}.completed`] = data.completed;
+
             await practiceRef.update(updateData);
             return res.status(200).json({ message: 'OK' });
-        }
-
-        if (action === 'submit_quiz') {
-            await db.collection('practices').doc(data.practiceId).update({
-                [`students.${data.studentUid}.quizScore`]: data.score,
-                [`students.${data.studentUid}.status`]: 'Práctica Finalizada',
-                [`students.${data.studentUid}.completed`]: true
-            });
-            return res.status(200).json({ message: 'OK', finalGrade: data.score });
         }
 
         return res.status(400).json({ error: `Acción desconocida: ${action}` });

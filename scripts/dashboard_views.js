@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN MAESTRA COMPLETA Y CORREGIDA)
+// scripts/dashboard_views.js (VERSIÓN FINAL MEJORADA)
 
 const AppState = {
     user: null,
@@ -7,7 +7,7 @@ const AppState = {
 };
 
 // ====================================================
-// RENDERIZADO PRINCIPAL Y NAVEGACIÓN
+// RENDERIZADO PRINCIPAL
 // ====================================================
 
 function renderDoctorLayout(user) {
@@ -32,7 +32,7 @@ function renderStudentLayout(user) {
         <button onclick="setActive(this); renderStudentPracticesView();">Mis Prácticas (Reporte)</button>
         <button onclick="setActive(this); renderStudentActivitiesView();">Actividades</button>
         <button onclick="setActive(this); renderStudentGradesView();">Calificaciones</button>
-        <button onclick="setActive(this); renderStudentProfileView();">Perfil</button>
+        <button onclick="setActive(this); renderStudentProfileView();">Mi Perfil</button>
     `;
     renderStudentDashboard();
 }
@@ -48,15 +48,15 @@ function setActive(button) {
 
 async function renderDoctorDashboard() {
     const contentDiv = document.getElementById('main-content');
-    contentDiv.innerHTML = `<h2>Dashboard del Doctor</h2><div id="practices-summary">Cargando...</div>`;
+    contentDiv.innerHTML = `<h2>Bienvenido, Dr. ${AppState.user.username}</h2><div id="practices-summary">Cargando...</div>`;
     try {
         const practices = await getPractices();
         AppState.practices = practices;
         const practicesList = Object.values(practices);
         
-        let html = `<p>Tienes ${practicesList.length} práctica(s) creada(s).</p>`;
+        let html = `<p style="margin-bottom:20px;">Aquí tienes un resumen de tus prácticas activas.</p>`;
         if (practicesList.length === 0) {
-            html += `<p>Ve a "Crear Práctica" para empezar.</p>`;
+            html += `<div class="card"><p>No has creado ninguna práctica aún. Ve a la pestaña "Crear Práctica".</p></div>`;
         } else {
             practicesList.forEach(p => {
                 const studentCount = Object.keys(p.students || {}).length;
@@ -73,10 +73,10 @@ async function renderDoctorDashboard() {
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <h4>${p.title}</h4>
-                            <button onclick="handleDeletePractice('${p.id}')" style="background-color:#dc2626; font-size:0.8em; padding:5px 10px;">Borrar Práctica</button>
+                            <button onclick="handleDeletePractice('${p.id}')" style="background-color:#dc2626; font-size:0.8em; padding:6px 12px;">Borrar</button>
                         </div>
-                        <p>${studentCount} alumno(s) inscrito(s).</p>
-                        <div style="margin-top:10px; display:flex; gap:10px;">
+                        <p style="color:#64748b;">${studentCount} alumno(s) inscrito(s)</p>
+                        <div style="margin-top:15px; display:flex; gap:10px;">
                             ${slidesBtn}
                             ${stdBtn}
                         </div>
@@ -93,13 +93,18 @@ function renderCreatePracticeView() {
     document.getElementById('main-content').innerHTML = `
         <h2>Crear Nueva Práctica</h2>
         <div class="card">
-            <label for="practiceTitle">Título de la Práctica</label>
+            <p style="margin-bottom:20px; color:#64748b;">Sube los materiales necesarios. La IA generará automáticamente el cuestionario.</p>
+            <label>Título de la Práctica</label>
             <input type="text" id="practiceTitle" placeholder="Ej. Espectroscopía Óptica #1">
-            <label for="slidesFile">Diapositivas (PDF)</label>
+            
+            <label>Diapositivas (PDF)</label>
             <input type="file" id="slidesFile" accept="application/pdf">
-            <small style="color:#666; display:block; margin-bottom:15px;">* La IA generará un cuestionario basado en este archivo.</small>
-            <label for="standardFile">Estándar del Reporte (PDF)</label>
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* Usado para generar el cuestionario y crucigrama.</small>
+            
+            <label>Estándar del Reporte (PDF)</label>
             <input type="file" id="standardFile" accept="application/pdf">
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* Usado para evaluar los reportes de los alumnos.</small>
+            
             <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
             <div id="creationLog" style="margin-top: 15px; font-family:monospace;"></div>
         </div>`;
@@ -152,7 +157,7 @@ async function handlePracticeCreation() {
 // --- GESTIÓN DE ALUMNOS (DOCTOR) ---
 async function renderManageStudentsView() {
     const contentDiv = document.getElementById('main-content');
-    contentDiv.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="studentSearchInput" placeholder="🔍 Buscar..." onkeyup="handleSearchStudent()" style="margin-bottom:0;"></div><div id="students-list-container">Cargando...</div>`;
+    contentDiv.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="studentSearchInput" placeholder="🔍 Buscar por nombre o matrícula..." onkeyup="handleSearchStudent()" style="margin-bottom:0;"></div><div id="students-list-container">Cargando...</div>`;
     try {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
         AppState.practices = practices;
@@ -225,7 +230,7 @@ async function renderDoctorGradesView() {
                     html += '<p style="color:#64748b;">No hay alumnos inscritos.</p>';
                 } else {
                     html += `<div class="table-container"><table class="styled-table">
-                            <thead><tr><th>Alumno</th><th>Matrícula</th><th>Reporte</th><th>Quiz</th><th>Cross</th><th>Final</th></tr></thead><tbody>`;
+                            <thead><tr><th>Alumno</th><th>Matrícula</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Final</th></tr></thead><tbody>`;
                     
                     for (const sid in students) {
                         const sData = students[sid];
@@ -233,7 +238,6 @@ async function renderDoctorGradesView() {
                         const name = sInfo ? sInfo.username : "Usuario desconocido";
                         const matricula = sInfo ? sInfo.matricula : sid;
                         
-                        // Promedio inteligente
                         let avg = 0, count = 0;
                         if(sData.reportScore !== undefined) { avg += sData.reportScore; count++; }
                         if(sData.quizScore !== undefined) { avg += sData.quizScore; count++; }
@@ -289,7 +293,7 @@ async function enrollStudentHandler(uid) {
 // ====================================================
 
 function renderStudentDashboard() {
-    document.getElementById('main-content').innerHTML = `<h2>Bienvenido</h2><div class="card"><p>Hola, ${AppState.user.username}</p><p>Usa el menú superior para navegar.</p></div>`;
+    document.getElementById('main-content').innerHTML = `<h2>¡Hola, ${AppState.user.username}!</h2><div class="card"><p>Bienvenido a tu espacio de aprendizaje. Aquí podrás gestionar tus prácticas y ver tu progreso.</p><p>Selecciona una opción del menú superior para comenzar.</p></div>`;
 }
 
 // --- 1. MIS PRÁCTICAS (REPORTE) ---
@@ -337,7 +341,6 @@ async function renderStudentActivitiesView() {
 
         if (myP.length === 0) { document.getElementById('act-list').innerHTML = '<p>Sin actividades.</p>'; return; }
 
-        // Renderizar HTML base
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
             if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9; padding:20px; border-radius:8px; text-align:center;">🔒 <strong>Bloqueado</strong><br>Entrega tu reporte primero.</div></div>`;
@@ -349,7 +352,6 @@ async function renderStudentActivitiesView() {
 
         document.getElementById('act-list').innerHTML = html;
 
-        // Inyectar lógica
         myP.forEach(p => {
             const st = p.students[AppState.user.uid];
             if (st.reportUrl && !st.completed) {
@@ -448,13 +450,13 @@ function renderQuiz(p) {
     let h = '<p>Responde:</p>';
     q.forEach((x,i)=> {
         h+=`<div class="question"><p>${i+1}. ${x.pregunta}</p>`;
-        x.opciones?.forEach(o=>h+=`<label style="display:block"><input type="radio" name="q-${p.id}-${i}" value="${o}"> ${o}</label>`);
+        x.opciones?.forEach(o=>h+=`<label class="option-label"><input type="radio" name="q-${p.id}-${i}" value="${o}"> ${o}</label>`);
         h+='</div>';
     });
-    d.innerHTML = h + `<button onclick="handleQuizSubmit(event, '${p.id}')">Enviar</button>`;
+    d.innerHTML = h + `<button onclick="subQuiz(event, '${p.id}')">Enviar</button>`;
 }
 
-async function handleQuizSubmit(e, pid) {
+async function subQuiz(e, pid) {
     const btn = e.target;
     btn.disabled=true;
     let p = AppState.practices[pid];
@@ -468,7 +470,7 @@ async function handleQuizSubmit(e, pid) {
     });
     const quizGrade = Math.round((s/qs.length)*10);
     await updateStudentProgress(pid, AppState.user.uid, { status: 'Crucigrama Pendiente', quizScore: quizGrade });
-    alert(`Quiz: ${quizGrade}/10. Siguiente: Crucigrama.`);
+    alert(`Cuestionario: ${quizGrade}/10. Siguiente: Crucigrama.`);
     renderStudentActivitiesView();
 }
 
@@ -487,7 +489,7 @@ function renderCrossword(p) {
     let cl = '<h5>Pistas</h5>';
     layout.placedWordsInfo.forEach(w => cl+=`<p><strong>${w.number}. ${w.orientation==='across'?'H':'V'}</strong>: ${w.clue}</p>`);
     
-    d.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${h}</div><div class="crossword-clues">${cl}</div></div><br><button onclick="handleCrosswordSubmit(event, '${p.id}')">Finalizar</button>`;
+    d.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${h}</div><div class="crossword-clues">${cl}</div></div><br><button onclick="finCross(event, '${p.id}')">Finalizar</button>`;
     const st = document.createElement('style'); st.innerHTML = `.crossword-number{position:absolute;top:1px;left:1px;font-size:8px;color:#333;}`; d.appendChild(st);
 }
 
@@ -545,7 +547,7 @@ function canPlace(grid, word, r, c, o) {
     return true;
 }
 
-async function handleCrosswordSubmit(e, pid) {
+async function finCross(e, pid) {
     const btn = e.target;
     btn.disabled=true;
     let p = AppState.practices[pid];
@@ -557,7 +559,7 @@ async function handleCrosswordSubmit(e, pid) {
     });
     const cScore = tot>0 ? Math.round((corr/tot)*10) : 0;
     
-    // Guardamos la nota del crucigrama por separado para que no se pierda el quiz
+    // Guardar nota específica del crucigrama y marcar completado
     await updateStudentProgress(pid, AppState.user.uid, { completed: true, status: 'Finalizado', crosswordScore: cScore });
     alert(`Crucigrama: ${cScore}/10`);
     renderStudentActivitiesView();

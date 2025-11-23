@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL: GRUPO VISIBLE + DISEÑO COMPLETO)
+// scripts/dashboard_views.js (VERSIÓN CORREGIDA: GRUPOS VISIBLES Y SIN ERRORES)
 
 const AppState = {
     user: null,
@@ -6,7 +6,7 @@ const AppState = {
     users: [],
 };
 
-// Helper para formato de fecha
+// --- HELPERS ---
 function formatDate(isoString) {
     if (!isoString) return '-';
     try {
@@ -18,7 +18,6 @@ function formatDate(isoString) {
     } catch (e) { return '-'; }
 }
 
-// Helper para promedio
 function calculateWeightedGrade(report, quiz, cross) {
     const r = report || 0;
     const q = quiz || 0;
@@ -28,7 +27,7 @@ function calculateWeightedGrade(report, quiz, cross) {
 }
 
 // ====================================================
-// RENDERIZADO PRINCIPAL
+// NAVEGACIÓN
 // ====================================================
 
 function renderDoctorLayout(user) {
@@ -59,6 +58,7 @@ function renderStudentLayout(user) {
 }
 
 function setActive(button) {
+    if(!button) return;
     document.querySelectorAll('#navbar button').forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
 }
@@ -105,82 +105,92 @@ async function handlePracticeCreation() {
     const standardFile = document.getElementById('standardFile').files[0];
     const logDiv = document.getElementById('creationLog');
     const button = logDiv.previousElementSibling;
+
     if (!title || !slidesFile || !standardFile) { logDiv.innerHTML = '<p class="alert-error">Rellena todo.</p>'; return; }
     button.disabled = true;
     try {
-        logDiv.innerHTML = '<span style="color:#3b82f6">1/5: Creando registro...</span>';
+        logDiv.innerHTML = '1/5: Creando registro...';
         const pid = await createPractice({ title, students: {}, generatedContent: null, creatorId: AppState.user.uid, createdAt: new Date() });
-        logDiv.innerHTML = '<span style="color:#3b82f6">2/5: Subiendo archivos...</span>';
+        logDiv.innerHTML = '2/5: Subiendo archivos...';
         const [slides, std] = await Promise.all([uploadFile(slidesFile, `practices/${pid}`), uploadFile(standardFile, `practices/${pid}`)]);
-        logDiv.innerHTML = '<span style="color:#3b82f6">3/5: Guardando enlaces...</span>';
+        logDiv.innerHTML = '3/5: Guardando enlaces...';
         await savePracticeContent(pid, { slidesPdfUrl: slides, standardPdfUrl: std });
-        logDiv.innerHTML = '<span style="color:#eab308">4/5: IA...</span>';
+        logDiv.innerHTML = '4/5: IA...';
         let slidesText = "", standardText = "";
         try { slidesText = await extractTextFromPDF(slidesFile); } catch(e) {}
         try { standardText = await extractTextFromPDF(standardFile); } catch(e) {}
         await savePracticeContent(pid, { slidesText, standardText });
         if (slidesText.length > 50) {
-            logDiv.innerHTML = '<span style="color:#eab308">5/5: Generando cuestionario...</span>';
-            try { const gen = await callAIGenerate(slidesText); await savePracticeContent(pid, { generatedContent: gen }); logDiv.innerHTML = '<p class="alert-success">✅ ¡Listo con IA!</p>'; } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada sin Cuestionario (Fallo IA).</p>'; }
-        } else { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada (PDF imagen, sin IA).</p>'; }
+            logDiv.innerHTML = '5/5: Generando cuestionario...';
+            try { const gen = await callAIGenerate(slidesText); await savePracticeContent(pid, { generatedContent: gen }); logDiv.innerHTML = '<p class="alert-success">Listo con IA</p>'; } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada sin Cuestionario (Fallo IA).</p>'; }
+        } else { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada (PDF imagen, sin IA).</p>'; }
         setTimeout(() => { document.querySelector('#navbar button').click(); }, 3000);
     } catch (e) { logDiv.innerHTML = `<p class="alert-error">Error: ${e.message}</p>`; button.disabled = false; }
 }
 
+// --- GESTIÓN DE ALUMNOS (CON GRUPO) ---
 async function renderManageStudentsView() {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar por nombre..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
+    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar por nombre o matrícula..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
     try {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
-        AppState.practices = practices; AppState.users = users.filter(u => u.role === 'alumno');
+        AppState.practices = practices; 
+        AppState.users = users.filter(u => u.role === 'alumno');
         rList(AppState.users);
     } catch (e) { document.getElementById('sList').innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-function renderStudentsList(studentsToRender) {
-    const container = document.getElementById('students-list-container') || document.getElementById('sList');
-    const studentPracticeMap = {};
-    Object.values(AppState.practices).forEach(p => { 
-        Object.keys(p.students || {}).forEach(sid => studentPracticeMap[sid] = { id: p.id, title: p.title }); 
+function rList(list) {
+    const c = document.getElementById('sList');
+    const pMap = {}; 
+    Object.values(AppState.practices).forEach(p=>{
+        Object.keys(p.students||{}).forEach(s=>pMap[s]={id:p.id, title:p.title})
     });
 
-    let html = '';
-    if (studentsToRender.length === 0) html = `<p>No se encontraron alumnos.</p>`;
+    let h = '';
+    if (list.length === 0) h = '<p>No se encontraron alumnos.</p>';
     else {
-        studentsToRender.forEach(student => {
-            const currentPractice = studentPracticeMap[student.uid];
-            // MOSTRAR EL GRUPO DE FORMA VISIBLE
-            const groupText = student.grupo && student.grupo !== 'N/A' ? `<span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:0.85em; margin-left:5px;">Grupo: ${student.grupo}</span>` : '';
+        list.forEach(s => {
+            const curr = pMap[s.uid];
+            // CORRECCIÓN: Mostrar Grupo aquí
+            const grupoLabel = s.grupo ? `<span style="margin-left:5px; background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:0.8em;">${s.grupo}</span>` : '';
             
-            html += `
-                <div class="student-list-item">
-                    <div style="flex:1;">
-                        <strong>${student.username}</strong> ${groupText}<br> 
-                        <small style="color:#64748b;">Matrícula: ${student.matricula}</small>
-                    </div>
-                    <div style="flex:1; text-align:right;">`;
-            if (currentPractice) {
-                html += `<span style="color:#3b82f6; font-weight:600; margin-right:10px; font-size:0.9em;">${currentPractice.title}</span>
-                         <button onclick="handleUnenroll('${currentPractice.id}', '${student.uid}')" style="background-color:#f59e0b; font-size:0.75em; padding:6px 12px;">Desinscribir</button>`;
+            h += `
+            <div class="student-list-item">
+                <div>
+                    <strong>${s.username}</strong> ${grupoLabel}<br>
+                    <small style="color:#64748b;">${s.matricula}</small>
+                </div>
+                <div style="text-align:right;">`;
+            
+            if(curr) {
+                h+=`<span style="color:#3b82f6;margin-right:10px;font-size:0.85em;font-weight:bold;">${curr.title}</span>
+                    <button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b;font-size:0.7em;padding:6px 10px;">Desinscribir</button>`;
             } else {
-                if (Object.keys(AppState.practices).length > 0) {
-                    html += `<select id="practice-select-${student.uid}" style="padding:6px; width:auto; margin-right:5px; border-radius:6px; border:1px solid #cbd5e1;">
-                                <option value="">Seleccionar...</option>
-                                ${Object.values(AppState.practices).map(p => `<option value="${p.id}">${p.title}</option>`).join('')}
-                             </select>
-                             <button onclick="enrollStudentHandler('${student.uid}')" style="font-size:0.75em; padding:6px 12px;">Inscribir</button>`;
-                } else { html += `<span style="color:#94a3b8;">Sin prácticas</span>`; }
+                h+=`<select id="ps-${s.uid}" style="padding:5px;width:auto;margin-right:5px;">
+                        <option value="">Seleccionar...</option>
+                        ${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}
+                    </select>
+                    <button onclick="hEnroll('${s.uid}')" style="font-size:0.7em;padding:6px 10px;">Inscribir</button>`;
             }
-            html += `<button onclick="handleDeleteUser('${student.uid}')" style="background-color:#ef4444; font-size:0.75em; padding:6px 12px; margin-left:5px;">X</button></div></div>`;
+            h+=`<button onclick="hDel('${s.uid}')" style="background:#dc2626;font-size:0.7em;padding:6px 10px;margin-left:5px;">X</button></div></div>`;
         });
     }
-    container.innerHTML = html;
+    c.innerHTML = h;
 }
 
-function hSearch(){ rList(AppState.users.filter(u=>u.username.toLowerCase().includes(document.getElementById('sSearch').value.toLowerCase()))); }
-async function enrollStudentHandler(uid){ const pid=document.getElementById(`practice-select-${uid}`).value; if(!pid)return; await enrollStudent(pid,uid); if(!AppState.practices[pid].students)AppState.practices[pid].students={}; AppState.practices[pid].students[uid]={status:'Inscrito'}; hSearch(); }
-async function handleUnenroll(pid,uid){ if(confirm("¿Desinscribir?")){ await unenrollStudent(pid,uid); delete AppState.practices[pid].students[uid]; hSearch(); } }
-async function handleDeleteUser(uid){ if(confirm("¿Borrar usuario permanentemente?")){ await deleteUser(uid); renderManageStudentsView(); } }
+function hSearch(){ 
+    const q = document.getElementById('sSearch').value.toLowerCase();
+    const filtered = AppState.users.filter(u => 
+        u.username.toLowerCase().includes(q) || 
+        (u.matricula && u.matricula.toLowerCase().includes(q))
+    );
+    rList(filtered); 
+}
+
+async function hEnroll(uid){ const pid=document.getElementById(`ps-${uid}`).value; if(!pid)return; await enrollStudent(pid,uid); if(!AppState.practices[pid].students)AppState.practices[pid].students={}; AppState.practices[pid].students[uid]={status:'Inscrito'}; hSearch(); }
+async function hUnenroll(pid,uid){ if(confirm("¿Desinscribir?")){ await unenrollStudent(pid,uid); delete AppState.practices[pid].students[uid]; hSearch(); } }
+async function hDel(uid){ if(confirm("¿Borrar usuario?")){ await deleteUser(uid); renderManageStudentsView(); } }
 async function handleDeletePractice(pid) { if(confirm("¿Borrar práctica?")) { await deletePractice(pid); renderDoctorDashboard(); } }
 
 // --- CALIFICACIONES DOCTOR ---
@@ -196,7 +206,7 @@ async function renderDoctorGradesView() {
             const studs = p.students || {};
             if (Object.keys(studs).length === 0) html += '<p style="color:#64748b;">No hay alumnos inscritos.</p>';
             else {
-                html += `<div class="table-container"><table class="styled-table"><thead><tr><th>Alumno</th><th>Matrícula</th><th>Grupo</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
+                html += `<div class="table-container"><table class="styled-table"><thead><tr><th>Alumno</th><th>Matrícula</th><th>Grupo</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
                 for (const sid in studs) {
                     const sData = studs[sid];
                     const sInfo = usersMap.get(sid);
@@ -237,12 +247,7 @@ function renderStudentDashboard() {
         </div>`;
 }
 
-// ... (Resto de funciones de alumno: renderStudentPracticesView, renderStudentActivitiesView, etc. igual al código anterior. Se asume incluido aquí para completitud).
-// Para ahorrar espacio en el chat, son las mismas funciones que ya tenías en la versión anterior. 
-// Asegúrate de NO borrarlas. Incluyen handleReportUpload, renderQuiz, subQuiz, renderCrossword, generateCrosswordLayout, handleCrosswordSubmit.
-// Si necesitas que las vuelva a pegar todas, dímelo.
-
-// --- 1. MIS PRÁCTICAS (REPORTE) ---
+// --- 1. MIS PRÁCTICAS ---
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list">Cargando...</div>';
@@ -316,7 +321,7 @@ async function renderStudentGradesView() {
         const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
         if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<p>No hay registros.</p>'; return; }
 
-        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
+        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Promedio</th><th>Fecha</th></tr></thead><tbody>`;
         html += myP.map(p => {
             const st = p.students[AppState.user.uid];
             const rScore = st.reportScore !== undefined ? st.reportScore : 0;

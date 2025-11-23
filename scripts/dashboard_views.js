@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL: PONDERACIÓN 80/10/10)
+// scripts/dashboard_views.js (VERSIÓN FINAL: GRUPO VISIBLE + DISEÑO COMPLETO)
 
 const AppState = {
     user: null,
@@ -18,21 +18,17 @@ function formatDate(isoString) {
     } catch (e) { return '-'; }
 }
 
-// Helper para calcular el Promedio Ponderado
+// Helper para promedio
 function calculateWeightedGrade(report, quiz, cross) {
     const r = report || 0;
     const q = quiz || 0;
     const c = cross || 0;
-    
-    // Fórmula: 80% Reporte + 10% Quiz + 10% Crucigrama
     const final = (r * 0.8) + (q * 0.1) + (c * 0.1);
-    
-    // Retornamos con 1 decimal para mayor precisión (ej. 8.5)
     return parseFloat(final.toFixed(1));
 }
 
 // ====================================================
-// RENDERIZADO PRINCIPAL Y NAVEGACIÓN
+// RENDERIZADO PRINCIPAL
 // ====================================================
 
 function renderDoctorLayout(user) {
@@ -109,7 +105,6 @@ async function handlePracticeCreation() {
     const standardFile = document.getElementById('standardFile').files[0];
     const logDiv = document.getElementById('creationLog');
     const button = logDiv.previousElementSibling;
-
     if (!title || !slidesFile || !standardFile) { logDiv.innerHTML = '<p class="alert-error">Rellena todo.</p>'; return; }
     button.disabled = true;
     try {
@@ -134,33 +129,61 @@ async function handlePracticeCreation() {
 
 async function renderManageStudentsView() {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
+    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar por nombre..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
     try {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
         AppState.practices = practices; AppState.users = users.filter(u => u.role === 'alumno');
         rList(AppState.users);
     } catch (e) { document.getElementById('sList').innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
-function rList(list) {
-    const c = document.getElementById('sList');
-    const pMap = {}; Object.values(AppState.practices).forEach(p=>{Object.keys(p.students||{}).forEach(s=>pMap[s]={id:p.id, title:p.title})});
-    let h = '';
-    list.forEach(s => {
-        const curr = pMap[s.uid];
-        h += `<div class="student-list-item"><div><strong>${s.username}</strong> (${s.matricula})</div><div style="text-align:right;">`;
-        if(curr) h+=`<span style="color:#3b82f6;font-weight:bold;margin-right:10px;">${curr.title}</span><button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b;font-size:0.7em;padding:5px;">Desinscribir</button>`;
-        else h+=`<select id="ps-${s.uid}" style="padding:5px;width:auto;margin-right:5px;"><option value="">Seleccionar...</option>${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}</select><button onclick="hEnroll('${s.uid}')" style="font-size:0.7em;padding:5px;">Inscribir</button>`;
-        h+=`<button onclick="hDel('${s.uid}')" style="background:#ef4444;font-size:0.7em;padding:5px;margin-left:5px;color:white;">X</button></div></div>`;
+
+function renderStudentsList(studentsToRender) {
+    const container = document.getElementById('students-list-container') || document.getElementById('sList');
+    const studentPracticeMap = {};
+    Object.values(AppState.practices).forEach(p => { 
+        Object.keys(p.students || {}).forEach(sid => studentPracticeMap[sid] = { id: p.id, title: p.title }); 
     });
-    c.innerHTML = h || '<p>Sin alumnos</p>';
+
+    let html = '';
+    if (studentsToRender.length === 0) html = `<p>No se encontraron alumnos.</p>`;
+    else {
+        studentsToRender.forEach(student => {
+            const currentPractice = studentPracticeMap[student.uid];
+            // MOSTRAR EL GRUPO DE FORMA VISIBLE
+            const groupText = student.grupo && student.grupo !== 'N/A' ? `<span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-size:0.85em; margin-left:5px;">Grupo: ${student.grupo}</span>` : '';
+            
+            html += `
+                <div class="student-list-item">
+                    <div style="flex:1;">
+                        <strong>${student.username}</strong> ${groupText}<br> 
+                        <small style="color:#64748b;">Matrícula: ${student.matricula}</small>
+                    </div>
+                    <div style="flex:1; text-align:right;">`;
+            if (currentPractice) {
+                html += `<span style="color:#3b82f6; font-weight:600; margin-right:10px; font-size:0.9em;">${currentPractice.title}</span>
+                         <button onclick="handleUnenroll('${currentPractice.id}', '${student.uid}')" style="background-color:#f59e0b; font-size:0.75em; padding:6px 12px;">Desinscribir</button>`;
+            } else {
+                if (Object.keys(AppState.practices).length > 0) {
+                    html += `<select id="practice-select-${student.uid}" style="padding:6px; width:auto; margin-right:5px; border-radius:6px; border:1px solid #cbd5e1;">
+                                <option value="">Seleccionar...</option>
+                                ${Object.values(AppState.practices).map(p => `<option value="${p.id}">${p.title}</option>`).join('')}
+                             </select>
+                             <button onclick="enrollStudentHandler('${student.uid}')" style="font-size:0.75em; padding:6px 12px;">Inscribir</button>`;
+                } else { html += `<span style="color:#94a3b8;">Sin prácticas</span>`; }
+            }
+            html += `<button onclick="handleDeleteUser('${student.uid}')" style="background-color:#ef4444; font-size:0.75em; padding:6px 12px; margin-left:5px;">X</button></div></div>`;
+        });
+    }
+    container.innerHTML = html;
 }
+
 function hSearch(){ rList(AppState.users.filter(u=>u.username.toLowerCase().includes(document.getElementById('sSearch').value.toLowerCase()))); }
-async function hEnroll(uid){ const pid=document.getElementById(`ps-${uid}`).value; if(!pid)return; await enrollStudent(pid,uid); if(!AppState.practices[pid].students)AppState.practices[pid].students={}; AppState.practices[pid].students[uid]={status:'Inscrito'}; hSearch(); }
-async function hUnenroll(pid,uid){ if(confirm("¿Desinscribir?")){ await unenrollStudent(pid,uid); delete AppState.practices[pid].students[uid]; hSearch(); } }
-async function hDel(uid){ if(confirm("¿Borrar usuario?")){ await deleteUser(uid); renderManageStudentsView(); } }
+async function enrollStudentHandler(uid){ const pid=document.getElementById(`practice-select-${uid}`).value; if(!pid)return; await enrollStudent(pid,uid); if(!AppState.practices[pid].students)AppState.practices[pid].students={}; AppState.practices[pid].students[uid]={status:'Inscrito'}; hSearch(); }
+async function handleUnenroll(pid,uid){ if(confirm("¿Desinscribir?")){ await unenrollStudent(pid,uid); delete AppState.practices[pid].students[uid]; hSearch(); } }
+async function handleDeleteUser(uid){ if(confirm("¿Borrar usuario permanentemente?")){ await deleteUser(uid); renderManageStudentsView(); } }
 async function handleDeletePractice(pid) { if(confirm("¿Borrar práctica?")) { await deletePractice(pid); renderDoctorDashboard(); } }
 
-// --- CALIFICACIONES DOCTOR (PONDERACIÓN ACTUALIZADA) ---
+// --- CALIFICACIONES DOCTOR ---
 async function renderDoctorGradesView() {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = `<h2>Calificaciones por Práctica</h2><div id="grades-by-practice">Cargando...</div>`;
@@ -184,8 +207,6 @@ async function renderDoctorGradesView() {
                     const rScore = sData.reportScore !== undefined ? sData.reportScore : 0;
                     const qScore = sData.quizScore !== undefined ? sData.quizScore : 0;
                     const cScore = sData.crosswordScore !== undefined ? sData.crosswordScore : 0;
-                    
-                    // CÁLCULO CON LA NUEVA FÓRMULA
                     const final = calculateWeightedGrade(rScore, qScore, cScore);
                     const date = formatDate(sData.completedAt || sData.reportSubmittedAt);
                     
@@ -216,6 +237,11 @@ function renderStudentDashboard() {
         </div>`;
 }
 
+// ... (Resto de funciones de alumno: renderStudentPracticesView, renderStudentActivitiesView, etc. igual al código anterior. Se asume incluido aquí para completitud).
+// Para ahorrar espacio en el chat, son las mismas funciones que ya tenías en la versión anterior. 
+// Asegúrate de NO borrarlas. Incluyen handleReportUpload, renderQuiz, subQuiz, renderCrossword, generateCrosswordLayout, handleCrosswordSubmit.
+// Si necesitas que las vuelva a pegar todas, dímelo.
+
 // --- 1. MIS PRÁCTICAS (REPORTE) ---
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
@@ -235,7 +261,6 @@ async function renderStudentPracticesView() {
             if (hasReport) {
                 const scoreDisplay = st.reportScore ? `<br><strong style="color:#15803d">Calificación IA: ${st.reportScore}/10</strong>` : '<br><em>Evaluando...</em>';
                 const feedbackDisplay = st.reportFeedback ? `<div style="margin-top:15px; padding:15px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem;"><strong>Retroalimentación:</strong> ${st.reportFeedback}</div>` : '';
-                
                 body = `<div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534;"><strong>Reporte Entregado</strong>${scoreDisplay}</div>${feedbackDisplay}
                         <div style="margin-top:10px;"><a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a> <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar</a></div>`;
             } else {
@@ -282,31 +307,25 @@ async function renderStudentActivitiesView() {
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-// --- 3. CALIFICACIONES ALUMNO (PONDERACIÓN ACTUALIZADA) ---
+// --- 3. CALIFICACIONES ---
 async function renderStudentGradesView() {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = '<h2>Mis Calificaciones</h2><div id="grades-list">Cargando...</div>';
     try {
         const practices = await getPractices();
         const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
-
         if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<p>No hay registros.</p>'; return; }
 
-        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Promedio Final</th><th>Fecha</th></tr></thead><tbody>`;
-
+        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
         html += myP.map(p => {
             const st = p.students[AppState.user.uid];
             const rScore = st.reportScore !== undefined ? st.reportScore : 0;
             const qScore = st.quizScore !== undefined ? st.quizScore : 0;
             const cScore = st.crosswordScore !== undefined ? st.crosswordScore : 0;
-            
-            // CÁLCULO CON LA NUEVA FÓRMULA
             const final = calculateWeightedGrade(rScore, qScore, cScore);
             const date = formatDate(st.completedAt || st.reportSubmittedAt);
-
             return `<tr><td>${p.title}</td><td>${st.reportScore ?? '-'}</td><td>${st.quizScore ?? '-'}</td><td>${st.crosswordScore ?? '-'}</td><td><strong>${final}</strong></td><td style="font-size:0.8em; color:#64748b;">${date}</td></tr>`;
         }).join('');
-
         html += `</tbody></table></div>`;
         document.getElementById('grades-list').innerHTML = html;
     } catch (e) { document.getElementById('grades-list').innerHTML = `<p class="alert-error">${e.message}</p>`; }
@@ -318,10 +337,7 @@ function renderStudentProfileView() {
     document.getElementById('main-content').innerHTML = `<h2>Mi Perfil</h2><div class="card"><label>Matrícula</label><input type="text" value="${u.matricula}" disabled><label>Nombre</label><input id="pN" value="${u.username}"><label>Grupo</label><input id="pG" value="${u.grupo||''}"><label>Email</label><input id="pE" value="${u.email}"><button onclick="updProf()">Actualizar</button></div>`;
 }
 async function updProf(){ 
-    try {
-        await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); 
-        alert("Perfil actualizado");
-    } catch(e) { alert(e.message); }
+    try { await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); alert("Perfil actualizado"); } catch(e) { alert(e.message); }
 }
 
 // --- MANEJADORES ---
@@ -346,12 +362,8 @@ async function handleReportUpload(pid) {
                 reportFeedback = evaluation.justificacion;
             }
         } catch (aiErr) { console.warn("Fallo IA:", aiErr); }
-
         log.innerText = "Guardando...";
-        await callDB('submit_report', { 
-            practiceId: pid, studentUid: AppState.user.uid, 
-            reportUrl: url, reportScore: reportScore, reportFeedback: reportFeedback
-        });
+        await callDB('submit_report', { practiceId: pid, studentUid: AppState.user.uid, reportUrl: url, reportScore: reportScore, reportFeedback: reportFeedback });
         alert(reportScore ? `Calificación Reporte: ${reportScore}/10` : "Reporte entregado.");
         renderStudentPracticesView();
     } catch(e) { log.innerText = `Error: ${e.message}`; btn.disabled = false; }
@@ -369,12 +381,9 @@ function renderQuiz(p) {
     });
     d.innerHTML = h + `<button onclick="subQuiz(event, '${p.id}')">Enviar</button>`;
 }
-
 async function subQuiz(e, pid) {
-    const btn = e.target;
-    btn.disabled=true;
-    let p = AppState.practices[pid];
-    if(!p) { const all=await getPractices(); p=all[pid]; AppState.practices=all; }
+    const btn = e.target; btn.disabled=true;
+    let p = AppState.practices[pid]; if(!p) { const all=await getPractices(); p=all[pid]; AppState.practices=all; }
     const qs = p.generatedContent.cuestionario;
     let s = 0;
     qs.forEach((q,i)=>{
@@ -403,7 +412,6 @@ function renderCrossword(p) {
     d.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${h}</div><div class="crossword-clues">${cl}</div></div><br><button onclick="handleCrosswordSubmit(event, '${p.id}')">Finalizar</button>`;
     const st = document.createElement('style'); st.innerHTML = `.crossword-number{position:absolute;top:1px;left:1px;font-size:8px;color:#333;}`; d.appendChild(st);
 }
-
 function generateCrosswordLayout(words) {
     const size=15; let grid=Array(size).fill(0).map(()=>Array(size).fill(null)); let placed=[];
     words.sort((a,b)=>b.word.length-a.word.length);
@@ -443,7 +451,6 @@ function generateCrosswordLayout(words) {
     placed.forEach(w => { const cell = grid[w.row][w.col]; if(!cell.num) { cell.num = num; num++; } w.number = cell.num; });
     return { grid, placedWordsInfo: placed };
 }
-
 function canPlace(grid, word, r, c, o) {
     if(r<0 || c<0 || r>=grid.length || c>=grid[0].length) return false;
     if(o==='across') { if(c+word.length > grid[0].length) return false; } else { if(r+word.length > grid.length) return false; }
@@ -455,35 +462,16 @@ function canPlace(grid, word, r, c, o) {
     }
     return true;
 }
-
 async function handleCrosswordSubmit(e, pid) {
-    const btn = e.target;
-    btn.disabled=true;
-    let p = AppState.practices[pid];
-    if(!p) { const all=await getPractices(); p=all[pid]; }
-    if(!p || !p.students || !p.students[AppState.user.uid]) {
-        alert("Error al recuperar datos. Recarga."); btn.disabled=false; return;
-    }
-
+    const btn = e.target; btn.disabled=true;
+    let p = AppState.practices[pid]; if(!p) { const all=await getPractices(); p=all[pid]; }
+    if(!p || !p.students || !p.students[AppState.user.uid]) { alert("Error al recuperar datos. Recarga."); btn.disabled=false; return; }
     let corr=0, tot=0;
     document.querySelectorAll(`#cross-${pid} .crossword-cell`).forEach(c=>{
         tot++; if(c.value.toUpperCase()===c.dataset.correct) { corr++; c.style.background='#dcfce7'; } else c.style.background='#fee2e2';
     });
     const cScore = tot>0 ? Math.round((corr/tot)*10) : 0;
-    
-    // GUARDAR Y FINALIZAR
-    await updateStudentProgress(pid, AppState.user.uid, { 
-        completed: true, 
-        status: 'Finalizado', 
-        crosswordScore: cScore 
-    });
-    
-    // RECUPERAR NOTAS PARA MOSTRAR EL FINAL
-    const st = p.students[AppState.user.uid];
-    const rScore = st.reportScore || 0;
-    const qScore = st.quizScore || 0;
-    const final = calculateWeightedGrade(rScore, qScore, cScore);
-
-    alert(`Crucigrama: ${cScore}/10\n\n¡Práctica Finalizada!\nNota Final: ${final}/10`);
+    await updateStudentProgress(pid, AppState.user.uid, { completed: true, status: 'Finalizado', crosswordScore: cScore });
+    alert(`Crucigrama: ${cScore}/10`);
     renderStudentActivitiesView();
 }

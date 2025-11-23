@@ -1,4 +1,4 @@
-/* styles.css - Diseño Final Compacto y Elegante */
+/* styles.css - Diseño Final Compacto con Ojo Centrado */
 
 :root {
     /* Paleta de colores */
@@ -28,7 +28,7 @@ body {
     color: var(--text-main);
     margin: 0;
     padding: 0;
-    line-height: 1.4; /* Línea un poco más compacta */
+    line-height: 1.4;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -72,10 +72,9 @@ body.login-page {
     display: flex; 
     width: 100%; 
     max-width: 1100px; 
-    /* Ajuste automático de altura, pero centrado */
     height: auto;
     min-height: 600px; 
-    max-height: 90vh; /* Limita la altura para evitar que se estire demasiado */
+    max-height: 90vh; 
     background: white; 
     border-radius: var(--radius-md); 
     box-shadow: var(--shadow-md); 
@@ -106,52 +105,65 @@ body.login-page {
     flex-direction: column; 
     justify-content: center; 
     align-items: center; 
-    padding: 2rem; /* Menos padding */
+    padding: 2rem; 
     background: white; 
-    overflow-y: auto; /* Scroll interno si es necesario */
+    overflow-y: auto; 
 }
 
 .form-card { width: 100%; max-width: 400px; }
 
-/* Títulos más compactos */
 .form-card h2 { margin-top: 0; margin-bottom: 5px; font-size: 1.8rem; text-align: center; color: var(--text-main); }
 .form-instruction { margin-bottom: 1.5rem; text-align: center; font-size: 0.9rem; }
 
-/* INPUTS COMPACTOS */
+/* INPUTS Y LABELS */
 input, select, textarea { 
     width: 100%; 
-    padding: 10px 12px; /* Menos relleno vertical */
+    padding: 12px 14px; /* Altura cómoda */
     margin-top: 4px; 
-    margin-bottom: 12px; /* Menos espacio entre inputs */
+    margin-bottom: 15px; 
     border: 2px solid #e2e8f0; 
     border-radius: var(--radius-sm); 
     background-color: #f8fafc; 
-    font-size: 0.9rem; 
+    font-size: 0.95rem; 
     color: var(--text-main); 
     transition: all 0.2s; 
+    height: 45px; /* Altura fija para inputs */
 }
 input:focus, select:focus { outline: none; border-color: var(--primary-color); background-color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); }
-label { font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-left: 4px; margin-bottom:0; }
+label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-left: 4px; margin-bottom:0; }
 
-/* PASSWORD TOGGLE */
-.password-wrapper { position: relative; width: 100%; }
-.password-wrapper input { padding-right: 40px; margin-bottom: 12px; }
+/* --- ARREGLO DEFINITIVO DEL OJO --- */
+.password-wrapper { 
+    position: relative; 
+    width: 100%; 
+    margin-bottom: 15px; /* El margen lo lleva el wrapper, no el input */
+}
+
+.password-wrapper input {
+    margin-bottom: 0; /* El input no debe empujar nada */
+    padding-right: 45px; /* Espacio para no tapar el texto */
+    width: 100%;
+}
+
 .toggle-password {
     position: absolute;
-    right: 10px;
-    top: 34px; /* Ajustado para el input más pequeño */
-    transform: translateY(-50%);
+    right: 12px;
+    top: 50%; /* Posición base: mitad del contenedor */
+    transform: translateY(-40%); /* Ajuste fino para centrar perfectamente */
+    /* Nota: Si el label está fuera del wrapper (como en tu HTML), top: 50% + translateY es lo correcto */
+    
     cursor: pointer;
     color: var(--text-muted);
     display: flex;
     align-items: center;
-    height: 20px;
+    justify-content: center;
+    height: 24px;
+    width: 24px;
+    z-index: 10;
 }
 .toggle-password:hover { color: var(--primary-color); }
-/* Ajuste especial cuando no hay label arriba (confirmar contraseña) */
-label + .password-wrapper .toggle-password { top: 20px; transform: none; margin-top: 5px; }
 
-
+/* BOTONES */
 .btn-full { width: 100%; padding: 12px; font-size: 0.95rem; margin-top: 10px; background: linear-gradient(to bottom, #3b82f6, #2563eb); box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4); border-radius: var(--radius-sm); color: white; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
 .btn-full:hover { background: linear-gradient(to bottom, #2563eb, #1d4ed8); transform: translateY(-2px); }
 
@@ -177,7 +189,7 @@ button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 .question p { font-weight: 700; margin-top:0; color: var(--brand-dark); font-size: 1rem; margin-bottom: 10px; }
 .option-label { display: flex; align-items: center; padding: 10px; margin-bottom: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
 .option-label:hover { background: #eff6ff; border-color: var(--primary-color); }
-.option-label input { margin: 0 10px 0 0; width: auto; margin-bottom: 0; }
+.option-label input { margin: 0 10px 0 0; width: auto; margin-bottom: 0; height: auto; } /* Fix para radios */
 
 .crossword-grid { padding: 10px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow-x: auto; }
 .crossword-grid td { width: 32px; height: 32px; border: 1px solid #cbd5e1; padding: 0; position: relative; }

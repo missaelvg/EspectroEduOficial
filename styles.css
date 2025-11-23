@@ -1,4 +1,4 @@
-/* styles.css - Diseño Final (Scroll Móvil Arreglado) */
+/* styles.css - Diseño Definitivo (Login Scroll + Menú Compacto) */
 
 :root {
     /* Paleta de colores */
@@ -14,8 +14,8 @@
     --danger-color: #ef4444;
     
     /* UI */
-    --radius-md: 20px;
-    --radius-sm: 12px;
+    --radius-md: 16px; 
+    --radius-sm: 8px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
     --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
@@ -34,7 +34,7 @@ body {
     min-height: 100vh;
 }
 
-/* HEADER */
+/* HEADER (General) */
 header {
     background: var(--brand-dark);
     color: white;
@@ -49,13 +49,40 @@ header {
     border-bottom: 3px solid transparent;
     border-image: var(--spectrum-gradient) 1;
 }
-#header-title { font-size: 1.3rem; font-weight: 700; }
+#header-title { font-size: 1.3rem; font-weight: 700; white-space: nowrap; }
 body.login-page header { display: none; }
-nav#navbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-nav#navbar button { background: rgba(255, 255, 255, 0.1); border: 1px solid transparent; color: white; font-size: 0.85rem; padding: 8px 14px; border-radius: 20px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+
+/* NAVEGACIÓN (Estilo Base) */
+nav#navbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; align-items: center; }
+
+nav#navbar button { 
+    background: rgba(255, 255, 255, 0.1); 
+    border: 1px solid transparent; 
+    color: white; 
+    font-size: 0.85rem; 
+    padding: 8px 14px; 
+    border-radius: 20px; 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+    white-space: nowrap; /* Evita saltos de línea */
+    flex-shrink: 0;      /* Evita que se aplasten */
+}
 nav#navbar button:hover { background: rgba(255, 255, 255, 0.2); }
 nav#navbar button.active { background: white; color: var(--brand-dark); font-weight: 700; }
-#logoutButton { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-left: 10px; }
+
+#logoutButton { 
+    background: rgba(239, 68, 68, 0.15); 
+    color: #fca5a5; 
+    border: 1px solid rgba(239, 68, 68, 0.4); 
+    border-radius: var(--radius-sm); 
+    padding: 8px 14px; 
+    font-size: 0.8rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+    margin-left: 10px; 
+    white-space: nowrap;
+}
 #logoutButton:hover { background: var(--danger-color); color: white; }
 
 /* LOGIN PAGE */
@@ -72,7 +99,7 @@ body.login-page {
     display: flex; 
     width: 100%; 
     max-width: 1100px; 
-    /* En escritorio mantenemos el diseño compacto */
+    /* Altura automática en escritorio, pero contenida */
     height: auto;
     min-height: 600px; 
     max-height: 90vh; 
@@ -119,7 +146,6 @@ body.login-page {
 }
 
 .form-card { width: 100%; max-width: 400px; }
-
 .form-card h2 { margin-top: 0; margin-bottom: 5px; font-size: 1.8rem; text-align: center; color: var(--text-main); }
 .form-instruction { margin-bottom: 1.5rem; text-align: center; font-size: 0.9rem; }
 
@@ -162,7 +188,6 @@ label { font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-lef
 /* BOTONES */
 .btn-full { width: 100%; padding: 12px; font-size: 0.95rem; margin-top: 10px; background: linear-gradient(to bottom, #3b82f6, #2563eb); box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4); border-radius: var(--radius-sm); color: white; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
 .btn-full:hover { background: linear-gradient(to bottom, #2563eb, #1d4ed8); transform: translateY(-2px); }
-
 .form-footer { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 1rem; }
 .forgot-link { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; transition: 0.2s; float: right; margin-top:-5px; margin-bottom: 10px; }
 .forgot-link:hover { color: var(--primary-color); }
@@ -171,7 +196,6 @@ label { font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-lef
 main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
 .card { background: var(--card-bg); border-radius: var(--radius-md); padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
 .card h4 { color: var(--brand-dark); font-weight: 700; font-size: 1.2rem; }
-
 button:not(.btn-full), .btn { background: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); padding: 10px 18px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; text-decoration: none; display: inline-block; }
 button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 .btn-secondary { background: white; color: var(--text-muted); border: 1px solid var(--border-color); }
@@ -179,6 +203,8 @@ button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 .student-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); }
 .alert-error { background: #fef2f2; color: #b91c1c; padding: 1rem; border-radius: 8px; }
 .alert-success { background: #eff6ff; color: #1e40af; padding: 1rem; border-radius: 8px; }
+
+/* CUESTIONARIO Y CRUCIGRAMA */
 .question { margin-bottom: 20px; padding: 15px; border-left: 4px solid var(--primary-color); background: #fff; border: 1px solid #e2e8f0; border-left-width: 4px; border-radius: 0 8px 8px 0; }
 .question p { font-weight: 700; margin-top:0; color: var(--brand-dark); font-size: 1rem; margin-bottom: 10px; }
 .option-label { display: flex; align-items: center; padding: 10px; margin-bottom: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
@@ -199,32 +225,64 @@ button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 .badge-warning { background: #fef9c3; color: #854d0e; }
 .badge-danger { background: #fee2e2; color: #991b1b; }
 
-/* RESPONSIVE - MÓVIL OPTIMIZADO */
+/* --- RESPONSIVE OPTIMIZADO (La Solución a tus 2 Problemas) --- */
 @media (max-width: 960px) {
-    /* Login: Quitamos la altura fija y permitimos scroll normal */
+    /* 1. LOGIN: Arreglo de corte de pantalla (Permite crecer y scrollear) */
     .login-container { 
         flex-direction: column; 
-        height: auto; /* Altura automática según el contenido */
-        max-height: none; /* Sin límite de altura */
+        height: auto; 
         width: 100%; 
         max-width: 500px; 
         margin: 20px auto; 
-        overflow: visible; /* Permitir que se vea todo */
+        max-height: none; /* Clave: Sin límite de altura */
     }
-    
-    .welcome-side { 
-        padding: 2rem; 
-        flex: none; 
-        min-height: 200px; 
-    }
-    
+    .welcome-side { padding: 2rem; flex: none; min-height: 200px; }
     .forms-side { 
         padding: 2rem 1.5rem; 
         flex: none; 
-        overflow: visible; 
+        overflow: visible; /* Clave: Deja ver el contenido que se salga */
+    }
+
+    /* 2. MENÚ MÓVIL: Compacto, una línea, scroll horizontal */
+    header { 
+        flex-direction: row; 
+        gap: 10px; 
+        padding: 10px 15px;
+        justify-content: space-between;
+        flex-wrap: wrap; /* Por si el título es muy largo */
     }
     
-    /* Ajustes Dashboard Móvil */
-    header { flex-direction: column; gap: 15px; text-align: center; }
-    nav#navbar { width: 100%; justify-content: center; flex-wrap: wrap; }
+    #header-title { 
+        font-size: 1.2rem; 
+        width: 100%; /* Título arriba */
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    nav#navbar { 
+        width: auto; 
+        flex: 1; 
+        justify-content: flex-start; /* Alinear a la izquierda */
+        flex-wrap: nowrap;           /* Todo en una línea */
+        overflow-x: auto;            /* Scroll lateral */
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    nav#navbar button {
+        flex-shrink: 0; /* No aplastar botones */
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    
+    /* Ocultar barra de scroll del menú */
+    nav#navbar::-webkit-scrollbar { height: 0px; background: transparent; }
+
+    #logoutButton {
+        margin-left: 5px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+    
+    main { padding: 1rem; }
 }

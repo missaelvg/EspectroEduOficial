@@ -19,9 +19,12 @@
     <section class="welcome-side">
         <div class="brand-content">
             <img src="logo.png" alt="Logo EspectroEdu" class="logo-img">
+            
             <h1>EspectroEdu</h1>
             <p class="subtitle">Laboratorios de Óptica</p>
+            
             <div class="spectrum-bar"></div>
+            
             <div class="welcome-text">
                 <p>Plataforma inteligente para la gestión, análisis y aprendizaje en óptica biomédica.</p>
             </div>
@@ -41,7 +44,9 @@
                 <label>Contraseña</label>
                 <div class="password-wrapper">
                     <input type="password" id="loginPassword" placeholder="••••••••">
-                    <span class="toggle-password" onclick="togglePassword('loginPassword')">👁️</span>
+                    <span class="toggle-password" onclick="togglePassword('loginPassword', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </span>
                 </div>
                 
                 <div style="text-align: right; margin-bottom: 20px; margin-top: -10px;">
@@ -73,7 +78,9 @@
                 <label>Contraseña</label>
                 <div class="password-wrapper">
                     <input type="password" id="regPassword" placeholder="••••••••" required>
-                    <span class="toggle-password" onclick="togglePassword('regPassword')">👁️</span>
+                    <span class="toggle-password" onclick="togglePassword('regPassword', this)">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </span>
                 </div>
 
                 <label>Confirmar Contraseña</label>
@@ -91,7 +98,7 @@
             <div id="recoveryForm" style="display:none;">
                 <h3>Recuperar Acceso</h3>
                 <p class="form-instruction">
-                    Ingresa tu correo y te enviaremos un enlace mágico.
+                    Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
                 <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com">
                 <button onclick="handleRecovery()" class="btn-full">ENVIAR ENLACE</button>
@@ -115,7 +122,7 @@
     }
     checkInitialAuthAndRun();
 
-    // --- NAVEGACIÓN ENTRE FORMULARIOS ---
+    // --- NAVEGACIÓN ---
     function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }
     function showLogin() { hideAllForms(); document.getElementById('loginForm').style.display = 'block'; }
     function showRecovery() { hideAllForms(); document.getElementById('recoveryForm').style.display = 'block'; }
@@ -138,16 +145,24 @@
     }
 
     // --- MOSTRAR/OCULTAR CONTRASEÑA ---
-    function togglePassword(inputId) {
+    function togglePassword(inputId, iconSpan) {
         const input = document.getElementById(inputId);
+        
+        // Iconos SVG (Ojo Abierto / Ojo Tachado)
+        const eyeOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        
+        const eyeClosed = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
         if (input.type === "password") {
             input.type = "text";
+            iconSpan.innerHTML = eyeClosed; // Cambia icono
         } else {
             input.type = "password";
+            iconSpan.innerHTML = eyeOpen; // Restaura icono
         }
     }
 
-    // --- LÓGICA DE AUTENTICACIÓN ---
+    // --- ACCIONES ---
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
@@ -161,24 +176,18 @@
         const role = document.getElementById('regRole').value;
         const name = document.getElementById('regName').value;
         const matricula = document.getElementById('regMatricula').value;
-        const group = role === 'doctor' ? 'N/A' : document.getElementById('regGroup').value;
-        const email = document.getElementById('regEmail').value;
         const password = document.getElementById('regPassword').value;
         const confirmPass = document.getElementById('regPasswordConfirm').value;
-
-        // VALIDACIÓN DE CAMPOS VACÍOS
-        if (!name || !matricula || !group || !email || !password) {
-            return alert('Por favor, rellena todos los campos.');
-        }
-
-        // VALIDACIÓN DE CONTRASEÑA
-        if (password !== confirmPass) {
-            return alert('Las contraseñas no coinciden. Inténtalo de nuevo.');
-        }
+        let group = document.getElementById('regGroup').value;
+        const email = document.getElementById('regEmail').value;
         
-        if (password.length < 6) {
-            return alert('La contraseña debe tener al menos 6 caracteres.');
-        }
+        if (role === 'doctor') group = 'N/A';
+
+        if (!name || !matricula || !group || !email || !password) return alert('Rellena todos los campos.');
+        
+        // VALIDACIÓN DE CONTRASEÑA
+        if (password !== confirmPass) return alert("Las contraseñas no coinciden.");
+        if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
 
         const success = await registerUser(name, matricula, password, group, email, role);
         if(success) { alert('Registro exitoso.'); showLogin(); }
@@ -187,16 +196,9 @@
     async function handleRecovery() {
         const email = document.getElementById('recoveryEmail').value.trim();
         if (!email) return alert("Ingresa tu correo.");
-        
-        // Usamos la función de auth.js
         const success = await resetPassword(email);
-        
-        // IMPORTANTE: Firebase a veces no devuelve error si el correo no existe por seguridad,
-        // pero si success es true, le decimos al usuario que revise.
-        if (success) { 
-            alert(`Si el correo ${email} está registrado, recibirás un enlace en unos momentos.\n\nIMPORTANTE: Revisa tu carpeta de SPAM o Correo No Deseado.`); 
-            showLogin(); 
-        }
+        // Mensaje claro al usuario
+        if (success) { alert(`Hemos enviado un enlace a ${email}.\n\nRevisa tu bandeja de entrada o SPAM.`); showLogin(); }
     }
 </script>
 </body>

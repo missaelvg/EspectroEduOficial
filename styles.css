@@ -1,12 +1,11 @@
-/* styles.css - Diseño Azul Compacto (Sin Scroll Excesivo) */
+/* styles.css - Diseño Final Minimalista y Pulido */
 
 :root {
-    /* --- PALETA AZUL (MANTENIDA) --- */
+    /* Paleta de colores */
     --primary-color: #3b82f6;       
     --primary-hover: #2563eb;
     --brand-dark: #0f172a;          
     --spectrum-gradient: linear-gradient(135deg, #7e22ce, #3b82f6, #06b6d4, #eab308, #ef4444);
-
     --bg-color: #f8fafc;
     --card-bg: #ffffff;
     --text-main: #1e293b;
@@ -14,10 +13,11 @@
     --border-color: #e2e8f0;
     --danger-color: #ef4444;
     
-    --radius-md: 16px; 
-    --radius-sm: 8px;
+    /* UI */
+    --radius-md: 20px;
+    --radius-sm: 12px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
 }
 
 * { box-sizing: border-box; }
@@ -28,13 +28,13 @@ body {
     color: var(--text-main);
     margin: 0;
     padding: 0;
-    line-height: 1.5; /* Línea más compacta */
+    line-height: 1.6;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* --- LOGIN PAGE (AJUSTE PARA EVITAR SCROLL) --- */
+/* --- LOGIN PAGE (DISEÑO UNIFICADO) --- */
 body.login-page {
     background-color: #0f172a;
     background-image: 
@@ -42,28 +42,25 @@ body.login-page {
         radial-gradient(at 100% 100%, rgba(126, 34, 206, 0.15) 0px, transparent 50%);
     justify-content: center;
     align-items: center;
-    min-height: 100vh; 
+    min-height: 100vh;
     padding: 20px;
-    /* Importante: Si la pantalla es muy chica, permite scroll en el body */
     overflow-y: auto; 
 }
 
 .login-container {
     display: flex;
     width: 100%;
-    max-width: 1000px;
-    /* Altura automática basada en el contenido, pero con límites para que se vea centrado */
-    height: auto;
-    min-height: 550px; 
-    background: white;
+    max-width: 1100px;
+    min-height: 650px; /* Altura cómoda */
+    background: var(--card-bg);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
     overflow: hidden;
     border: 1px solid rgba(255,255,255,0.1);
-    margin: auto; /* Centrado automático */
+    margin: auto; 
 }
 
-/* Lado Izquierdo: Marca */
+/* Lado Izquierdo (Marca) */
 .welcome-side {
     flex: 1;
     background-color: var(--brand-dark);
@@ -72,7 +69,7 @@ body.login-page {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 2rem; /* Menos padding */
+    padding: 3rem;
     text-align: center;
     position: relative;
     z-index: 1;
@@ -80,191 +77,153 @@ body.login-page {
 
 .welcome-side::after {
     content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at 50% 40%, rgba(59, 130, 246, 0.15), transparent 70%);
+    background: radial-gradient(circle at 50% 40%, rgba(59, 130, 246, 0.2), transparent 70%);
     z-index: -1;
 }
 
 .logo-img {
-    width: 100px; /* Logo un poco más pequeño para ganar espacio */
-    height: 100px;
-    object-fit: contain;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.5));
+    width: 120px; height: 120px; object-fit: contain; margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.6));
 }
 
 .welcome-side h1 { 
-    font-size: 2.2rem; 
-    margin: 0; 
-    font-weight: 800; 
+    font-size: 2.5rem; margin: 0; font-weight: 800; letter-spacing: -1px;
     background: linear-gradient(to right, #ffffff, #e0f2fe);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-.welcome-side .subtitle { font-size: 1rem; margin-top: 5px; color: #bae6fd; font-weight: 500; }
-.spectrum-bar { height: 4px; width: 50px; background: var(--spectrum-gradient); border-radius: 10px; margin: 20px auto; }
-.welcome-text { margin-top: 0; font-size: 0.9rem; line-height: 1.5; color: #94a3b8; max-width: 350px; }
+.welcome-side .subtitle { font-size: 1.1rem; margin-top: 10px; color: #bae6fd; font-weight: 500; }
+.spectrum-bar { height: 6px; width: 60px; background: var(--spectrum-gradient); border-radius: 10px; margin: 30px auto; }
+.welcome-text { margin-top: 0; font-size: 0.95rem; line-height: 1.6; color: #94a3b8; max-width: 350px; }
 
-/* Lado Derecho: Formularios (COMPACTADO) */
+/* Lado Derecho (Formularios) */
 .forms-side {
-    flex: 1.2; /* Un poco más de ancho para el formulario */
+    flex: 1.2;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 2rem; /* Padding reducido para aprovechar espacio */
+    padding: 3rem;
     background: white;
+    overflow-y: auto; 
 }
 
-.form-card {
-    width: 100%;
-    max-width: 380px; /* Formulario más angosto y elegante */
-    box-shadow: none !important; 
-    border: none !important; 
-    padding: 0 !important; 
-    margin: 0 !important;
-}
+.form-card { width: 100%; max-width: 400px; } /* Ancho fijo elegante */
 
-.form-card h2 {
-    font-size: 1.8rem; /* Título más compacto */
-    color: var(--text-main);
-    font-weight: 800;
-    margin-bottom: 0.2rem;
-    text-align: center;
-}
+.form-card h2 { font-size: 2rem; color: var(--text-main); font-weight: 800; margin-bottom: 0.5rem; text-align: center; letter-spacing: -0.5px; }
+.form-instruction { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; text-align: center; }
 
-.form-instruction { 
-    color: var(--text-muted); 
-    font-size: 0.9rem; 
-    margin-bottom: 1.5rem; /* Menos espacio abajo */
-    text-align: center;
-}
-
-/* INPUTS MÁS COMPACTOS */
+/* INPUTS Y LABELS */
 input, select, textarea {
+    width: 100%; padding: 14px 16px; margin-top: 6px; margin-bottom: 20px;
+    border: 2px solid #e2e8f0; border-radius: var(--radius-sm); background-color: #f8fafc;
+    font-size: 0.95rem; color: var(--text-main); transition: all 0.2s;
+}
+input:focus, select:focus { outline: none; border-color: var(--primary-color); background-color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); }
+label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-left: 4px; display: block; margin-bottom: 4px; }
+
+/* CORRECCIÓN OJO DE CONTRASEÑA */
+.password-wrapper {
+    position: relative;
     width: 100%;
-    padding: 10px 14px; /* Menos relleno vertical (era 14px) */
-    margin-top: 4px;    /* Menos espacio con el label */
-    margin-bottom: 12px; /* Menos espacio entre inputs (era 20px) */
-    border: 2px solid #e2e8f0;
-    border-radius: var(--radius-sm);
-    background-color: #f8fafc;
-    font-size: 0.9rem; /* Letra un poco más chica */
-    color: var(--text-main);
-    transition: all 0.2s;
 }
-
-input:focus, select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background-color: white;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+.password-wrapper input {
+    padding-right: 45px; /* Espacio para el icono */
+    margin-bottom: 20px; /* Mantener margen inferior */
 }
-
-label { 
-    font-size: 0.8rem; /* Label más discreto */
-    font-weight: 600; 
-    color: var(--text-main); 
-    margin-left: 2px; 
-}
-
-/* BOTONES Y LINKS */
-.btn-full { 
-    width: 100%; 
-    padding: 12px; /* Botón menos alto */
-    font-size: 0.95rem; 
-    margin-top: 10px; 
-    background: linear-gradient(to bottom, #3b82f6, #2563eb);
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
-    border-radius: var(--radius-sm);
-    color: white;
-    font-weight: 700;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-}
-.btn-full:hover { background: linear-gradient(to bottom, #2563eb, #1d4ed8); transform: translateY(-1px); }
-
-.form-footer { 
-    text-align: center; 
-    margin-top: 1.5rem; 
-    font-size: 0.85rem; 
-    color: var(--text-muted); 
-    border-top: 1px solid var(--border-color); 
-    padding-top: 1rem; 
-}
-
-.forgot-link { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; float: right; margin-top: -5px; margin-bottom: 15px;}
-.forgot-link:hover { color: var(--primary-color); }
-
-/* OJO PASSWORD */
-.password-wrapper { position: relative; width: 100%; }
-.password-wrapper input { padding-right: 35px; }
 .toggle-password {
     position: absolute;
-    right: 10px;
-    top: 36px; /* Ajuste para alinear con el input (considerando el label arriba) */
-    transform: translateY(-50%);
+    right: 15px;
+    top: 44px; /* Ajuste preciso considerando label + input height */
+    /* O usar transform si prefieres relativo al padre: top: 50%; transform: translateY(-10%); */
+    /* Pero dado que hay un label arriba, un top fijo suele ser más estable visualmente */
+    top: 50%; 
+    transform: translateY(-60%); /* Ajuste fino para centrar en el input */
+    
     cursor: pointer;
     color: var(--text-muted);
     display: flex;
     align-items: center;
+    justify-content: center;
+    height: 20px;
+    width: 20px;
+    z-index: 5;
 }
-.toggle-password svg { width: 18px; height: 18px; }
+.toggle-password:hover { color: var(--primary-color); }
+/* Ajuste específico para cuando hay label arriba */
+label + .password-wrapper .toggle-password {
+    top: 24px; /* Mitad del input aprox */
+    transform: none;
+}
 
-/* --- HEADER Y DASHBOARD (Mantienen el estilo) --- */
+/* BOTONES */
+.btn-full { 
+    width: 100%; padding: 16px; font-size: 1rem; margin-top: 10px; 
+    background: linear-gradient(to bottom, #3b82f6, #2563eb);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+    border-radius: var(--radius-sm); color: white; font-weight: 700;
+    cursor: pointer; border: none; transition: all 0.2s;
+}
+.btn-full:hover { background: linear-gradient(to bottom, #2563eb, #1d4ed8); transform: translateY(-2px); box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.5); }
+
+.form-footer { text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
+.form-footer a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
+.form-footer a:hover { text-decoration: underline; }
+
+.forgot-link { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; transition: 0.2s; display: inline-block; margin-bottom: 20px; }
+.forgot-link:hover { color: var(--primary-color); }
+
+
+/* --- DASHBOARD Y OTROS --- */
+/* (Mismos estilos de dashboard anteriores, comprimidos para ahorrar espacio) */
 header { background: var(--brand-dark); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100; border-bottom: 3px solid transparent; border-image: var(--spectrum-gradient) 1; }
-#header-title { font-size: 1.3rem; font-weight: 700; }
 body.login-page header { display: none; }
+#header-title { font-size: 1.3rem; font-weight: 700; }
 nav#navbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-nav#navbar button { background: rgba(255, 255, 255, 0.1); border: 1px solid transparent; color: white; font-size: 0.85rem; padding: 8px 14px; border-radius: 20px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-nav#navbar button:hover { background: rgba(255, 255, 255, 0.2); }
+nav#navbar button { background: rgba(255,255,255,0.1); border: 1px solid transparent; color: white; font-size: 0.85rem; padding: 8px 14px; border-radius: 20px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+nav#navbar button:hover { background: rgba(255,255,255,0.2); }
 nav#navbar button.active { background: white; color: var(--brand-dark); font-weight: 700; }
-#logoutButton { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-#logoutButton:hover { background: var(--danger-color); color: white; }
-
+#logoutButton { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); border-radius: 8px; padding: 8px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-left: 10px; }
 main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
 .card { background: var(--card-bg); border-radius: var(--radius-md); padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
 .card h4 { color: var(--brand-dark); font-weight: 700; font-size: 1.2rem; }
 button:not(.btn-full), .btn { background: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); padding: 10px 18px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; text-decoration: none; display: inline-block; }
 button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
+button:disabled { background-color: #cbd5e1; cursor: not-allowed; }
 .btn-secondary { background: white; color: var(--text-muted); border: 1px solid var(--border-color); }
 .btn-secondary:hover { background: #f8fafc; color: var(--text-main); }
-.student-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); }
-
-/* Cuestionario y Crucigrama */
-.question { margin-bottom: 20px; padding: 15px; border-left: 4px solid var(--primary-color); background: #fff; border: 1px solid #e2e8f0; border-left-width: 4px; border-radius: 0 8px 8px 0; }
-.option-label { display: flex; align-items: center; padding: 10px; margin-bottom: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
-.option-label:hover { background: #eff6ff; border-color: var(--primary-color); }
-.option-label input { margin: 0 10px 0 0; width: auto; margin-bottom: 0; }
-
-.crossword-grid { padding: 10px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow-x: auto; }
-.crossword-grid td { width: 32px; height: 32px; border: 1px solid #cbd5e1; padding: 0; position: relative; }
-.crossword-grid input { width: 100%; height: 100%; padding: 0; margin: 0; text-align: center; border: none; background: transparent; font-weight: bold; font-family: monospace; font-size: 1.1rem; color: var(--primary-color); }
+.student-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border-color); }
+.alert-error { background: #fef2f2; color: #b91c1c; padding: 1rem; border-radius: 8px; }
+.alert-success { background: #eff6ff; color: #1e40af; padding: 1rem; border-radius: 8px; }
+.question { margin-bottom: 25px; padding: 20px; border-left: 4px solid var(--primary-color); background-color: #ffffff; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border: 1px solid #e2e8f0; border-left-width: 4px; }
+.question p { font-weight: 700; margin-top:0; color: var(--brand-dark); font-size: 1.05rem; margin-bottom: 15px; }
+.option-label { display: flex; align-items: center; padding: 12px 15px; margin-bottom: 10px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; }
+.option-label:hover { background-color: #eff6ff; border-color: var(--primary-color); }
+.option-label input[type="radio"] { margin: 0 12px 0 0; width: 18px; height: 18px; cursor: pointer; padding: 0; }
+.crossword-container { display: flex; gap: 30px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+.crossword-grid { padding: 15px; background: white; border-radius: 12px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); overflow-x: auto; }
+.crossword-grid table { border-collapse: collapse; margin: 0 auto; border-spacing: 0; }
+.crossword-grid td { width: 36px; height: 36px; border: 1px solid #cbd5e1; text-align: center; position: relative; padding: 0; }
 .crossword-grid .empty { background: var(--brand-dark); border-color: var(--brand-dark); }
-.crossword-number { position: absolute; top: 1px; left: 1px; font-size: 8px; color: #64748b; pointer-events: none; line-height: 1; }
-
-/* Tablas */
-.table-container { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
-.styled-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 500px; }
-.styled-table thead tr { background: var(--brand-dark); color: white; text-align: left; }
-.styled-table th, .styled-table td { padding: 10px 15px; border-bottom: 1px solid #eee; }
-.badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+.crossword-grid input { width: 100%; height: 100%; border: none; text-align: center; font-family: monospace; font-size: 1.2rem; text-transform: uppercase; background: transparent; color: var(--primary-color); font-weight: bold; padding: 0; margin: 0; outline: none; }
+.crossword-grid input:focus { background: #e0f2fe; }
+.crossword-number { position: absolute; top: 1px; left: 2px; font-size: 9px; color: #64748b; pointer-events: none; line-height: 1; }
+.crossword-clues { flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+.table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+.styled-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 0.95em; min-width: 400px; }
+.styled-table thead tr { background-color: var(--brand-dark); color: #ffffff; text-align: left; }
+.styled-table th, .styled-table td { padding: 12px 15px; }
+.styled-table tbody tr { border-bottom: 1px solid #dddddd; }
+.styled-table tbody tr:nth-of-type(even) { background-color: #f8fafc; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 15px; font-size: 0.8em; font-weight: 600; }
 .badge-success { background: #dcfce7; color: #166534; }
 .badge-warning { background: #fef9c3; color: #854d0e; }
 .badge-danger { background: #fee2e2; color: #991b1b; }
-a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
 
-/* RESPONSIVE */
 @media (max-width: 960px) {
-    body.login-page { height: auto; padding: 15px; }
-    .login-container { flex-direction: column; height: auto; min-height: auto; width: 100%; max-width: 450px; margin-top: 20px; }
-    .welcome-side { padding: 2rem; flex: none; }
-    .logo-img { width: 80px; height: 80px; }
-    .welcome-side h1 { font-size: 2rem; }
-    .forms-side { padding: 2rem 1.5rem; flex: none; }
-    
+    .login-container { flex-direction: column; height: auto; width: 100%; max-width: 500px; margin-top: 20px; max-height: none; }
+    .welcome-side, .forms-side { padding: 2rem; flex: none; }
+    .forms-side { overflow: visible; }
     header { flex-direction: column; gap: 15px; text-align: center; }
     nav#navbar { width: 100%; justify-content: center; flex-wrap: wrap; }
-    .student-list-item { flex-direction: column; align-items: flex-start; gap: 10px; }
 }

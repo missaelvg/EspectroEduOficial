@@ -186,3 +186,34 @@ input, select, textarea { width: 100%; padding: 14px 16px; margin-top: 8px; marg
     header { flex-direction: column; gap: 15px; text-align: center; }
     nav#navbar { width: 100%; justify-content: center; flex-wrap: wrap; }
 }
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex; /* Ayuda a alinear si el input cambia de tamaño */
+    align-items: center;
+}
+
+.password-wrapper input {
+    padding-right: 45px; /* Espacio para que el texto no tape al ojo */
+    width: 100%;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;        /* Un poco más de margen a la derecha se ve mejor */
+    top: 50%;           /* Posición base a la mitad */
+    transform: translateY(-50%); /* ¡ESTA ES LA CLAVE! Lo centra exactamente */
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    height: 100%;       /* Ocupa la altura para centrar mejor el clic */
+    max-height: 40px;   /* Evita que sea más alto que el input */
+}
+
+.toggle-password:hover {
+    color: var(--primary-color);
+}

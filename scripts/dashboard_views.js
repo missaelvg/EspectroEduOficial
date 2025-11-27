@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN CORREGIDA: SIN EMOJIS + TABLA EN ESPAÑOL)
+// scripts/dashboard_views.js (VERSIÓN CORREGIDA: CRUCIGRAMA AZUL + CALIFICACIÓN VISIBLE)
 
 const AppState = {
     user: null,
@@ -253,7 +253,16 @@ async function renderStudentActivitiesView() {
             if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9;padding:20px;text-align:center;color:#64748b;border-radius:8px;">Entrega reporte primero</div></div>`;
             if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success">Actividades Completadas</div></div>`;
             const cid = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
-            return `<div class="card"><h4>${p.title}</h4><div id="${cid}">Cargando...</div></div>`;
+            
+            // --- CORRECCIÓN: MOSTRAR SCORE DEL CUESTIONARIO SI EXISTE ---
+            let scoreBadge = '';
+            if (st.quizScore !== null && st.quizScore !== undefined) {
+                scoreBadge = `<div style="background:#dcfce7; color:#166534; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:0.95em; border: 1px solid #bbf7d0;">
+                                ✅ Cuestionario Completado: ${st.quizScore}/10
+                              </div>`;
+            }
+
+            return `<div class="card"><h4>${p.title}</h4>${scoreBadge}<div id="${cid}">Cargando...</div></div>`;
         }).join('');
         document.getElementById('act-list').innerHTML = html;
         myP.forEach(p => {

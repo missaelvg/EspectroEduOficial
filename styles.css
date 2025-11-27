@@ -131,6 +131,13 @@ button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 .crossword-grid input:focus { background: #e0f2fe; }
 .crossword-number { position: absolute; top: 1px; left: 1px; font-size: 9px; color: #64748b; pointer-events: none; line-height: 1; }
 .crossword-clues { flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+
+/* --- CORRECCIÓN CRUCIGRAMA: Celdas vacías en AZUL --- */
+.crossword-grid td.empty { 
+    background-color: #bfdbfe; /* Azul sólido */
+    border-color: #93c5fd;     /* Borde azul más oscuro */
+}
+
 .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
 .styled-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 0.9rem; min-width: 500px; }
 .styled-table thead tr { background: var(--brand-dark); color: white; text-align: left; }

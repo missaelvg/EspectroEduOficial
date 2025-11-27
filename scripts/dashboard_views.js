@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL: DISEÑO RESTAURADO + LÓGICA ACTUALIZADA)
+// scripts/dashboard_views.js (VERSIÓN CORREGIDA: SIN EMOJIS + TABLA EN ESPAÑOL)
 
 const AppState = {
     user: null,
@@ -129,14 +129,14 @@ async function handlePracticeCreation() {
         
         if (txt.length > 50) {
             logDiv.innerHTML = '<span style="color:#eab308">5/5: Creando banco...</span>';
-            try { const gen = await callAIGenerate(txt); await savePracticeContent(pid, { generatedContent: gen }); logDiv.innerHTML = '<p class="alert-success">✅ Listo con IA.</p>'; }
+            try { const gen = await callAIGenerate(txt); await savePracticeContent(pid, { generatedContent: gen }); logDiv.innerHTML = '<p class="alert-success">Listo con IA.</p>'; }
             catch(e) { logDiv.innerHTML = '<p class="alert-warning">Creada (Sin IA).</p>'; }
         } else { logDiv.innerHTML = '<p class="alert-warning">Creada (PDF imagen).</p>'; }
         setTimeout(() => { document.querySelector('#navbar button').click(); }, 2000);
     } catch (e) { logDiv.innerHTML = `Error: ${e.message}`; }
 }
 
-// --- GESTIÓN DE ALUMNOS (RESTAURADO: BADGES AZULES) ---
+// --- GESTIÓN DE ALUMNOS (BADGES AZULES) ---
 async function renderManageStudentsView() {
     document.getElementById('main-content').innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList" style="margin-top:20px;">Cargando...</div>`;
     const [p, u] = await Promise.all([getPractices(), getAllUsers()]);
@@ -149,7 +149,7 @@ function rList(list) {
     else {
         list.forEach(s => {
             const curr = pMap[s.uid];
-            // RESTAURADO: Badge de grupo azul
+            // Badge de grupo azul
             const groupLabel = s.grupo ? `<span class="badge-info">${s.grupo}</span>` : '';
             h += `<div class="student-list-item"><div><strong>${s.username}</strong> ${groupLabel}<br><small style="color:#64748b;">${s.matricula}</small></div><div style="text-align:right;">`;
             if(curr) h+=`<span style="color:#3b82f6;margin-right:10px;font-weight:600;font-size:0.9em;">${curr.title}</span><button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b;font-size:0.7em;padding:6px 10px;border:none;border-radius:6px;color:white;">Desinscribir</button>`;
@@ -191,13 +191,14 @@ async function renderDoctorGradesView() {
 }
 
 // ====================================================
-// VISTAS DEL ALUMNO (RESTAURADO: BIENVENIDA HERO)
+// VISTAS DEL ALUMNO (BIENVENIDA HERO)
 // ====================================================
 
 function renderStudentDashboard() {
+    // EMOJI ELIMINADO EN EL SALUDO
     document.getElementById('main-content').innerHTML = `
         <div class="welcome-header">
-            <h1>¡Hola, ${AppState.user.username}! 🚀</h1>
+            <h1>¡Hola, ${AppState.user.username}!</h1>
             <p>Bienvenido a tu espacio de aprendizaje.</p>
         </div>
 
@@ -220,7 +221,7 @@ function renderStudentDashboard() {
         </div>`;
 }
 
-// ... (Resto de vistas del alumno igual) ...
+// ... (Resto de vistas del alumno) ...
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list">Cargando...</div>';
@@ -248,7 +249,8 @@ async function renderStudentActivitiesView() {
         if (myP.length === 0) { document.getElementById('act-list').innerHTML = '<p>Sin actividades.</p>'; return; }
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
-            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9;padding:20px;text-align:center;color:#64748b;border-radius:8px;">🔒 Entrega reporte primero</div></div>`;
+            // EMOJI ELIMINADO
+            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9;padding:20px;text-align:center;color:#64748b;border-radius:8px;">Entrega reporte primero</div></div>`;
             if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success">Actividades Completadas</div></div>`;
             const cid = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             return `<div class="card"><h4>${p.title}</h4><div id="${cid}">Cargando...</div></div>`;
@@ -394,7 +396,8 @@ async function renderStudentGradesView() {
     const practices = await getPractices();
     const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
     if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<p>Sin datos.</p>'; return; }
-    let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Quiz (10%)</th><th>Cross (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
+    // TRADUCCIÓN APLICADA: Cuestionario y Crucigrama
+    let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
     html += myP.map(p => {
         const s = p.students[AppState.user.uid];
         const f = calculateWeightedGrade(s.reportScore, s.quizScore, s.crosswordScore);

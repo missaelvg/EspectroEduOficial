@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (CORREGIDO: ACTUALIZACIÓN INSTANTÁNEA DE NOTA)
+// scripts/dashboard_views.js (VERSIÓN ROBUSTA: CALIFICACIÓN CORREGIDA)
 
 const AppState = {
     user: null,
@@ -191,11 +191,10 @@ async function renderDoctorGradesView() {
 }
 
 // ====================================================
-// VISTAS DEL ALUMNO (BIENVENIDA HERO)
+// VISTAS DEL ALUMNO
 // ====================================================
 
 function renderStudentDashboard() {
-    // EMOJI ELIMINADO EN EL SALUDO
     document.getElementById('main-content').innerHTML = `
         <div class="welcome-header">
             <h1>¡Hola, ${AppState.user.username}!</h1>
@@ -221,7 +220,6 @@ function renderStudentDashboard() {
         </div>`;
 }
 
-// ... (Resto de vistas del alumno) ...
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list">Cargando...</div>';
@@ -240,7 +238,7 @@ async function renderStudentPracticesView() {
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-// MODIFICADO: Acepta parámetro para evitar fetch innecesario
+// --- MODIFICADO: Renderizar sin recargar servidor si no es necesario ---
 async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Actividades</h2><div id="act-list">Cargando...</div>';
@@ -255,12 +253,10 @@ async function renderStudentActivitiesView(shouldFetch = true) {
         if (myP.length === 0) { document.getElementById('act-list').innerHTML = '<p>Sin actividades.</p>'; return; }
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
-            // EMOJI ELIMINADO
             if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9;padding:20px;text-align:center;color:#64748b;border-radius:8px;">Entrega reporte primero</div></div>`;
             if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success">Actividades Completadas</div></div>`;
             const cid = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             
-            // --- MOSTRAR SCORE DEL CUESTIONARIO SI EXISTE ---
             let scoreBadge = '';
             if (st.quizScore !== null && st.quizScore !== undefined) {
                 scoreBadge = `<div style="background:#dcfce7; color:#166534; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:0.95em; border: 1px solid #bbf7d0;">
@@ -296,6 +292,7 @@ function renderQuiz(p) {
     d.innerHTML = h + `<button onclick="subQuiz(event, '${p.id}')">Enviar</button>`;
 }
 
+// --- FUNCIÓN SUBQUIZ CORREGIDA Y ROBUSTA ---
 async function subQuiz(e, pid) {
     const btn = e.target; btn.disabled = true;
     
@@ -311,18 +308,44 @@ async function subQuiz(e, pid) {
     const myQuestions = getStudentQuestions(fullBank, AppState.user.uid, 5);
     
     let s = 0;
+    
+    // LÓGICA DE COMPARACIÓN MEJORADA
     myQuestions.forEach((q, i) => {
         const el = document.getElementsByName(`q-${pid}-${i}`);
-        const sel = Array.from(el).find(x => x.checked);
-        if (sel && sel.value.trim().toLowerCase() === q.correcta.trim().toLowerCase()) s++;
+        const selectedIndex = Array.from(el).findIndex(x => x.checked);
+        
+        if (selectedIndex !== -1) {
+            const selectedText = el[selectedIndex].value.trim();
+            const correctAnswer = q.correcta.trim();
+            
+            // 1. Comparación Directa (Texto vs Texto)
+            if (selectedText.toLowerCase() === correctAnswer.toLowerCase()) {
+                s++;
+            } 
+            // 2. Comparación Inteligente (Texto vs Letra/Índice)
+            // Si la respuesta correcta es "A", "B", "C" o "0", "1"...
+            else if (/^[A-D0-3]$/i.test(correctAnswer)) {
+                let expectedIndex = -1;
+                if (/\d/.test(correctAnswer)) {
+                    expectedIndex = parseInt(correctAnswer);
+                } else {
+                    // Convierte "A" -> 0, "B" -> 1, etc.
+                    expectedIndex = correctAnswer.toUpperCase().charCodeAt(0) - 65;
+                }
+                
+                if (selectedIndex === expectedIndex) {
+                    s++;
+                }
+            }
+        }
     });
     
-    const sc = Math.round((s/myQuestions.length)*10);
+    const sc = myQuestions.length > 0 ? Math.round((s / myQuestions.length) * 10) : 0;
     
-    // 1. Actualizar DB
+    // 1. Actualizar Base de Datos
     await updateStudentProgress(pid, AppState.user.uid, { status: 'Crucigrama Pendiente', quizScore: sc });
     
-    // 2. ACTUALIZACIÓN LOCAL (CRÍTICO: Para que la vista se entere YA)
+    // 2. ACTUALIZACIÓN LOCAL (CRÍTICO: Para que la vista se entere INMEDIATAMENTE)
     if (AppState.practices[pid] && AppState.practices[pid].students[AppState.user.uid]) {
         AppState.practices[pid].students[AppState.user.uid].quizScore = sc;
         AppState.practices[pid].students[AppState.user.uid].status = 'Crucigrama Pendiente';
@@ -433,7 +456,6 @@ async function renderStudentGradesView() {
     const practices = await getPractices();
     const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
     if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<p>Sin datos.</p>'; return; }
-    // TRADUCCIÓN APLICADA: Cuestionario y Crucigrama
     let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
     html += myP.map(p => {
         const s = p.students[AppState.user.uid];

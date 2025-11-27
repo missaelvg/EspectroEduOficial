@@ -1,4 +1,4 @@
-// api/generate_content.js (BANCO DE PREGUNTAS + ALTA CREATIVIDAD)
+// api/generate_content.js (BANCO DE PREGUNTAS Y PALABRAS)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
@@ -15,16 +15,15 @@ module.exports = async (req, res) => {
     try {
         const { slidesTexto } = JSON.parse(req.body);
 
-        // CAMBIO: Pedimos 20 preguntas para crear un "Banco" y variamos la temperatura
         const promptIA = `
             Actúa como un profesor experto. Analiza el siguiente texto de diapositivas y genera:
-            1. Un BANCO DE 20 PREGUNTAS de opción múltiple (con 3 opciones: A, B, C). Las preguntas deben ser variadas, algunas conceptuales y otras de aplicación.
-            2. Un crucigrama con 8 palabras clave (Horizontales y Verticales).
+            1. Un BANCO DE 20 PREGUNTAS de opción múltiple (con 3 opciones: A, B, C).
+            2. Un BANCO DE 15 PALABRAS CLAVE para crucigrama con sus pistas cortas.
 
             Formato JSON ESTRICTO:
             {
               "cuestionario": [
-                { "pregunta": "¿Texto de la pregunta?", "opciones": ["Opción 1", "Opción 2", "Opción 3"], "correcta": "Opción 1" }
+                { "pregunta": "¿...?", "opciones": ["A", "B", "C"], "correcta": "A" }
               ],
               "crucigrama": [
                 { "word": "PALABRA", "clue": "Pista..." }
@@ -42,7 +41,6 @@ module.exports = async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [{ role: "user", parts: [{ text: promptIA }] }],
-                // CAMBIO: Temperatura 0.7 para más variedad en la redacción
                 generationConfig: { temperature: 0.7 }, 
             })
         });

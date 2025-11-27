@@ -1,6 +1,6 @@
 // api/generate_content.js (CORREGIDO: GEMINI 1.5 FLASH)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// CORRECCIÓN: Usamos el modelo estable 1.5-flash
+// CORRECCIÓN CRÍTICA: Usamos el modelo oficial 'gemini-1.5-flash'
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 module.exports = async (req, res) => {
@@ -11,10 +11,10 @@ module.exports = async (req, res) => {
 
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
     
-    // Verificación de Clave
+    // Verificación de Clave en el Servidor
     if (!GEMINI_API_KEY) {
-        console.error("Error: GEMINI_API_KEY no encontrada en variables de entorno.");
-        return res.status(500).json({ error: "Configuración del servidor incompleta (Falta API Key)." });
+        console.error("ERROR CRÍTICO: GEMINI_API_KEY no encontrada en variables de entorno.");
+        return res.status(500).json({ error: "Error de configuración: Falta la API Key de IA." });
     }
 
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });

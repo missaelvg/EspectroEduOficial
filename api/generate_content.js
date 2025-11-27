@@ -1,6 +1,7 @@
-// api/generate_content.js (BANCO DE PREGUNTAS Y PALABRAS)
+// api/generate_content.js (CORREGIDO: GEMINI 1.5 FLASH)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+// CORRECCIÓN: Usamos el modelo estable 1.5-flash
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 module.exports = async (req, res) => {
     // CORS
@@ -9,7 +10,13 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-    if (!GEMINI_API_KEY) return res.status(500).json({ error: "Clave API no configurada." });
+    
+    // Verificación de Clave
+    if (!GEMINI_API_KEY) {
+        console.error("Error: GEMINI_API_KEY no encontrada en variables de entorno.");
+        return res.status(500).json({ error: "Configuración del servidor incompleta (Falta API Key)." });
+    }
+
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
     try {
@@ -45,19 +52,23 @@ module.exports = async (req, res) => {
             })
         });
 
-        if (!response.ok) return res.status(502).json({ error: `Error IA: ${response.status}` });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error Gemini API:", errorText);
+            return res.status(502).json({ error: `Fallo la IA externa (${response.status}).` });
+        }
 
         const data = await response.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         
-        if (!jsonMatch) return res.status(500).json({ error: "Formato JSON inválido de la IA." });
+        if (!jsonMatch) return res.status(500).json({ error: "La IA no devolvió un JSON válido." });
 
         const content = JSON.parse(jsonMatch[0]);
         return res.status(200).json(content);
 
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Error interno del servidor." });
+        console.error("Error interno:", error);
+        return res.status(500).json({ error: "Error interno del servidor: " + error.message });
     }
 };

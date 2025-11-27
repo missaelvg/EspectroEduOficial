@@ -1,9 +1,8 @@
-// api/evaluate.js
+// api/evaluate.js (VERSIÓN GEMINI 2.5 FLASH)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 module.exports = async (req, res) => {
-    // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -11,7 +10,7 @@ module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
     if (!GEMINI_API_KEY) {
-        return res.status(500).json({ calificacion: 1, justificacion: "Error: Clave API faltante en servidor." });
+        return res.status(500).json({ calificacion: 0, justificacion: "Error: Falta API Key en servidor." });
     }
 
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
@@ -21,11 +20,10 @@ module.exports = async (req, res) => {
         const { reporteTexto, estandar } = body;
 
         const promptIA = `
-            Eres un experto evaluador. Califica el reporte comparándolo con el estándar. 
-            Respuesta SOLO JSON con claves: "calificacion" (1-10) y "justificacion".
+            Evalúa este reporte contra el estándar. 
+            Respuesta JSON: { "calificacion": (1-10), "justificacion": "texto..." }
             ESTÁNDAR: ${estandar}
             REPORTE: ${reporteTexto}
-            JSON:
         `;
 
         const response = await fetch(API_URL, {
@@ -37,22 +35,17 @@ module.exports = async (req, res) => {
             })
         });
 
-        if (!response.ok) {
-            return res.status(502).json({ calificacion: 1, justificacion: "Fallo de conexión con IA." });
-        }
+        if (!response.ok) return res.status(502).json({ calificacion: 0, justificacion: "Error conexión IA" });
 
         const data = await response.json();
-        const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
 
-        if (!jsonMatch) {
-            return res.status(500).json({ calificacion: 1, justificacion: "Error formato IA." });
-        }
+        if (!jsonMatch) return res.status(500).json({ calificacion: 0, justificacion: "Error formato IA" });
 
-        const resultadoIA = JSON.parse(jsonMatch[0]);
-        return res.status(200).json(resultadoIA);
+        return res.status(200).json(JSON.parse(jsonMatch[0]));
 
     } catch (error) {
-        return res.status(500).json({ calificacion: 1, justificacion: "Error interno." });
+        return res.status(500).json({ calificacion: 0, justificacion: "Error interno." });
     }
 };

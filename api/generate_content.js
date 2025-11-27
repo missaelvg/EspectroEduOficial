@@ -1,45 +1,46 @@
-//// api/generate_content.js (VERSIÓN GEMINI 2.5 FLASH)
+// api/generate_content.js (VERSIÓN GEMINI 2.5 FLASH)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Usamos exactamente el modelo que ves en AI Studio
+// Usamos el modelo 2.5 que tienes activo en AI Studio
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 module.exports = async (req, res) => {
-    // CORS
+    // Configuración CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
-    // Diagnóstico de error de clave
+    // DIAGNÓSTICO: Si esto falla, devuelve 500, que es el error que ves
     if (!GEMINI_API_KEY) {
-        console.error("CRÍTICO: No se encontró GEMINI_API_KEY en las variables de entorno.");
-        return res.status(500).json({ error: "Error de configuración del servidor (Falta API Key)." });
+        console.error("CRÍTICO: GEMINI_API_KEY no está configurada en Vercel.");
+        return res.status(500).json({ error: "Error de Servidor: Falta la API Key." });
     }
 
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
     try {
-        const { slidesTexto } = JSON.parse(req.body);
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const { slidesTexto } = body;
 
         const promptIA = `
-            Actúa como un profesor experto. Analiza el siguiente texto de diapositivas y genera:
-            1. Un BANCO DE 20 PREGUNTAS de opción múltiple (con 3 opciones: A, B, C).
-            2. Un BANCO DE 15 PALABRAS CLAVE para crucigrama con sus pistas cortas.
+            Actúa como un profesor experto. Analiza el siguiente texto y genera:
+            1. Un BANCO DE 20 PREGUNTAS de opción múltiple (3 opciones).
+            2. Un BANCO DE 15 PALABRAS para crucigrama.
 
-            Tu respuesta debe ser ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
+            Formato JSON ESTRICTO:
             {
               "cuestionario": [
-                { "pregunta": "¿Texto?", "opciones": ["A", "B", "C"], "correcta": "A" }
+                { "pregunta": "¿...?", "opciones": ["A", "B", "C"], "correcta": "A" }
               ],
               "crucigrama": [
                 { "word": "PALABRA", "clue": "Pista..." }
               ]
             }
 
-            Texto Base:
+            Texto:
             ---
-            ${slidesTexto.substring(0, 12000)} 
+            ${slidesTexto ? slidesTexto.substring(0, 15000) : ''} 
             ---
         `;
 
@@ -53,23 +54,21 @@ module.exports = async (req, res) => {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Error Gemini API:", errorText);
-            // Si falla el 2.5, puede ser por permisos de la clave
-            return res.status(502).json({ error: `Fallo la IA (${response.status}). Verifica que tu API Key tenga acceso a gemini-2.5-flash.` });
+            const errText = await response.text();
+            console.error("Error Gemini:", errText);
+            return res.status(502).json({ error: `Error IA (${response.status})` });
         }
 
         const data = await response.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         
-        if (!jsonMatch) return res.status(500).json({ error: "La IA no devolvió JSON válido." });
+        if (!jsonMatch) return res.status(500).json({ error: "JSON inválido de IA." });
 
-        const content = JSON.parse(jsonMatch[0]);
-        return res.status(200).json(content);
+        return res.status(200).json(JSON.parse(jsonMatch[0]));
 
     } catch (error) {
         console.error("Error interno:", error);
-        return res.status(500).json({ error: "Error del servidor: " + error.message });
+        return res.status(500).json({ error: error.message });
     }
 };

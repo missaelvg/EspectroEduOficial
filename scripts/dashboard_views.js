@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN CON MANUAL DE PRÁCTICA)
+// scripts/dashboard_views.js (VERSIÓN FINAL: SIN EMOJIS Y MINIMALISTA)
 
 const AppState = {
     user: null,
@@ -87,7 +87,7 @@ async function renderDoctorDashboard() {
             practicesList.forEach(p => {
                 const studentCount = Object.keys(p.students || {}).length;
                 
-                // Botones para el doctor (incluye Manual)
+                // Botones limpios para el doctor
                 const slidesBtn = p.slidesPdfUrl && p.slidesPdfUrl.length > 5 ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Ver Diapositivas</a>` : '';
                 const stdBtn = p.standardPdfUrl && p.standardPdfUrl.length > 5 ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Ver Estándar</a>` : '';
                 const manualBtn = p.manualPdfUrl && p.manualPdfUrl.length > 5 ? `<a href="${p.manualPdfUrl}" target="_blank" class="btn btn-secondary">Ver Manual</a>` : '';
@@ -120,15 +120,15 @@ function renderCreatePracticeView() {
             
             <label>Diapositivas (PDF)</label>
             <input type="file" id="slidesFile" accept="application/pdf">
-            <small style="color:#666; display:block; margin-bottom:15px;">* La IA usará esto para el cuestionario.</small>
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* La IA usará esto para el cuestionario.</small>
             
             <label>Manual de Práctica (PDF)</label>
             <input type="file" id="manualFile" accept="application/pdf">
-            <small style="color:#666; display:block; margin-bottom:15px;">* Guía paso a paso para el alumno.</small>
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* Guía para el alumno.</small>
             
             <label>Estándar del Reporte (PDF)</label>
             <input type="file" id="standardFile" accept="application/pdf">
-            <small style="color:#666; display:block; margin-bottom:15px;">* La IA usará esto para evaluar.</small>
+            <small style="color:#64748b; display:block; margin-bottom:15px;">* La IA usará esto para evaluar.</small>
             
             <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
             <div id="creationLog" style="margin-top:15px; font-family:monospace;"></div>
@@ -139,7 +139,7 @@ async function handlePracticeCreation() {
     const title = document.getElementById('practiceTitle').value;
     const slidesFile = document.getElementById('slidesFile').files[0];
     const standardFile = document.getElementById('standardFile').files[0];
-    const manualFile = document.getElementById('manualFile').files[0]; // Nuevo archivo
+    const manualFile = document.getElementById('manualFile').files[0];
     const logDiv = document.getElementById('creationLog');
     const button = logDiv.previousElementSibling;
 
@@ -150,22 +150,20 @@ async function handlePracticeCreation() {
     
     button.disabled = true;
     try {
-        logDiv.innerHTML = '<span style="color:#3b82f6">1/5: Creando registro...</span>';
+        logDiv.innerHTML = '<span style="color:#3b82f6">Creating registro...</span>';
         const pid = await createPractice({ title, students: {}, generatedContent: null, creatorId: AppState.user.uid, createdAt: new Date() });
 
-        logDiv.innerHTML = '<span style="color:#3b82f6">2/5: Subiendo archivos...</span>';
-        // Subimos los 3 archivos en paralelo
+        logDiv.innerHTML = '<span style="color:#3b82f6">Subiendo archivos...</span>';
         const [slides, std, manual] = await Promise.all([
             uploadFile(slidesFile, `practices/${pid}`),
             uploadFile(standardFile, `practices/${pid}`),
             uploadFile(manualFile, `practices/${pid}`)
         ]);
         
-        logDiv.innerHTML = '<span style="color:#3b82f6">3/5: Guardando enlaces...</span>';
-        // Guardamos las 3 URLs
+        logDiv.innerHTML = '<span style="color:#3b82f6">Guardando enlaces...</span>';
         await savePracticeContent(pid, { slidesPdfUrl: slides, standardPdfUrl: std, manualPdfUrl: manual });
 
-        logDiv.innerHTML = '<span style="color:#eab308">4/5: Analizando textos para IA...</span>';
+        logDiv.innerHTML = '<span style="color:#eab308">Analizando con IA...</span>';
         let slidesText = "", standardText = "";
         try { slidesText = await extractTextFromPDF(slidesFile); } catch(e) {}
         try { standardText = await extractTextFromPDF(standardFile); } catch(e) {}
@@ -173,14 +171,14 @@ async function handlePracticeCreation() {
         await savePracticeContent(pid, { slidesText, standardText });
 
         if (slidesText.length > 50) {
-            logDiv.innerHTML = '<span style="color:#eab308">5/5: Generando cuestionario...</span>';
+            logDiv.innerHTML = '<span style="color:#eab308">Generando cuestionario...</span>';
             try {
                 const gen = await callAIGenerate(slidesText);
                 await savePracticeContent(pid, { generatedContent: gen });
-                logDiv.innerHTML = '<p class="alert-success">✅ ¡Listo con IA!</p>';
-            } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada sin Cuestionario (Fallo IA).</p>'; }
+                logDiv.innerHTML = '<p class="alert-success">Práctica creada con éxito.</p>';
+            } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada sin Cuestionario (Fallo IA).</p>'; }
         } else {
-            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada (PDF imagen, sin IA).</p>';
+            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada (PDF imagen, sin IA).</p>';
         }
         setTimeout(() => { document.querySelector('#navbar button').click(); }, 3000);
     } catch (e) { logDiv.innerHTML = `<p class="alert-error">Error: ${e.message}</p>`; button.disabled = false; }
@@ -189,7 +187,7 @@ async function handlePracticeCreation() {
 // --- GESTIÓN DE ALUMNOS ---
 async function renderManageStudentsView() {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
+    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar por nombre..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
     try {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
         AppState.practices = practices; AppState.users = users.filter(u => u.role === 'alumno');
@@ -206,9 +204,9 @@ function rList(list) {
             const curr = pMap[s.uid];
             const groupLabel = s.grupo ? `<span style="margin-left:5px;background:#e0f2fe;color:#0284c7;padding:2px 6px;border-radius:4px;font-size:0.8em;">${s.grupo}</span>` : '';
             h += `<div class="student-list-item"><div><strong>${s.username}</strong> ${groupLabel}<br><small style="color:#64748b;">${s.matricula}</small></div><div style="text-align:right;">`;
-            if(curr) h+=`<span style="color:#3b82f6;font-weight:bold;margin-right:10px;font-size:0.9em;">${curr.title}</span><button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b;font-size:0.7em;padding:6px 12px;">Desinscribir</button>`;
-            else h+=`<select id="ps-${s.uid}" style="padding:6px;width:auto;margin-right:5px;border-radius:6px;border:1px solid #cbd5e1;"><option value="">Seleccionar...</option>${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}</select><button onclick="hEnroll('${s.uid}')" style="font-size:0.7em;padding:6px 12px;">Inscribir</button>`;
-            h+=`<button onclick="hDel('${s.uid}')" style="background:#ef4444;font-size:0.7em;padding:6px 12px;margin-left:5px;">X</button></div></div>`;
+            if(curr) h+=`<span style="color:#3b82f6;font-weight:600;margin-right:10px;font-size:0.9em;">${curr.title}</span><button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b;font-size:0.75em;padding:6px 12px;">Desinscribir</button>`;
+            else h+=`<select id="ps-${s.uid}" style="padding:6px;width:auto;margin-right:5px;border-radius:6px;border:1px solid #cbd5e1;"><option value="">Seleccionar...</option>${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}</select><button onclick="hEnroll('${s.uid}')" style="font-size:0.75em;padding:6px 12px;">Inscribir</button>`;
+            h+=`<button onclick="hDel('${s.uid}')" style="background:#ef4444;font-size:0.75em;padding:6px 12px;margin-left:5px;">X</button></div></div>`;
         });
     }
     c.innerHTML = h;
@@ -252,7 +250,7 @@ async function renderDoctorGradesView() {
             }
             html += `</div>`;
         }
-        document.getElementById('grades-by-practice').innerHTML = html;
+        document.getElementById('grades-by-practice').innerHTML = html || '<p>Sin prácticas.</p>';
     } catch (e) { contentDiv.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
@@ -273,7 +271,7 @@ function renderStudentDashboard() {
         </div>`;
 }
 
-// --- 1. MIS PRÁCTICAS (REPORTE) ---
+// --- 1. MIS PRÁCTICAS (REPORTE) - SIN EMOJIS ---
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list">Cargando...</div>';
@@ -289,28 +287,28 @@ async function renderStudentPracticesView() {
             const hasReport = st.reportUrl ? true : false;
             let body = '';
             
-            // BOTONES DE DESCARGA (INCLUYE MANUAL)
+            // BOTONES DE DESCARGA LIMPIOS
             const downloads = `
                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
-                    <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">⬇️ Diapositivas</a> 
-                    <a href="${p.manualPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">⬇️ Manual</a>
-                    <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">⬇️ Estándar</a>
+                    <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">Diapositivas</a> 
+                    <a href="${p.manualPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">Manual</a>
+                    <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">Estándar</a>
                 </div>`;
 
             if (hasReport) {
-                const scoreDisplay = st.reportScore ? `<br><strong style="color:#15803d">Calificación IA: ${st.reportScore}/10</strong>` : '<br><em>Evaluando...</em>';
+                const scoreDisplay = st.reportScore ? `<br><span style="color:#15803d; font-weight:bold;">Calificación IA: ${st.reportScore}/10</span>` : '<br><span style="color:#64748b; font-style:italic;">Evaluando...</span>';
                 const feedbackDisplay = st.reportFeedback ? `<div style="margin-top:15px; padding:15px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem;"><strong>Retroalimentación:</strong> ${st.reportFeedback}</div>` : '';
                 
-                body = `<div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534;"><strong>Reporte Entregado</strong>${scoreDisplay}</div>${feedbackDisplay}
+                body = `<div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534; font-weight:600;">Reporte Entregado ${scoreDisplay}</div>${feedbackDisplay}
                         <p style="margin-top:15px; font-size:0.9rem; color:#64748b;">Materiales de consulta:</p>
                         ${downloads}`;
             } else {
-                body = `<p>Descarga los materiales y sube tu PDF para evaluación:</p>
+                body = `<p style="color:#64748b;">Descarga los materiales y sube tu PDF para evaluación.</p>
                         ${downloads}
                         <hr style="margin:20px 0; border:0; border-top:1px solid #e2e8f0;">
-                        <label style="display:block; margin-bottom:8px; font-weight:600;">Coloca aquí tu reporte:</label>
+                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#334155;">Coloca aquí tu reporte:</label>
                         <input type="file" id="rep-${p.id}" accept="application/pdf">
-                        <button onclick="handleReportUpload('${p.id}')" style="width:100%;">Entregar</button>
+                        <button onclick="handleReportUpload('${p.id}')" style="width:100%; margin-top:10px;">Entregar</button>
                         <div id="log-${p.id}" style="margin-top:10px; font-size:0.9rem; color:#64748b;"></div>`;
             }
             return `<div class="card"><h4>${p.title}</h4>${body}</div>`;
@@ -319,7 +317,7 @@ async function renderStudentPracticesView() {
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-// --- 2. ACTIVIDADES ---
+// --- 2. ACTIVIDADES - SIN EMOJIS ---
 async function renderStudentActivitiesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Actividades</h2><div id="act-list">Cargando...</div>';
@@ -331,8 +329,8 @@ async function renderStudentActivitiesView() {
 
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
-            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9; padding:20px; border-radius:8px; text-align:center; color:#64748b;"><strong>Bloqueado</strong><br>Entrega tu reporte primero.</div></div>`;
-            if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success">Actividades Completadas.</div></div>`;
+            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div style="background:#f1f5f9; padding:20px; border-radius:8px; text-align:center; color:#64748b; font-weight:600;">Acceso Restringido<br><span style="font-weight:normal; font-size:0.9em;">Entrega tu reporte primero.</span></div></div>`;
+            if (st.completed) return `<div class="card"><h4>${p.title}</h4><div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534; font-weight:600; text-align:center;">Actividades Completadas</div></div>`;
             
             const containerId = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             return `<div class="card"><h4>${p.title}</h4><div id="${containerId}">Cargando actividad...</div></div>`;
@@ -358,7 +356,7 @@ async function renderStudentGradesView() {
 
         if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<p>No hay registros.</p>'; return; }
 
-        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Promedio</th><th>Fecha</th></tr></thead><tbody>`;
+        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
 
         html += myP.map(p => {
             const st = p.students[AppState.user.uid];
@@ -368,13 +366,7 @@ async function renderStudentGradesView() {
             const final = calculateWeightedGrade(rScore, qScore, cScore);
             const date = formatDate(st.completedAt || st.reportSubmittedAt);
 
-            // Displays
-            const rDisplay = st.reportScore !== undefined ? st.reportScore : '-';
-            const qDisplay = st.quizScore !== undefined ? st.quizScore : '-';
-            const cDisplay = st.crosswordScore !== undefined ? st.crosswordScore : '-';
-            const finalDisplay = (st.reportUrl) ? `<strong>${final}</strong>` : '-';
-
-            return `<tr><td>${p.title}</td><td>${rDisplay}</td><td>${qDisplay}</td><td>${cDisplay}</td><td>${finalDisplay}</td><td style="font-size:0.8em; color:#64748b;">${date}</td></tr>`;
+            return `<tr><td>${p.title}</td><td>${st.reportScore ?? '-'}</td><td>${st.quizScore ?? '-'}</td><td>${st.crosswordScore ?? '-'}</td><td><strong>${final}</strong></td><td style="font-size:0.8em; color:#64748b;">${date}</td></tr>`;
         }).join('');
 
         html += `</tbody></table></div>`;
@@ -388,17 +380,14 @@ function renderStudentProfileView() {
     document.getElementById('main-content').innerHTML = `<h2>Mi Perfil</h2><div class="card"><label>Matrícula</label><input type="text" value="${u.matricula}" disabled><label>Nombre</label><input id="pN" value="${u.username}"><label>Grupo</label><input id="pG" value="${u.grupo||''}"><label>Email</label><input id="pE" value="${u.email}"><button onclick="updProf()">Actualizar</button></div>`;
 }
 async function updProf(){ 
-    try {
-        await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); 
-        alert("Perfil actualizado");
-    } catch(e) { alert(e.message); }
+    try { await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); alert("Perfil actualizado"); } catch(e) { alert(e.message); }
 }
 
-// --- MANEJADORES (IGUAL QUE ANTES) ---
+// --- MANEJADORES ---
 async function handleReportUpload(pid) {
     const f = document.getElementById(`rep-${pid}`).files[0];
     const log = document.getElementById(`log-${pid}`);
-    if(!f) return alert("Elige archivo");
+    if(!f) return alert("Selecciona un archivo");
     log.innerText = "Subiendo...";
     const btn = log.previousElementSibling;
     btn.disabled = true;
@@ -416,7 +405,6 @@ async function handleReportUpload(pid) {
                 reportFeedback = evaluation.justificacion;
             }
         } catch (aiErr) { console.warn("Fallo IA:", aiErr); }
-
         log.innerText = "Guardando...";
         await callDB('submit_report', { practiceId: pid, studentUid: AppState.user.uid, reportUrl: url, reportScore: reportScore, reportFeedback: reportFeedback });
         alert(reportScore ? `Calificación Reporte: ${reportScore}/10` : "Reporte entregado.");
@@ -428,13 +416,13 @@ function renderQuiz(p) {
     const d = document.getElementById(`quiz-${p.id}`);
     const q = p.generatedContent?.cuestionario;
     if(!q) return d.innerHTML="<p class='alert-error'>Error: Sin cuestionario</p>";
-    let h = '<p>Responde:</p>';
+    let h = '<p style="margin-bottom:15px;">Selecciona la respuesta correcta:</p>';
     q.forEach((x,i)=> {
         h+=`<div class="question"><p>${i+1}. ${x.pregunta}</p>`;
         x.opciones?.forEach(o=>h+=`<label class="option-label"><input type="radio" name="q-${p.id}-${i}" value="${o}"> ${o}</label>`);
         h+='</div>';
     });
-    d.innerHTML = h + `<button onclick="subQuiz(event, '${p.id}')">Enviar</button>`;
+    d.innerHTML = h + `<button onclick="subQuiz(event, '${p.id}')">Enviar Cuestionario</button>`;
 }
 async function subQuiz(e, pid) {
     const btn = e.target; btn.disabled=true;
@@ -451,6 +439,7 @@ async function subQuiz(e, pid) {
     alert(`Cuestionario: ${quizGrade}/10. Siguiente: Crucigrama.`);
     renderStudentActivitiesView();
 }
+
 function renderCrossword(p) {
     const d = document.getElementById(`cross-${p.id}`);
     const data = p.generatedContent?.crucigrama;
@@ -463,7 +452,7 @@ function renderCrossword(p) {
     h += '</table>';
     let cl = '<h5>Pistas</h5>';
     layout.placedWordsInfo.forEach(w => cl+=`<p><strong>${w.number}. ${w.orientation==='across'?'H':'V'}</strong>: ${w.clue}</p>`);
-    d.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${h}</div><div class="crossword-clues">${cl}</div></div><br><button onclick="handleCrosswordSubmit(event, '${p.id}')">Finalizar</button>`;
+    d.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${h}</div><div class="crossword-clues">${cl}</div></div><br><button onclick="handleCrosswordSubmit(event, '${p.id}')">Finalizar Práctica</button>`;
     const st = document.createElement('style'); st.innerHTML = `.crossword-number{position:absolute;top:1px;left:1px;font-size:8px;color:#333;}`; d.appendChild(st);
 }
 function generateCrosswordLayout(words) {

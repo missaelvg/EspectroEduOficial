@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN FINAL: SIN EMOJIS Y GESTIÓN CLÁSICA)
+// scripts/dashboard_views.js (VERSIÓN FINAL: DISEÑO PULIDO Y BIENVENIDA MEJORADA)
 
 const AppState = {
     user: null,
@@ -69,29 +69,26 @@ function setActive(button) {
 
 async function renderDoctorDashboard() {
     const contentDiv = document.getElementById('main-content');
-    
-    // BIENVENIDA LIMPIA Y PROFESIONAL
     contentDiv.innerHTML = `
         <div style="margin-bottom:30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px;">
             <h2 style="margin-bottom:5px; color:#0f172a;">Bienvenido, Dr. ${AppState.user.username}</h2>
-            <p style="color:#64748b; margin-top:0;">Sistema de Gestión Académica - EspectroEdu</p>
+            <p style="color:#64748b; margin-top:0;">Panel de Control Académico</p>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="info-card blue-card">
-                <h3>Gestión de Contenido</h3>
-                <p>Cree nuevas prácticas, suba diapositivas y manuales. La IA generará los cuestionarios automáticamente.</p>
-                <button class="btn-link" onclick="document.querySelectorAll('#navbar button')[1].click()">Crear Práctica</button>
+        <div class="dashboard-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-bottom:30px;">
+             <div class="card" style="border-left: 4px solid #3b82f6; padding:20px;">
+                <h3 style="margin-top:0; color:#3b82f6;">Crear Contenido</h3>
+                <p style="font-size:0.9em; color:#64748b;">Suba diapositivas y deje que la IA genere las evaluaciones automáticamente.</p>
+                <button onclick="document.querySelectorAll('#navbar button')[1].click()" style="margin-top:10px; font-size:0.8em;">Ir a Crear →</button>
             </div>
-            
-            <div class="info-card green-card">
-                <h3>Control Escolar</h3>
-                <p>Administre la matrícula, inscriba estudiantes a las prácticas y gestione el acceso al curso.</p>
-                <button class="btn-link" onclick="document.querySelectorAll('#navbar button')[2].click()">Gestionar Alumnos</button>
+             <div class="card" style="border-left: 4px solid #10b981; padding:20px;">
+                <h3 style="margin-top:0; color:#10b981;">Gestionar Grupo</h3>
+                <p style="font-size:0.9em; color:#64748b;">Inscriba alumnos a las prácticas y monitoree su acceso.</p>
+                <button onclick="document.querySelectorAll('#navbar button')[2].click()" style="margin-top:10px; font-size:0.8em; background:#10b981;">Ir a Gestión →</button>
             </div>
         </div>
 
-        <h3 style="margin-top:30px;">Prácticas Activas</h3>
+        <h3 style="color:#0f172a;">Prácticas Activas</h3>
         <div id="practices-summary" style="margin-top:15px;">Cargando lista...</div>`;
 
     try {
@@ -105,11 +102,9 @@ async function renderDoctorDashboard() {
         } else {
             practicesList.forEach(p => {
                 const studentCount = Object.keys(p.students || {}).length;
-                
-                // Botones de texto limpio
-                const slidesBtn = p.slidesPdfUrl && p.slidesPdfUrl.length > 5 ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary btn-sm">Diapositivas</a>` : '';
-                const manualBtn = p.manualPdfUrl && p.manualPdfUrl.length > 5 ? `<a href="${p.manualPdfUrl}" target="_blank" class="btn btn-secondary btn-sm">Manual</a>` : '';
-                const stdBtn = p.standardPdfUrl && p.standardPdfUrl.length > 5 ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary btn-sm">Estándar</a>` : '';
+                const slidesBtn = p.slidesPdfUrl?.length > 5 ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary btn-sm">Diapositivas</a>` : '';
+                const manualBtn = p.manualPdfUrl?.length > 5 ? `<a href="${p.manualPdfUrl}" target="_blank" class="btn btn-secondary btn-sm">Manual</a>` : '';
+                const stdBtn = p.standardPdfUrl?.length > 5 ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary btn-sm">Estándar</a>` : '';
 
                 html += `
                     <div class="card">
@@ -160,7 +155,7 @@ async function handlePracticeCreation() {
     } catch (e) { logDiv.innerHTML = `Error: ${e.message}`; button.disabled = false; }
 }
 
-// --- GESTIÓN DE ALUMNOS (DISEÑO ANTERIOR CLÁSICO) ---
+// --- GESTIÓN DE ALUMNOS (DISEÑO MEJORADO) ---
 async function renderManageStudentsView() {
     const div = document.getElementById('main-content');
     div.innerHTML = `
@@ -186,27 +181,29 @@ function rList(list) {
     } else {
         list.forEach(s => {
             const curr = pMap[s.uid];
-            const groupLabel = s.grupo ? ` <span style="color:#64748b; font-size:0.9em;">(${s.grupo})</span>` : '';
+            // ESTILO AZUL PARA EL GRUPO
+            const groupLabel = s.grupo ? `<span style="margin-left:5px; background:#e0f2fe; color:#0284c7; padding:2px 8px; border-radius:6px; font-size:0.8em; font-weight:600;">${s.grupo}</span>` : '';
             
             h += `
             <div class="student-list-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:white; border-bottom:1px solid #e2e8f0;">
                 <div>
-                    <div style="font-weight:bold; color:#0f172a;">${s.username}${groupLabel}</div>
+                    <div style="font-weight:bold; color:#0f172a; margin-bottom:4px;">${s.username}${groupLabel}</div>
                     <div style="font-size:0.85em; color:#64748b;">${s.matricula}</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">`;
             
             if(curr) {
-                h+=`<span style="color:#15803d; font-size:0.85em; font-weight:600;">${curr.title}</span>
-                    <button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b; font-size:0.75em; padding:5px 10px;">Desinscribir</button>`;
+                // NOMBRE DE PRÁCTICA EN AZUL
+                h+=`<span style="color:#3b82f6; font-size:0.9em; font-weight:600;">${curr.title}</span>
+                    <button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b; font-size:0.75em; padding:6px 12px; border:none; border-radius:6px; color:white;">Desinscribir</button>`;
             } else {
-                h+=`<select id="ps-${s.uid}" style="padding:5px; border-radius:4px; border:1px solid #cbd5e1; font-size:0.85em;">
+                h+=`<select id="ps-${s.uid}" style="padding:6px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85em;">
                         <option value="">Seleccionar Práctica</option>
                         ${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}
                     </select>
-                    <button onclick="hEnroll('${s.uid}')" style="background:#3b82f6; font-size:0.75em; padding:5px 10px;">Inscribir</button>`;
+                    <button onclick="hEnroll('${s.uid}')" style="background:#3b82f6; font-size:0.75em; padding:6px 12px; border:none; border-radius:6px; color:white;">Inscribir</button>`;
             }
-            h+=`<button onclick="hDel('${s.uid}')" style="background:#ef4444; font-size:0.75em; padding:5px 10px;">Eliminar</button>
+            h+=`<button onclick="hDel('${s.uid}')" style="background:#ef4444; font-size:0.75em; padding:6px 12px; margin-left:5px; border:none; border-radius:6px; color:white;">Eliminar</button>
                 </div>
             </div>`;
         });
@@ -230,15 +227,21 @@ async function renderDoctorGradesView() {
         for (const p of Object.values(practices)) {
             html += `<div class="card"><h4>${p.title}</h4>`;
             const studs = p.students || {};
-            if (Object.keys(studs).length === 0) html += '<p style="color:#64748b;">Sin alumnos inscritos.</p>';
+            if (Object.keys(studs).length === 0) html += '<p style="color:#64748b;">No hay alumnos inscritos.</p>';
             else {
-                html += `<div class="table-container"><table class="styled-table"><thead><tr><th>Alumno</th><th>Matrícula</th><th>Grupo</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
+                html += `<div class="table-container"><table class="styled-table"><thead><tr><th>Alumno</th><th>Matrícula</th><th>Grupo</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
                 for (const sid in studs) {
                     const d = studs[sid];
                     const info = usersMap.get(sid);
-                    const final = calculateWeightedGrade(d.reportScore, d.quizScore, d.crosswordScore);
+                    const name = info ? info.username : "Desconocido";
+                    const matricula = info ? info.matricula : sid;
+                    const grupo = info ? (info.grupo || '-') : '-';
+                    const rScore = d.reportScore !== undefined ? d.reportScore : 0;
+                    const qScore = d.quizScore !== undefined ? d.quizScore : 0;
+                    const cScore = d.crosswordScore !== undefined ? d.crosswordScore : 0;
+                    const final = calculateWeightedGrade(rScore, qScore, cScore);
                     const date = formatDate(d.completedAt || d.reportSubmittedAt);
-                    html += `<tr><td>${info?.username||'?'}</td><td>${info?.matricula||sid}</td><td>${info?.grupo||'-'}</td><td>${d.reportScore??'-'}</td><td>${d.quizScore??'-'}</td><td>${d.crosswordScore??'-'}</td><td><strong>${final}</strong></td><td style="font-size:0.8em;color:#64748b;">${date}</td></tr>`;
+                    html += `<tr><td>${name}</td><td>${matricula}</td><td>${grupo}</td><td>${d.reportScore ?? '-'}</td><td>${d.quizScore ?? '-'}</td><td>${d.crosswordScore ?? '-'}</td><td><strong>${final}</strong></td><td style="font-size:0.8em;color:#64748b;">${date}</td></tr>`;
                 }
                 html += `</tbody></table></div>`;
             }
@@ -250,23 +253,41 @@ async function renderDoctorGradesView() {
 
 
 // ====================================================
-// VISTAS DEL ALUMNO
+// VISTAS DEL ALUMNO (NUEVO DISEÑO DE BIENVENIDA)
 // ====================================================
 
 function renderStudentDashboard() {
     document.getElementById('main-content').innerHTML = `
-        <div style="margin-bottom:30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px;">
+        <div style="margin-bottom:30px;">
             <h2 style="margin-bottom:5px; color:#0f172a;">¡Hola, ${AppState.user.username}!</h2>
             <p style="color:#64748b; margin-top:0;">Bienvenido a tu espacio de aprendizaje.</p>
         </div>
-        <div class="card" style="border-left: 4px solid var(--primary-color);">
-            <h3 style="margin-top:0;">Tu Progreso</h3>
-            <p style="color:#475569;">Recuerda que la calificación final se compone de:</p>
-            <ul style="color:#475569; margin-bottom:0;">
-                <li><strong>80%</strong> Reporte Técnico</li>
-                <li><strong>10%</strong> Cuestionario</li>
-                <li><strong>10%</strong> Crucigrama</li>
-            </ul>
+
+        <div class="card" style="border-left: 4px solid #3b82f6; padding:30px;">
+            <h3 style="margin-top:0; color:#0f172a; margin-bottom:20px;">Tu Ruta de Aprendizaje</h3>
+            
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
+                <div style="background:#f8fafc; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <div style="font-size:1.5rem; font-weight:bold; color:#3b82f6; margin-bottom:10px;">01</div>
+                    <strong style="color:#1e293b;">Materiales y Reporte</strong>
+                    <p style="font-size:0.9em; color:#64748b; margin-top:5px;">Descarga los PDF en "Mis Prácticas" y sube tu reporte para evaluación.</p>
+                    <button onclick="document.querySelectorAll('#navbar button')[1].click()" style="margin-top:15px; width:100%; font-size:0.8em; background:#3b82f6;">Ir a Prácticas</button>
+                </div>
+
+                <div style="background:#f8fafc; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <div style="font-size:1.5rem; font-weight:bold; color:#eab308; margin-bottom:10px;">02</div>
+                    <strong style="color:#1e293b;">Actividades</strong>
+                    <p style="font-size:0.9em; color:#64748b; margin-top:5px;">Resuelve el cuestionario y el crucigrama para completar el proceso.</p>
+                    <button onclick="document.querySelectorAll('#navbar button')[2].click()" style="margin-top:15px; width:100%; font-size:0.8em; background:#eab308; border:none; color:white;">Ir a Actividades</button>
+                </div>
+
+                <div style="background:#f8fafc; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <div style="font-size:1.5rem; font-weight:bold; color:#10b981; margin-bottom:10px;">03</div>
+                    <strong style="color:#1e293b;">Calificaciones</strong>
+                    <p style="font-size:0.9em; color:#64748b; margin-top:5px;">Consulta tus notas y retroalimentación en tiempo real.</p>
+                    <button onclick="document.querySelectorAll('#navbar button')[3].click()" style="margin-top:15px; width:100%; font-size:0.8em; background:#10b981; border:none; color:white;">Ver Notas</button>
+                </div>
+            </div>
         </div>`;
 }
 
@@ -275,10 +296,11 @@ async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list">Cargando...</div>';
     try {
-        const practices = await getPractices(); AppState.practices = practices; 
+        const practices = await getPractices();
+        AppState.practices = practices; 
         const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
 
-        if (myP.length === 0) { document.getElementById('list').innerHTML = '<p style="color:#64748b;">No tienes prácticas asignadas.</p>'; return; }
+        if (myP.length === 0) { document.getElementById('list').innerHTML = '<p>No tienes prácticas asignadas.</p>'; return; }
 
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
@@ -293,16 +315,16 @@ async function renderStudentPracticesView() {
                 </div>`;
 
             if (hasReport) {
-                const scoreDisplay = st.reportScore ? `<br><span style="color:#15803d; font-weight:bold;">Calificación IA: ${st.reportScore}/10</span>` : '<br><span style="color:#64748b; font-style:italic;">Evaluando...</span>';
+                const scoreDisplay = st.reportScore ? `<br><strong style="color:#15803d">Calificación IA: ${st.reportScore}/10</strong>` : '<br><em>Evaluando...</em>';
                 const feedbackDisplay = st.reportFeedback ? `<div style="margin-top:15px; padding:15px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem; color:#334155;"><strong>Retroalimentación:</strong> ${st.reportFeedback}</div>` : '';
                 
                 body = `<div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534; font-weight:600;">Reporte Entregado ${scoreDisplay}</div>${feedbackDisplay}
-                        <p style="margin-top:15px; font-size:0.9rem; color:#64748b;">Materiales:</p>${downloads}`;
+                        <p style="margin-top:15px; font-size:0.9rem; color:#64748b;">Materiales de consulta:</p>${downloads}`;
             } else {
                 body = `<p style="color:#64748b;">Descarga los materiales y sube tu PDF:</p>
                         ${downloads}
                         <hr style="margin:20px 0; border:0; border-top:1px solid #e2e8f0;">
-                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#334155;">Subir Reporte:</label>
+                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#334155;">Coloca aquí tu reporte:</label>
                         <input type="file" id="rep-${p.id}" accept="application/pdf">
                         <button onclick="handleReportUpload('${p.id}')" style="width:100%; margin-top:10px;">Entregar</button>
                         <div id="log-${p.id}" style="margin-top:10px; font-size:0.9rem; color:#64748b;"></div>`;
@@ -318,7 +340,8 @@ async function renderStudentActivitiesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Actividades</h2><div id="act-list">Cargando...</div>';
     try {
-        const practices = await getPractices(); AppState.practices = practices;
+        const practices = await getPractices();
+        AppState.practices = practices;
         const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
         if (myP.length === 0) { document.getElementById('act-list').innerHTML = '<p style="color:#64748b;">Sin actividades.</p>'; return; }
 
@@ -328,10 +351,9 @@ async function renderStudentActivitiesView() {
             if (st.completed) return `<div class="card"><h4>${p.title}</h4><div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534; font-weight:600; text-align:center;">Actividades Completadas</div></div>`;
             
             const containerId = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
-            return `<div class="card"><h4>${p.title}</h4><div id="${containerId}">Cargando...</div></div>`;
+            return `<div class="card"><h4>${p.title}</h4><div id="${containerId}">Cargando actividad...</div></div>`;
         }).join('');
         document.getElementById('act-list').innerHTML = html;
-
         myP.forEach(p => {
             const st = p.students[AppState.user.uid];
             if (st.reportUrl && !st.completed) {
@@ -342,7 +364,7 @@ async function renderStudentActivitiesView() {
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-// --- 3. CALIFICACIONES ALUMNO ---
+// --- 3. CALIFICACIONES ---
 async function renderStudentGradesView() {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = '<h2>Mis Calificaciones</h2><div id="grades-list">Cargando...</div>';
@@ -352,7 +374,7 @@ async function renderStudentGradesView() {
 
         if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<p style="color:#64748b;">No hay registros.</p>'; return; }
 
-        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Promedio</th><th>Fecha</th></tr></thead><tbody>`;
+        let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Promedio Final</th><th>Fecha</th></tr></thead><tbody>`;
 
         html += myP.map(p => {
             const st = p.students[AppState.user.uid];
@@ -361,9 +383,10 @@ async function renderStudentGradesView() {
             const cScore = st.crosswordScore !== undefined ? st.crosswordScore : 0;
             const final = calculateWeightedGrade(rScore, qScore, cScore);
             const date = formatDate(st.completedAt || st.reportSubmittedAt);
-            
-            return `<tr><td>${p.title}</td><td>${st.reportScore ?? '-'}</td><td>${st.quizScore ?? '-'}</td><td>${st.crosswordScore ?? '-'}</td><td><strong>${final}</strong></td><td style="font-size:0.8em;color:#64748b;">${date}</td></tr>`;
+
+            return `<tr><td>${p.title}</td><td>${st.reportScore ?? '-'}</td><td>${st.quizScore ?? '-'}</td><td>${st.crosswordScore ?? '-'}</td><td><strong>${final}</strong></td><td style="font-size:0.8em; color:#64748b;">${date}</td></tr>`;
         }).join('');
+
         html += `</tbody></table></div>`;
         document.getElementById('grades-list').innerHTML = html;
     } catch (e) { document.getElementById('grades-list').innerHTML = `<p class="alert-error">${e.message}</p>`; }
@@ -372,64 +395,104 @@ async function renderStudentGradesView() {
 // --- 4. PERFIL ---
 function renderStudentProfileView() {
     const u = AppState.user;
-    document.getElementById('main-content').innerHTML = `<h2>Mi Perfil</h2><div class="card"><label>Matrícula</label><input value="${u.matricula}" disabled><label>Nombre</label><input id="pN" value="${u.username}"><label>Grupo</label><input id="pG" value="${u.grupo||''}"><label>Email</label><input id="pE" value="${u.email}"><button onclick="updProf()">Actualizar</button></div>`;
+    document.getElementById('main-content').innerHTML = `<h2>Mi Perfil</h2><div class="card"><label>Matrícula</label><input type="text" value="${u.matricula}" disabled><label>Nombre</label><input id="pN" value="${u.username}"><label>Grupo</label><input id="pG" value="${u.grupo||''}"><label>Email</label><input id="pE" value="${u.email}"><button onclick="updProf()">Actualizar</button></div>`;
 }
 async function updProf(){ 
     try { await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); alert("Perfil actualizado"); } catch(e) { alert(e.message); }
 }
 
-// --- MANEJADORES (SIN EMOJIS) ---
+// --- MANEJADORES ---
 async function handleReportUpload(pid) {
     const f = document.getElementById(`rep-${pid}`).files[0];
-    if(!f) return alert("Selecciona un archivo");
     const log = document.getElementById(`log-${pid}`);
+    if(!f) return alert("Elige archivo");
     log.innerText = "Subiendo...";
     const btn = log.previousElementSibling;
     btn.disabled = true;
     try {
         const url = await uploadFile(f, `reports/${pid}/${AppState.user.uid}`);
         log.innerText = "Evaluando con IA...";
-        let rScore = null, rFeed = null;
+        let reportScore = null, reportFeedback = null;
         try {
-            const txt = await extractTextFromPDF(f);
-            const p = AppState.practices[pid] || (await getPractices())[pid];
-            if (txt.length > 50) {
-                const ev = await callAIEvaluate(txt, p.standardText || "Evaluar técnico");
-                rScore = ev.calificacion; rFeed = ev.justificacion;
+            const reportText = await extractTextFromPDF(f);
+            const practice = AppState.practices[pid] || (await getPractices())[pid];
+            const standardText = practice.standardText || "Evaluar técnicamente.";
+            if (reportText.length > 50) {
+                const evaluation = await callAIEvaluate(reportText, standardText);
+                reportScore = evaluation.calificacion;
+                reportFeedback = evaluation.justificacion;
             }
-        } catch (aiErr) {}
-        await callDB('submit_report', { practiceId: pid, studentUid: AppState.user.uid, reportUrl: url, reportScore: rScore, reportFeedback: rFeed });
-        alert(rScore ? `Calificación Reporte: ${rScore}/10` : "Reporte entregado.");
+        } catch (aiErr) { console.warn("Fallo IA:", aiErr); }
+        log.innerText = "Guardando...";
+        await callDB('submit_report', { practiceId: pid, studentUid: AppState.user.uid, reportUrl: url, reportScore: reportScore, reportFeedback: reportFeedback });
+        alert(reportScore ? `Calificación Reporte: ${reportScore}/10` : "Reporte entregado.");
         renderStudentPracticesView();
     } catch(e) { log.innerText = `Error: ${e.message}`; btn.disabled = false; }
 }
 
 function renderQuiz(p) {
-    const d = document.getElementById(`quiz-${p.id}`); const q = p.generatedContent?.cuestionario;
-    if(!q) return d.innerHTML="<p class='alert-error'>Error cuestionario</p>";
+    const d = document.getElementById(`quiz-${p.id}`);
+    const q = p.generatedContent?.cuestionario;
+    if(!q) return d.innerHTML="<p class='alert-error'>Error: Sin cuestionario</p>";
     let h = '<p>Responde:</p>';
-    q.forEach((x,i)=> { h+=`<div class="question"><p>${i+1}. ${x.pregunta}</p>`; x.opciones?.forEach(o=>h+=`<label class="option-label"><input type="radio" name="q-${p.id}-${i}" value="${o}"> ${o}</label>`); h+='</div>'; });
+    q.forEach((x,i)=> {
+        h+=`<div class="question"><p>${i+1}. ${x.pregunta}</p>`;
+        x.opciones?.forEach(o=>h+=`<label class="option-label"><input type="radio" name="q-${p.id}-${i}" value="${o}"> ${o}</label>`);
+        h+='</div>';
+    });
     d.innerHTML = h + `<button onclick="subQuiz(event, '${p.id}')">Enviar</button>`;
 }
+
 async function subQuiz(e, pid) {
-    e.target.disabled=true; let p = AppState.practices[pid]; if(!p) { const all=await getPractices(); p=all[pid]; AppState.practices=all; }
-    const qs = p.generatedContent.cuestionario; let s = 0;
-    qs.forEach((q,i)=>{ const el = document.getElementsByName(`q-${pid}-${i}`); if(Array.from(el).find(x=>x.checked)?.value===q.correcta) s++; });
-    const sc = Math.round((s/qs.length)*10);
-    await updateStudentProgress(pid, AppState.user.uid, { status: 'Crucigrama Pendiente', quizScore: sc });
-    alert(`Cuestionario: ${sc}/10`); renderStudentActivitiesView();
+    const btn = e.target; btn.disabled=true;
+    let p = AppState.practices[pid]; if(!p) { const all=await getPractices(); p=all[pid]; AppState.practices=all; }
+    const qs = p.generatedContent.cuestionario;
+    let s = 0;
+    qs.forEach((q,i)=>{
+        const el = document.getElementsByName(`q-${pid}-${i}`);
+        const sel = Array.from(el).find(x=>x.checked);
+        if(sel && sel.value.trim().toLowerCase()===q.correcta.trim().toLowerCase()) s++;
+    });
+    const quizGrade = Math.round((s/qs.length)*10);
+    await updateStudentProgress(pid, AppState.user.uid, { status: 'Crucigrama Pendiente', quizScore: quizGrade });
+    alert(`Cuestionario: ${quizGrade}/10. Siguiente: Crucigrama.`);
+    renderStudentActivitiesView();
 }
 
 function renderCrossword(p) {
-    const d = document.getElementById(`cross-${p.id}`); const data = p.generatedContent?.crucigrama;
+    const d = document.getElementById(`cross-${p.id}`);
+    const data = p.generatedContent?.crucigrama;
     if(!data) return d.innerHTML="<p>Error crucigrama</p>";
     const words = data.map(w => ({ word: w.word.toUpperCase(), clue: w.clue }));
     const layout = generateCrosswordLayout(words);
-    if(!layout) return d.innerHTML="<p>Error generando</p>";
-    let h = '<table>'; layout.grid.forEach(r => { h+='<tr>'; r.forEach(c => h+= c ? `<td><input type="text" maxlength="1" data-correct="${c.char}" class="crossword-cell"><span class="crossword-number">${c.num||''}</span></td>` : '<td class="empty"></td>'); h+='</tr>'; }); h+='</table>';
-    let cl = '<h5>Pistas</h5>'; layout.placedWordsInfo.forEach(w => cl+=`<p><strong>${w.number}. ${w.orientation==='across'?'H':'V'}</strong>: ${w.clue}</p>`);
+    if(!layout) return d.innerHTML="<p>Error generando crucigrama</p>";
+    let h = '<table>';
+    layout.grid.forEach(r => { h+='<tr>'; r.forEach(c => h+= c ? `<td><input type="text" maxlength="1" data-correct="${c.char}" class="crossword-cell"><span class="crossword-number">${c.num||''}</span></td>` : '<td class="empty"></td>'); h+='</tr>'; });
+    h += '</table>';
+    let cl = '<h5>Pistas</h5>';
+    layout.placedWordsInfo.forEach(w => cl+=`<p><strong>${w.number}. ${w.orientation==='across'?'H':'V'}</strong>: ${w.clue}</p>`);
     d.innerHTML = `<h5>Crucigrama</h5><div class="crossword-container"><div class="crossword-grid">${h}</div><div class="crossword-clues">${cl}</div></div><br><button onclick="handleCrosswordSubmit(event, '${p.id}')">Finalizar</button>`;
     const st = document.createElement('style'); st.innerHTML = `.crossword-number{position:absolute;top:1px;left:1px;font-size:8px;color:#333;}`; d.appendChild(st);
+    
+    // Navegación teclado
+    d.querySelectorAll('.crossword-cell').forEach(input => {
+        input.addEventListener('keydown', (e) => {
+            const r = parseInt(input.parentElement.parentElement.rowIndex);
+            const c = parseInt(input.parentElement.cellIndex);
+            let next;
+            if(e.key === 'ArrowRight') next = input.parentElement.nextElementSibling?.querySelector('input');
+            if(e.key === 'ArrowLeft') next = input.parentElement.previousElementSibling?.querySelector('input');
+            if(e.key === 'ArrowDown') {
+                const nextRow = input.parentElement.parentElement.nextElementSibling;
+                if(nextRow) next = nextRow.children[c]?.querySelector('input');
+            }
+            if(e.key === 'ArrowUp') {
+                const prevRow = input.parentElement.parentElement.previousElementSibling;
+                if(prevRow) next = prevRow.children[c]?.querySelector('input');
+            }
+            if(next) { e.preventDefault(); next.focus(); }
+        });
+    });
 }
 
 function generateCrosswordLayout(words) {
@@ -452,26 +515,42 @@ function generateCrosswordLayout(words) {
                         let nr, nc;
                         if(p.orientation === 'across') { nr = p.row - k; nc = p.col + j; } else { nr = p.row + j; nc = p.col - k; }
                         if(canPlace(grid, w.word, nr, nc, newO)) {
-                            for(let l=0; l<w.word.length; l++) { let r = nr + (newO==='down'?l:0); let c = nc + (newO==='across'?l:0); grid[r][c] = { char: w.word[l] }; }
-                            placed.push({...w, row:nr, col:nc, orientation:newO}); isPlaced = true;
+                            for(let l=0; l<w.word.length; l++) {
+                                let r = nr + (newO==='down'?l:0);
+                                let c = nc + (newO==='across'?l:0);
+                                grid[r][c] = { char: w.word[l] };
+                            }
+                            placed.push({...w, row:nr, col:nc, orientation:newO});
+                            isPlaced = true;
                         }
                     }
                 }
             }
         }
-        if(!isPlaced) words.push(w); attempts++;
+        if(!isPlaced) words.push(w);
+        attempts++;
     }
-    let num = 1; placed.forEach(w => { const cell = grid[w.row][w.col]; if(!cell.num) { cell.num = num; num++; } w.number = cell.num; });
+    let num = 1;
+    placed.forEach(w => { const cell = grid[w.row][w.col]; if(!cell.num) { cell.num = num; num++; } w.number = cell.num; });
     return { grid, placedWordsInfo: placed };
 }
+
 function canPlace(grid, word, r, c, o) {
     if(r<0 || c<0 || r>=grid.length || c>=grid[0].length) return false;
     if(o==='across') { if(c+word.length > grid[0].length) return false; } else { if(r+word.length > grid.length) return false; }
-    for(let i=0; i<word.length; i++) { let cr = r + (o==='down'?i:0); let cc = c + (o==='across'?i:0); const cell = grid[cr][cc]; if(cell && cell.char !== word[i]) return false; }
+    for(let i=0; i<word.length; i++) {
+        let cr = r + (o==='down'?i:0);
+        let cc = c + (o==='across'?i:0);
+        const cell = grid[cr][cc];
+        if(cell && cell.char !== word[i]) return false;
+    }
     return true;
 }
+
 async function handleCrosswordSubmit(e, pid) {
     const btn = e.target; btn.disabled=true;
+    let p = AppState.practices[pid]; if(!p) { const all=await getPractices(); p=all[pid]; }
+    if(!p || !p.students || !p.students[AppState.user.uid]) { alert("Error al recuperar datos. Recarga."); btn.disabled=false; return; }
     let corr=0, tot=0;
     document.querySelectorAll(`#cross-${pid} .crossword-cell`).forEach(c=>{
         tot++; if(c.value.toUpperCase()===c.dataset.correct) { corr++; c.style.background='#dcfce7'; } else c.style.background='#fee2e2';

@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN CORREGIDA: CRUCIGRAMA AZUL + CALIFICACIÓN VISIBLE)
+// scripts/dashboard_views.js (CORREGIDO: ACTUALIZACIÓN INSTANTÁNEA DE NOTA)
 
 const AppState = {
     user: null,
@@ -240,12 +240,18 @@ async function renderStudentPracticesView() {
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-async function renderStudentActivitiesView() {
+// MODIFICADO: Acepta parámetro para evitar fetch innecesario
+async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Actividades</h2><div id="act-list">Cargando...</div>';
     try {
-        const practices = await getPractices(); AppState.practices = practices;
-        const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
+        if (shouldFetch) {
+            const practices = await getPractices(); 
+            AppState.practices = practices;
+        }
+        
+        const myP = Object.values(AppState.practices).filter(p => p.students && p.students[AppState.user.uid]);
+        
         if (myP.length === 0) { document.getElementById('act-list').innerHTML = '<p>Sin actividades.</p>'; return; }
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
@@ -254,11 +260,11 @@ async function renderStudentActivitiesView() {
             if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success">Actividades Completadas</div></div>`;
             const cid = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             
-            // --- CORRECCIÓN: MOSTRAR SCORE DEL CUESTIONARIO SI EXISTE ---
+            // --- MOSTRAR SCORE DEL CUESTIONARIO SI EXISTE ---
             let scoreBadge = '';
             if (st.quizScore !== null && st.quizScore !== undefined) {
                 scoreBadge = `<div style="background:#dcfce7; color:#166534; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; font-size:0.95em; border: 1px solid #bbf7d0;">
-                                ✅ Cuestionario Completado: ${st.quizScore}/10
+                                Cuestionario Completado: ${st.quizScore}/10
                               </div>`;
             }
 
@@ -292,18 +298,40 @@ function renderQuiz(p) {
 
 async function subQuiz(e, pid) {
     const btn = e.target; btn.disabled = true;
-    let p = AppState.practices[pid]; if(!p) { const all=await getPractices(); p=all[pid]; AppState.practices=all; }
+    
+    // Asegurar datos locales
+    let p = AppState.practices[pid]; 
+    if(!p) { 
+        const all = await getPractices(); 
+        p = all[pid]; 
+        AppState.practices = all; 
+    }
+
     const fullBank = p.generatedContent.cuestionario;
     const myQuestions = getStudentQuestions(fullBank, AppState.user.uid, 5);
+    
     let s = 0;
     myQuestions.forEach((q, i) => {
         const el = document.getElementsByName(`q-${pid}-${i}`);
         const sel = Array.from(el).find(x => x.checked);
         if (sel && sel.value.trim().toLowerCase() === q.correcta.trim().toLowerCase()) s++;
     });
+    
     const sc = Math.round((s/myQuestions.length)*10);
+    
+    // 1. Actualizar DB
     await updateStudentProgress(pid, AppState.user.uid, { status: 'Crucigrama Pendiente', quizScore: sc });
-    alert(`Resultado: ${sc}/10`); renderStudentActivitiesView();
+    
+    // 2. ACTUALIZACIÓN LOCAL (CRÍTICO: Para que la vista se entere YA)
+    if (AppState.practices[pid] && AppState.practices[pid].students[AppState.user.uid]) {
+        AppState.practices[pid].students[AppState.user.uid].quizScore = sc;
+        AppState.practices[pid].students[AppState.user.uid].status = 'Crucigrama Pendiente';
+    }
+
+    alert(`Resultado: ${sc}/10`); 
+    
+    // 3. Renderizar SIN buscar en servidor (usa el dato local actualizado)
+    renderStudentActivitiesView(false); 
 }
 
 function renderCrossword(p) {

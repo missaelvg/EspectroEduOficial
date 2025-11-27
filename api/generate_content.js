@@ -1,7 +1,7 @@
-// api/generate_content.js (CORREGIDO: GEMINI 1.5 FLASH)
+//// api/generate_content.js (VERSIÓN GEMINI 2.5 FLASH)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// CORRECCIÓN CRÍTICA: Usamos el modelo oficial 'gemini-1.5-flash'
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+// Usamos exactamente el modelo que ves en AI Studio
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 module.exports = async (req, res) => {
     // CORS
@@ -10,11 +10,11 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-    
-    // Verificación de Clave en el Servidor
+
+    // Diagnóstico de error de clave
     if (!GEMINI_API_KEY) {
-        console.error("ERROR CRÍTICO: GEMINI_API_KEY no encontrada en variables de entorno.");
-        return res.status(500).json({ error: "Error de configuración: Falta la API Key de IA." });
+        console.error("CRÍTICO: No se encontró GEMINI_API_KEY en las variables de entorno.");
+        return res.status(500).json({ error: "Error de configuración del servidor (Falta API Key)." });
     }
 
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
@@ -27,10 +27,10 @@ module.exports = async (req, res) => {
             1. Un BANCO DE 20 PREGUNTAS de opción múltiple (con 3 opciones: A, B, C).
             2. Un BANCO DE 15 PALABRAS CLAVE para crucigrama con sus pistas cortas.
 
-            Formato JSON ESTRICTO:
+            Tu respuesta debe ser ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
             {
               "cuestionario": [
-                { "pregunta": "¿...?", "opciones": ["A", "B", "C"], "correcta": "A" }
+                { "pregunta": "¿Texto?", "opciones": ["A", "B", "C"], "correcta": "A" }
               ],
               "crucigrama": [
                 { "word": "PALABRA", "clue": "Pista..." }
@@ -55,20 +55,21 @@ module.exports = async (req, res) => {
         if (!response.ok) {
             const errorText = await response.text();
             console.error("Error Gemini API:", errorText);
-            return res.status(502).json({ error: `Fallo la IA externa (${response.status}).` });
+            // Si falla el 2.5, puede ser por permisos de la clave
+            return res.status(502).json({ error: `Fallo la IA (${response.status}). Verifica que tu API Key tenga acceso a gemini-2.5-flash.` });
         }
 
         const data = await response.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         
-        if (!jsonMatch) return res.status(500).json({ error: "La IA no devolvió un JSON válido." });
+        if (!jsonMatch) return res.status(500).json({ error: "La IA no devolvió JSON válido." });
 
         const content = JSON.parse(jsonMatch[0]);
         return res.status(200).json(content);
 
     } catch (error) {
         console.error("Error interno:", error);
-        return res.status(500).json({ error: "Error interno del servidor: " + error.message });
+        return res.status(500).json({ error: "Error del servidor: " + error.message });
     }
 };

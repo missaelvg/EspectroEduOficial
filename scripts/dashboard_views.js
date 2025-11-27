@@ -1,4 +1,4 @@
-// scripts/dashboard_views.js (VERSIÓN CORREGIDA: GRUPOS VISIBLES Y SIN ERRORES)
+// scripts/dashboard_views.js (VERSIÓN CON MANUAL DE PRÁCTICA)
 
 const AppState = {
     user: null,
@@ -6,7 +6,7 @@ const AppState = {
     users: [],
 };
 
-// --- HELPERS ---
+// Helper para formato de fecha
 function formatDate(isoString) {
     if (!isoString) return '-';
     try {
@@ -18,6 +18,7 @@ function formatDate(isoString) {
     } catch (e) { return '-'; }
 }
 
+// Helper para promedio
 function calculateWeightedGrade(report, quiz, cross) {
     const r = report || 0;
     const q = quiz || 0;
@@ -58,7 +59,6 @@ function renderStudentLayout(user) {
 }
 
 function setActive(button) {
-    if(!button) return;
     document.querySelectorAll('#navbar button').forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
 }
@@ -86,9 +86,25 @@ async function renderDoctorDashboard() {
         } else {
             practicesList.forEach(p => {
                 const studentCount = Object.keys(p.students || {}).length;
-                const slidesBtn = p.slidesPdfUrl && p.slidesPdfUrl.length > 5 ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Ver Diapositivas</a>` : `<button class="btn btn-secondary" disabled style="opacity:0.5">Sin Diapositivas</button>`;
-                const stdBtn = p.standardPdfUrl && p.standardPdfUrl.length > 5 ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Ver Estándar</a>` : `<button class="btn btn-secondary" disabled style="opacity:0.5">Sin Estándar</button>`;
-                html += `<div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>${p.title}</h4><button onclick="handleDeletePractice('${p.id}')" style="background-color:#ef4444; font-size:0.8em; padding:6px 12px; border:none; color:white;">Borrar</button></div><p style="color:#64748b; margin-bottom:15px;">${studentCount} alumno(s) inscrito(s)</p><div style="display:flex; gap:10px;">${slidesBtn}${stdBtn}</div></div>`;
+                
+                // Botones para el doctor (incluye Manual)
+                const slidesBtn = p.slidesPdfUrl && p.slidesPdfUrl.length > 5 ? `<a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Ver Diapositivas</a>` : '';
+                const stdBtn = p.standardPdfUrl && p.standardPdfUrl.length > 5 ? `<a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Ver Estándar</a>` : '';
+                const manualBtn = p.manualPdfUrl && p.manualPdfUrl.length > 5 ? `<a href="${p.manualPdfUrl}" target="_blank" class="btn btn-secondary">Ver Manual</a>` : '';
+
+                html += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h4>${p.title}</h4>
+                            <button onclick="handleDeletePractice('${p.id}')" style="background-color:#ef4444; font-size:0.8em; padding:6px 12px; border:none; color:white;">Borrar</button>
+                        </div>
+                        <p style="color:#64748b; margin-bottom:15px;">${studentCount} alumno(s) inscrito(s)</p>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            ${slidesBtn}
+                            ${stdBtn}
+                            ${manualBtn}
+                        </div>
+                    </div>`;
             });
         }
         document.getElementById('practices-summary').innerHTML = html;
@@ -96,98 +112,108 @@ async function renderDoctorDashboard() {
 }
 
 function renderCreatePracticeView() {
-    document.getElementById('main-content').innerHTML = `<h2>Crear Nueva Práctica</h2><div class="card"><label>Título</label><input type="text" id="practiceTitle"><label>Diapositivas (PDF)</label><input type="file" id="slidesFile"><small style="color:#666; display:block; margin-bottom:15px;">* Para generar cuestionario IA.</small><label>Estándar (PDF)</label><input type="file" id="standardFile"><small style="color:#666; display:block; margin-bottom:15px;">* Para evaluar reportes IA.</small><button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button><div id="creationLog" style="margin-top:15px; font-family:monospace;"></div></div>`;
+    document.getElementById('main-content').innerHTML = `
+        <h2>Crear Nueva Práctica</h2>
+        <div class="card">
+            <label>Título</label>
+            <input type="text" id="practiceTitle" placeholder="Ej. Espectroscopía Óptica #1">
+            
+            <label>Diapositivas (PDF)</label>
+            <input type="file" id="slidesFile" accept="application/pdf">
+            <small style="color:#666; display:block; margin-bottom:15px;">* La IA usará esto para el cuestionario.</small>
+            
+            <label>Manual de Práctica (PDF)</label>
+            <input type="file" id="manualFile" accept="application/pdf">
+            <small style="color:#666; display:block; margin-bottom:15px;">* Guía paso a paso para el alumno.</small>
+            
+            <label>Estándar del Reporte (PDF)</label>
+            <input type="file" id="standardFile" accept="application/pdf">
+            <small style="color:#666; display:block; margin-bottom:15px;">* La IA usará esto para evaluar.</small>
+            
+            <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
+            <div id="creationLog" style="margin-top:15px; font-family:monospace;"></div>
+        </div>`;
 }
 
 async function handlePracticeCreation() {
     const title = document.getElementById('practiceTitle').value;
     const slidesFile = document.getElementById('slidesFile').files[0];
     const standardFile = document.getElementById('standardFile').files[0];
+    const manualFile = document.getElementById('manualFile').files[0]; // Nuevo archivo
     const logDiv = document.getElementById('creationLog');
     const button = logDiv.previousElementSibling;
 
-    if (!title || !slidesFile || !standardFile) { logDiv.innerHTML = '<p class="alert-error">Rellena todo.</p>'; return; }
+    if (!title || !slidesFile || !standardFile || !manualFile) {
+        logDiv.innerHTML = '<p class="alert-error">Por favor, rellena todos los campos y sube los 3 archivos.</p>';
+        return;
+    }
+    
     button.disabled = true;
     try {
-        logDiv.innerHTML = '1/5: Creando registro...';
+        logDiv.innerHTML = '<span style="color:#3b82f6">1/5: Creando registro...</span>';
         const pid = await createPractice({ title, students: {}, generatedContent: null, creatorId: AppState.user.uid, createdAt: new Date() });
-        logDiv.innerHTML = '2/5: Subiendo archivos...';
-        const [slides, std] = await Promise.all([uploadFile(slidesFile, `practices/${pid}`), uploadFile(standardFile, `practices/${pid}`)]);
-        logDiv.innerHTML = '3/5: Guardando enlaces...';
-        await savePracticeContent(pid, { slidesPdfUrl: slides, standardPdfUrl: std });
-        logDiv.innerHTML = '4/5: IA...';
+
+        logDiv.innerHTML = '<span style="color:#3b82f6">2/5: Subiendo archivos...</span>';
+        // Subimos los 3 archivos en paralelo
+        const [slides, std, manual] = await Promise.all([
+            uploadFile(slidesFile, `practices/${pid}`),
+            uploadFile(standardFile, `practices/${pid}`),
+            uploadFile(manualFile, `practices/${pid}`)
+        ]);
+        
+        logDiv.innerHTML = '<span style="color:#3b82f6">3/5: Guardando enlaces...</span>';
+        // Guardamos las 3 URLs
+        await savePracticeContent(pid, { slidesPdfUrl: slides, standardPdfUrl: std, manualPdfUrl: manual });
+
+        logDiv.innerHTML = '<span style="color:#eab308">4/5: Analizando textos para IA...</span>';
         let slidesText = "", standardText = "";
         try { slidesText = await extractTextFromPDF(slidesFile); } catch(e) {}
         try { standardText = await extractTextFromPDF(standardFile); } catch(e) {}
+
         await savePracticeContent(pid, { slidesText, standardText });
+
         if (slidesText.length > 50) {
-            logDiv.innerHTML = '5/5: Generando cuestionario...';
-            try { const gen = await callAIGenerate(slidesText); await savePracticeContent(pid, { generatedContent: gen }); logDiv.innerHTML = '<p class="alert-success">Listo con IA</p>'; } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada sin Cuestionario (Fallo IA).</p>'; }
-        } else { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">Creada (PDF imagen, sin IA).</p>'; }
+            logDiv.innerHTML = '<span style="color:#eab308">5/5: Generando cuestionario...</span>';
+            try {
+                const gen = await callAIGenerate(slidesText);
+                await savePracticeContent(pid, { generatedContent: gen });
+                logDiv.innerHTML = '<p class="alert-success">✅ ¡Listo con IA!</p>';
+            } catch (e) { logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada sin Cuestionario (Fallo IA).</p>'; }
+        } else {
+            logDiv.innerHTML = '<p class="alert-success" style="color:#f59e0b;">⚠️ Creada (PDF imagen, sin IA).</p>';
+        }
         setTimeout(() => { document.querySelector('#navbar button').click(); }, 3000);
     } catch (e) { logDiv.innerHTML = `<p class="alert-error">Error: ${e.message}</p>`; button.disabled = false; }
 }
 
-// --- GESTIÓN DE ALUMNOS (CON GRUPO) ---
+// --- GESTIÓN DE ALUMNOS ---
 async function renderManageStudentsView() {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar por nombre o matrícula..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
+    div.innerHTML = `<h2>Gestionar Alumnos</h2><div class="card"><input type="text" id="sSearch" placeholder="Buscar..." onkeyup="hSearch()" style="margin-bottom:0;"></div><div id="sList">Cargando...</div>`;
     try {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
-        AppState.practices = practices; 
-        AppState.users = users.filter(u => u.role === 'alumno');
+        AppState.practices = practices; AppState.users = users.filter(u => u.role === 'alumno');
         rList(AppState.users);
     } catch (e) { document.getElementById('sList').innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
-
 function rList(list) {
     const c = document.getElementById('sList');
-    const pMap = {}; 
-    Object.values(AppState.practices).forEach(p=>{
-        Object.keys(p.students||{}).forEach(s=>pMap[s]={id:p.id, title:p.title})
-    });
-
+    const pMap = {}; Object.values(AppState.practices).forEach(p=>{Object.keys(p.students||{}).forEach(s=>pMap[s]={id:p.id, title:p.title})});
     let h = '';
     if (list.length === 0) h = '<p>No se encontraron alumnos.</p>';
     else {
         list.forEach(s => {
             const curr = pMap[s.uid];
-            // CORRECCIÓN: Mostrar Grupo aquí
-            const grupoLabel = s.grupo ? `<span style="margin-left:5px; background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; font-size:0.8em;">${s.grupo}</span>` : '';
-            
-            h += `
-            <div class="student-list-item">
-                <div>
-                    <strong>${s.username}</strong> ${grupoLabel}<br>
-                    <small style="color:#64748b;">${s.matricula}</small>
-                </div>
-                <div style="text-align:right;">`;
-            
-            if(curr) {
-                h+=`<span style="color:#3b82f6;margin-right:10px;font-size:0.85em;font-weight:bold;">${curr.title}</span>
-                    <button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b;font-size:0.7em;padding:6px 10px;">Desinscribir</button>`;
-            } else {
-                h+=`<select id="ps-${s.uid}" style="padding:5px;width:auto;margin-right:5px;">
-                        <option value="">Seleccionar...</option>
-                        ${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}
-                    </select>
-                    <button onclick="hEnroll('${s.uid}')" style="font-size:0.7em;padding:6px 10px;">Inscribir</button>`;
-            }
-            h+=`<button onclick="hDel('${s.uid}')" style="background:#dc2626;font-size:0.7em;padding:6px 10px;margin-left:5px;">X</button></div></div>`;
+            const groupLabel = s.grupo ? `<span style="margin-left:5px;background:#e0f2fe;color:#0284c7;padding:2px 6px;border-radius:4px;font-size:0.8em;">${s.grupo}</span>` : '';
+            h += `<div class="student-list-item"><div><strong>${s.username}</strong> ${groupLabel}<br><small style="color:#64748b;">${s.matricula}</small></div><div style="text-align:right;">`;
+            if(curr) h+=`<span style="color:#3b82f6;font-weight:bold;margin-right:10px;font-size:0.9em;">${curr.title}</span><button onclick="hUnenroll('${curr.id}','${s.uid}')" style="background:#f59e0b;font-size:0.7em;padding:6px 12px;">Desinscribir</button>`;
+            else h+=`<select id="ps-${s.uid}" style="padding:6px;width:auto;margin-right:5px;border-radius:6px;border:1px solid #cbd5e1;"><option value="">Seleccionar...</option>${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}</select><button onclick="hEnroll('${s.uid}')" style="font-size:0.7em;padding:6px 12px;">Inscribir</button>`;
+            h+=`<button onclick="hDel('${s.uid}')" style="background:#ef4444;font-size:0.7em;padding:6px 12px;margin-left:5px;">X</button></div></div>`;
         });
     }
     c.innerHTML = h;
 }
-
-function hSearch(){ 
-    const q = document.getElementById('sSearch').value.toLowerCase();
-    const filtered = AppState.users.filter(u => 
-        u.username.toLowerCase().includes(q) || 
-        (u.matricula && u.matricula.toLowerCase().includes(q))
-    );
-    rList(filtered); 
-}
-
+function hSearch(){ rList(AppState.users.filter(u=>u.username.toLowerCase().includes(document.getElementById('sSearch').value.toLowerCase()) || (u.matricula&&u.matricula.toLowerCase().includes(document.getElementById('sSearch').value.toLowerCase())))); }
 async function hEnroll(uid){ const pid=document.getElementById(`ps-${uid}`).value; if(!pid)return; await enrollStudent(pid,uid); if(!AppState.practices[pid].students)AppState.practices[pid].students={}; AppState.practices[pid].students[uid]={status:'Inscrito'}; hSearch(); }
 async function hUnenroll(pid,uid){ if(confirm("¿Desinscribir?")){ await unenrollStudent(pid,uid); delete AppState.practices[pid].students[uid]; hSearch(); } }
 async function hDel(uid){ if(confirm("¿Borrar usuario?")){ await deleteUser(uid); renderManageStudentsView(); } }
@@ -206,7 +232,7 @@ async function renderDoctorGradesView() {
             const studs = p.students || {};
             if (Object.keys(studs).length === 0) html += '<p style="color:#64748b;">No hay alumnos inscritos.</p>';
             else {
-                html += `<div class="table-container"><table class="styled-table"><thead><tr><th>Alumno</th><th>Matrícula</th><th>Grupo</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
+                html += `<div class="table-container"><table class="styled-table"><thead><tr><th>Alumno</th><th>Matrícula</th><th>Grupo</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Fecha</th></tr></thead><tbody>`;
                 for (const sid in studs) {
                     const sData = studs[sid];
                     const sInfo = usersMap.get(sid);
@@ -226,7 +252,7 @@ async function renderDoctorGradesView() {
             }
             html += `</div>`;
         }
-        document.getElementById('grades-by-practice').innerHTML = html || '<p>Sin prácticas.</p>';
+        document.getElementById('grades-by-practice').innerHTML = html;
     } catch (e) { contentDiv.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
@@ -247,7 +273,7 @@ function renderStudentDashboard() {
         </div>`;
 }
 
-// --- 1. MIS PRÁCTICAS ---
+// --- 1. MIS PRÁCTICAS (REPORTE) ---
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list">Cargando...</div>';
@@ -263,14 +289,24 @@ async function renderStudentPracticesView() {
             const hasReport = st.reportUrl ? true : false;
             let body = '';
             
+            // BOTONES DE DESCARGA (INCLUYE MANUAL)
+            const downloads = `
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
+                    <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">⬇️ Diapositivas</a> 
+                    <a href="${p.manualPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">⬇️ Manual</a>
+                    <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary" style="font-size:0.85rem;">⬇️ Estándar</a>
+                </div>`;
+
             if (hasReport) {
                 const scoreDisplay = st.reportScore ? `<br><strong style="color:#15803d">Calificación IA: ${st.reportScore}/10</strong>` : '<br><em>Evaluando...</em>';
                 const feedbackDisplay = st.reportFeedback ? `<div style="margin-top:15px; padding:15px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem;"><strong>Retroalimentación:</strong> ${st.reportFeedback}</div>` : '';
+                
                 body = `<div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:15px; border-radius:8px; color:#166534;"><strong>Reporte Entregado</strong>${scoreDisplay}</div>${feedbackDisplay}
-                        <div style="margin-top:10px;"><a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a> <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar</a></div>`;
+                        <p style="margin-top:15px; font-size:0.9rem; color:#64748b;">Materiales de consulta:</p>
+                        ${downloads}`;
             } else {
-                body = `<p>Descarga materiales y sube tu PDF:</p>
-                        <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a> <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar</a>
+                body = `<p>Descarga los materiales y sube tu PDF para evaluación:</p>
+                        ${downloads}
                         <hr style="margin:20px 0; border:0; border-top:1px solid #e2e8f0;">
                         <label style="display:block; margin-bottom:8px; font-weight:600;">Coloca aquí tu reporte:</label>
                         <input type="file" id="rep-${p.id}" accept="application/pdf">
@@ -312,16 +348,18 @@ async function renderStudentActivitiesView() {
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
-// --- 3. CALIFICACIONES ---
+// --- 3. CALIFICACIONES ALUMNO ---
 async function renderStudentGradesView() {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = '<h2>Mis Calificaciones</h2><div id="grades-list">Cargando...</div>';
     try {
         const practices = await getPractices();
         const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
+
         if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<p>No hay registros.</p>'; return; }
 
         let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica</th><th>Reporte</th><th>Cuestionario</th><th>Crucigrama</th><th>Promedio</th><th>Fecha</th></tr></thead><tbody>`;
+
         html += myP.map(p => {
             const st = p.students[AppState.user.uid];
             const rScore = st.reportScore !== undefined ? st.reportScore : 0;
@@ -329,8 +367,16 @@ async function renderStudentGradesView() {
             const cScore = st.crosswordScore !== undefined ? st.crosswordScore : 0;
             const final = calculateWeightedGrade(rScore, qScore, cScore);
             const date = formatDate(st.completedAt || st.reportSubmittedAt);
-            return `<tr><td>${p.title}</td><td>${st.reportScore ?? '-'}</td><td>${st.quizScore ?? '-'}</td><td>${st.crosswordScore ?? '-'}</td><td><strong>${final}</strong></td><td style="font-size:0.8em; color:#64748b;">${date}</td></tr>`;
+
+            // Displays
+            const rDisplay = st.reportScore !== undefined ? st.reportScore : '-';
+            const qDisplay = st.quizScore !== undefined ? st.quizScore : '-';
+            const cDisplay = st.crosswordScore !== undefined ? st.crosswordScore : '-';
+            const finalDisplay = (st.reportUrl) ? `<strong>${final}</strong>` : '-';
+
+            return `<tr><td>${p.title}</td><td>${rDisplay}</td><td>${qDisplay}</td><td>${cDisplay}</td><td>${finalDisplay}</td><td style="font-size:0.8em; color:#64748b;">${date}</td></tr>`;
         }).join('');
+
         html += `</tbody></table></div>`;
         document.getElementById('grades-list').innerHTML = html;
     } catch (e) { document.getElementById('grades-list').innerHTML = `<p class="alert-error">${e.message}</p>`; }
@@ -342,10 +388,13 @@ function renderStudentProfileView() {
     document.getElementById('main-content').innerHTML = `<h2>Mi Perfil</h2><div class="card"><label>Matrícula</label><input type="text" value="${u.matricula}" disabled><label>Nombre</label><input id="pN" value="${u.username}"><label>Grupo</label><input id="pG" value="${u.grupo||''}"><label>Email</label><input id="pE" value="${u.email}"><button onclick="updProf()">Actualizar</button></div>`;
 }
 async function updProf(){ 
-    try { await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); alert("Perfil actualizado"); } catch(e) { alert(e.message); }
+    try {
+        await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); 
+        alert("Perfil actualizado");
+    } catch(e) { alert(e.message); }
 }
 
-// --- MANEJADORES ---
+// --- MANEJADORES (IGUAL QUE ANTES) ---
 async function handleReportUpload(pid) {
     const f = document.getElementById(`rep-${pid}`).files[0];
     const log = document.getElementById(`log-${pid}`);
@@ -367,6 +416,7 @@ async function handleReportUpload(pid) {
                 reportFeedback = evaluation.justificacion;
             }
         } catch (aiErr) { console.warn("Fallo IA:", aiErr); }
+
         log.innerText = "Guardando...";
         await callDB('submit_report', { practiceId: pid, studentUid: AppState.user.uid, reportUrl: url, reportScore: reportScore, reportFeedback: reportFeedback });
         alert(reportScore ? `Calificación Reporte: ${reportScore}/10` : "Reporte entregado.");
@@ -401,7 +451,6 @@ async function subQuiz(e, pid) {
     alert(`Cuestionario: ${quizGrade}/10. Siguiente: Crucigrama.`);
     renderStudentActivitiesView();
 }
-
 function renderCrossword(p) {
     const d = document.getElementById(`cross-${p.id}`);
     const data = p.generatedContent?.crucigrama;

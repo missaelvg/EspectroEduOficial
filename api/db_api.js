@@ -1,4 +1,4 @@
-// api/db_api.js (VERSIÓN CON FECHAS DE ENTREGA)
+// api/db_api.js (VERSIÓN OFICIAL CON MANUAL DE PRÁCTICA)
 const admin = require('firebase-admin');
 
 let db;
@@ -62,7 +62,9 @@ module.exports = async (req, res) => {
                 title: data.title,
                 students: {},
                 generatedContent: null,
-                slidesPdfUrl: "", standardPdfUrl: "", slidesText: "", standardText: "",
+                // NUEVO CAMPO: manualPdfUrl
+                slidesPdfUrl: "", standardPdfUrl: "", manualPdfUrl: "", 
+                slidesText: "", standardText: "",
                 createdAt: new Date().toISOString()
             };
             const ref = await db.collection('practices').add(cleanData);
@@ -109,12 +111,12 @@ module.exports = async (req, res) => {
             return res.status(200).json({ message: 'OK' });
         }
 
-        // --- PROGRESO CON FECHAS ---
+        // --- PROGRESO ---
         if (action === 'submit_report') {
             const updateData = {
                 [`students.${data.studentUid}.reportUrl`]: data.reportUrl,
                 [`students.${data.studentUid}.status`]: 'Reporte Evaluado',
-                [`students.${data.studentUid}.reportSubmittedAt`]: new Date().toISOString() // FECHA REPORTE
+                [`students.${data.studentUid}.reportSubmittedAt`]: new Date().toISOString()
             };
             if (data.reportScore) updateData[`students.${data.studentUid}.reportScore`] = data.reportScore;
             if (data.reportFeedback) updateData[`students.${data.studentUid}.reportFeedback`] = data.reportFeedback;
@@ -133,7 +135,7 @@ module.exports = async (req, res) => {
             if (data.completed !== undefined) {
                 updateData[`students.${data.studentUid}.completed`] = data.completed;
                 if (data.completed === true) {
-                    updateData[`students.${data.studentUid}.completedAt`] = new Date().toISOString(); // FECHA FINALIZACIÓN
+                    updateData[`students.${data.studentUid}.completedAt`] = new Date().toISOString();
                 }
             }
             
@@ -146,7 +148,7 @@ module.exports = async (req, res) => {
                 [`students.${data.studentUid}.quizScore`]: data.score,
                 [`students.${data.studentUid}.status`]: 'Práctica Finalizada',
                 [`students.${data.studentUid}.completed`]: true,
-                [`students.${data.studentUid}.completedAt`]: new Date().toISOString() // FECHA FINALIZACIÓN
+                [`students.${data.studentUid}.completedAt`]: new Date().toISOString()
             });
             return res.status(200).json({ message: 'OK' });
         }

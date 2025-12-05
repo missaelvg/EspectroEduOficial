@@ -66,6 +66,7 @@
                 <select id="regRole" onchange="toggleGroupInput()">
                     <option value="alumno">Alumno</option>
                     <option value="doctor">Doctor / Docente</option>
+                    <option value="coordinador">Coordinador / Tutor</option>
                 </select>
 
                 <label>Nombre Completo</label>
@@ -143,7 +144,8 @@
     function toggleGroupInput() {
         const role = document.getElementById('regRole').value;
         const groupDiv = document.getElementById('groupContainer');
-        if (role === 'doctor') {
+        // Ocultar grupo si es doctor O coordinador
+        if (role === 'doctor' || role === 'coordinador') {
             groupDiv.style.display = 'none';
         } else {
             groupDiv.style.display = 'block';

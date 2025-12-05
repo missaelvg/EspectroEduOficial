@@ -49,6 +49,8 @@
                 renderDoctorLayout(user);
             } else if (user.role === 'alumno') {
                 renderStudentLayout(user);
+            } else if (user.role === 'coordinador') {
+                renderTutorLayout(user); // NUEVA REDIRECCIÓN PARA COORDINADOR
             } else {
                 mainContent.innerHTML = `
                     <h2>Rol no reconocido</h2>

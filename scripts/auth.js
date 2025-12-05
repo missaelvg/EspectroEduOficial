@@ -25,10 +25,13 @@ async function registerUser(username, matricula, password, grupo, email, role) {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const uid = userCredential.user.uid;
 
+        // Grupo es N/A si es doctor O coordinador
+        const grupoFinal = (role === 'doctor' || role === 'coordinador') ? 'N/A' : grupo;
+
         await db.collection('users').doc(uid).set({
             username,
             matricula,
-            grupo: role === 'doctor' ? 'N/A' : grupo, // Grupo no aplica para doctores
+            grupo: grupoFinal,
             email,
             role,
             uid

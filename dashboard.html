@@ -50,7 +50,7 @@
             } else if (user.role === 'alumno') {
                 renderStudentLayout(user);
             } else if (user.role === 'coordinador') {
-                renderTutorLayout(user); // NUEVA REDIRECCIÓN PARA COORDINADOR
+                renderTutorLayout(user); // ESTA FUNCIÓN SE AGREGÓ EN DASHBOARD_VIEWS.JS
             } else {
                 mainContent.innerHTML = `
                     <h2>Rol no reconocido</h2>

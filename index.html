@@ -66,8 +66,7 @@
                 <select id="regRole" onchange="toggleGroupInput()">
                     <option value="alumno">Alumno</option>
                     <option value="doctor">Doctor / Docente</option>
-                    <option value="coordinador">Coordinador / Tutor</option>
-                </select>
+                    <option value="coordinador">Coordinador / Tutor</option> </select>
 
                 <label>Nombre Completo</label>
                 <input type="text" id="regName" placeholder="Tu nombre" required>
@@ -187,7 +186,7 @@
         const confirmPass = document.getElementById('regPasswordConfirm').value;
         const email = document.getElementById('regEmail').value;
         
-        // Grupo solo si es alumno
+        // Grupo solo si es alumno. Si es Coordinador, es N/A.
         let group = 'N/A';
         if (role === 'alumno') {
             group = document.getElementById('regGroup').value;

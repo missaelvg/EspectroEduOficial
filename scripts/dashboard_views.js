@@ -43,7 +43,7 @@ function getStudentCrosswordWords(all, uid, count = 8) {
 }
 
 // ====================================================
-// NAVEGACIÓN GENERAL (DOCENTE Y ALUMNO)
+// NAVEGACIÓN GENERAL (DOCENTE, ALUMNO Y COORDINADOR)
 // ====================================================
 function renderDoctorLayout(user) {
     AppState.user = user;

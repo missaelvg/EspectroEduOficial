@@ -1,13 +1,13 @@
 // scripts/utils.js
+// Funciones auxiliares para procesamiento de archivos y comunicación HTTP.
 
-// 🚨 CORRECCIÓN: URLS GENERALIZADAS PARA VERCEL/API 🚨
+// URLs relativas para funciones Serverless (Vercel)
 const EVALUATE_FUNCTION_URL = "/api/evaluate"; 
 const GENERATE_CONTENT_FUNCTION_URL = "/api/generate_content"; 
 
-
-// 1. Función para extraer texto de PDF (requiere pdf.js en el HTML)
+// 1. Extrae texto crudo de un archivo PDF usando la librería pdf.js
 async function extractTextFromPDF(file) {
-    if (!window.pdfjsLib) throw new Error("pdf.js library not loaded.");
+    if (!window.pdfjsLib) throw new Error("La librería pdf.js no se ha cargado.");
     
     const fileReader = new FileReader();
     const texto = await new Promise((resolve, reject) => {
@@ -16,6 +16,7 @@ async function extractTextFromPDF(file) {
                 const typedarray = new Uint8Array(this.result);
                 const pdf = await pdfjsLib.getDocument(typedarray).promise;
                 let textoAcumulado = "";
+                // Recorre todas las páginas para unir el texto
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
@@ -32,18 +33,18 @@ async function extractTextFromPDF(file) {
     return texto;
 }
 
-// 2. Función para extraer datos de un string de texto
+// 2. Intenta extraer nombre y matrícula del texto (opcional, uso auxiliar)
 function extractStudentData(texto) {
     let nombre = "No Encontrado";
     let matricula = "No Encontrada";
     
-    // Extracción de Matrícula (patrones comunes: A########, 7-10 dígitos)
+    // Busca patrones de matrícula (A000000 o numéricos)
     const matriculaMatch = texto.match(/([Aa]\d{7,10})|(\d{7,10})/);
     if (matriculaMatch) {
         matricula = matriculaMatch[0];
     }
 
-    // Extracción de Nombre (Busca etiquetas comunes)
+    // Busca etiquetas de nombre
     const nombreMatch = texto.match(/(Nombre|Alumno|Autor|Estudiante)\s*[:]\s*([A-Za-z\s]{5,})/i);
     if (nombreMatch && nombreMatch[2].trim().length > 3) {
         nombre = nombreMatch[2].trim().split(/\s{2,}|\n/)[0].substring(0, 50);
@@ -52,7 +53,7 @@ function extractStudentData(texto) {
     return { nombre, matricula };
 }
 
-// 3. Función para llamar a la IA de Calificación
+// 3. Wrapper para llamar al endpoint de evaluación de IA
 async function callAIEvaluate(reporteTexto, estandar) {
     const response = await fetch(EVALUATE_FUNCTION_URL, {
         method: "POST",
@@ -60,13 +61,12 @@ async function callAIEvaluate(reporteTexto, estandar) {
         body: JSON.stringify({ reporteTexto, estandar })
     });
     if (!response.ok) {
-        throw new Error(`Error en el servidor: ${response.status}`);
+        throw new Error(`Error en el servidor de evaluación: ${response.status}`);
     }
-    const result = await response.json();
-    return result;
+    return await response.json();
 }
 
-// 4. Función para llamar a la IA de Generación de Contenido
+// 4. Wrapper para llamar al endpoint de generación de contenido
 async function callAIGenerate(slidesTexto, practicaId) {
     const response = await fetch(GENERATE_CONTENT_FUNCTION_URL, {
         method: "POST",
@@ -76,6 +76,5 @@ async function callAIGenerate(slidesTexto, practicaId) {
     if (!response.ok) {
         throw new Error(`Error en la generación de IA: ${response.status}`);
     }
-    const result = await response.json();
-    return result;
+    return await response.json();
 }

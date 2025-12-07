@@ -1,20 +1,19 @@
-// api/generate_content.js (VERSIÓN GEMINI 2.5 FLASH)
+// api/generate_content.js
+// Genera material didáctico (Cuestionarios y Crucigramas) basado en el texto de las diapositivas.
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Usamos el modelo 2.5 que tienes activo en AI Studio
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 module.exports = async (req, res) => {
-    // Configuración CORS
+    // Headers CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
-    // DIAGNÓSTICO: Si esto falla, devuelve 500, que es el error que ves
     if (!GEMINI_API_KEY) {
-        console.error("CRÍTICO: GEMINI_API_KEY no está configurada en Vercel.");
-        return res.status(500).json({ error: "Error de Servidor: Falta la API Key." });
+        return res.status(500).json({ error: "Error de configuración del servidor." });
     }
 
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
@@ -23,6 +22,7 @@ module.exports = async (req, res) => {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         const { slidesTexto } = body;
 
+        // Prompt (RF-14): Solicita estructura JSON estricta para integrar en el frontend
         const promptIA = `
             Actúa como un profesor experto. Analiza el siguiente texto y genera:
             1. Un BANCO DE 20 PREGUNTAS de opción múltiple (3 opciones).
@@ -49,21 +49,19 @@ module.exports = async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [{ role: "user", parts: [{ text: promptIA }] }],
-                generationConfig: { temperature: 0.7 }, 
+                generationConfig: { temperature: 0.7 }, // Temperatura media para creatividad en las preguntas
             })
         });
 
         if (!response.ok) {
-            const errText = await response.text();
-            console.error("Error Gemini:", errText);
-            return res.status(502).json({ error: `Error IA (${response.status})` });
+            return res.status(502).json({ error: `Error en servicio de IA: ${response.status}` });
         }
 
         const data = await response.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         
-        if (!jsonMatch) return res.status(500).json({ error: "JSON inválido de IA." });
+        if (!jsonMatch) return res.status(500).json({ error: "La IA no generó un JSON válido." });
 
         return res.status(200).json(JSON.parse(jsonMatch[0]));
 

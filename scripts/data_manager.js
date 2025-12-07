@@ -1,8 +1,9 @@
 // scripts/data_manager.js
+// Capa de abstracción para comunicarse con la API Backend (db_api.js).
 
 const DB_API_FUNCTION_URL = "/api/db_api";
 
-// --- Función de Utilidad ---
+// Función genérica para hacer peticiones a la API unificada
 async function callDB(action, data = {}, method = 'POST') {
     const options = { method };
     let url = DB_API_FUNCTION_URL;
@@ -21,13 +22,12 @@ async function callDB(action, data = {}, method = 'POST') {
         if (contentType && contentType.includes("application/json")) {
             const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.error || `Error lógico del servidor: ${response.status}`);
+                throw new Error(result.error || `Error del servidor: ${response.status}`);
             }
             return result;
         } else {
             const text = await response.text();
-            console.error("Respuesta crítica del servidor (No JSON):", text);
-            throw new Error(`Error de Servidor (${response.status}).`);
+            throw new Error(`Error crítico del servidor (${response.status}).`);
         }
     } catch (e) {
         console.error(`Fallo en callDB [${action}]:`, e);
@@ -35,16 +35,18 @@ async function callDB(action, data = {}, method = 'POST') {
     }
 }
 
-// --- GESTIÓN DE ARCHIVOS ---
+// Subida de archivos a Firebase Storage
 async function uploadFile(file, path) {
-    if (!file) throw new Error("Archivo no proporcionado.");
+    if (!file) throw new Error("Archivo no seleccionado.");
     const storageRef = firebase.storage().ref();
     const fileRef = storageRef.child(`${path}/${file.name}`);
     await fileRef.put(file);
     return await fileRef.getDownloadURL();
 }
 
-// --- API DE DOCTOR ---
+// --- MÉTODOS PÚBLICOS DEL DATA MANAGER ---
+
+// Docente
 async function createPractice(practiceData) {
     const result = await callDB('create_practice', practiceData);
     return result.practiceId;
@@ -69,21 +71,18 @@ async function getAllUsers() {
     return result.users || [];
 }
 
-// --- API DE ALUMNO ---
+// Alumno
 async function submitStudentReport(practiceId, studentUid, reportUrl) {
     await callDB('submit_report', { practiceId, studentUid, reportUrl });
 }
-
-// Modificada para aceptar más datos (crosswordScore, etc.)
 async function updateStudentProgress(practiceId, studentUid, data) {
     await callDB('update_student_progress', { practiceId, studentUid, ...data });
 }
-
 async function updateUserProfile(uid, updateData) {
     await callDB('update_user_profile', { uid, updateData });
 }
 
-// --- API GENERAL ---
+// General
 async function getPractices() {
     const result = await callDB('get_all_practices', {}, 'GET');
     return result.practices || {};

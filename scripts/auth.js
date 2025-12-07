@@ -1,7 +1,7 @@
 // scripts/auth.js
+// Gestión de autenticación de usuarios (Login, Registro, Recuperación).
 
-// Usa las variables globales de firebase_config.js: db y auth
-
+// Obtiene el usuario actual y sus datos extendidos desde Firestore
 function getCurrentUser() {
     return new Promise(resolve => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -20,12 +20,13 @@ function getCurrentUser() {
     });
 }
 
+// Registro de nuevos usuarios en Firebase Auth y Firestore
 async function registerUser(username, matricula, password, grupo, email, role) {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const uid = userCredential.user.uid;
 
-        // Grupo es N/A si es doctor O coordinador
+        // El grupo no aplica para roles administrativos o docentes
         const grupoFinal = (role === 'doctor' || role === 'coordinador') ? 'N/A' : grupo;
 
         await db.collection('users').doc(uid).set({
@@ -38,7 +39,7 @@ async function registerUser(username, matricula, password, grupo, email, role) {
         });
         return true;
     } catch (error) {
-        alert("Error de registro: " + error.message);
+        alert("Error al registrar usuario: " + error.message);
         return false;
     }
 }
@@ -48,12 +49,12 @@ async function loginUser(email, password) {
         await auth.signInWithEmailAndPassword(email, password);
         return true;
     } catch (error) {
-        console.error("Error de inicio de sesión:", error);
+        console.error("Error de credenciales:", error);
         return false;
     }
 }
 
-// --- NUEVA FUNCIÓN: RECUPERAR CONTRASEÑA ---
+// Envía correo de recuperación (RF-03)
 async function resetPassword(email) {
     try {
         await auth.sendPasswordResetEmail(email);
@@ -71,6 +72,7 @@ function logoutUser() {
     });
 }
 
+// Middleware de protección de rutas en el frontend
 async function checkAuth(requiredRole) {
     const user = await getCurrentUser();
     if (!user) {
@@ -78,7 +80,7 @@ async function checkAuth(requiredRole) {
         return null;
     }
     if (requiredRole && user.role !== requiredRole) {
-        alert("Acceso denegado. No tienes los permisos necesarios.");
+        alert("No tienes permisos para acceder a esta sección.");
         window.location.href = 'dashboard.html';
         return null;
     }

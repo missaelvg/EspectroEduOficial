@@ -7,10 +7,9 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="stylesheet" href="styles.css">
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script> 
 </head>
 <body>
@@ -27,6 +26,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
 <script src="scripts/firebase_config.js"></script>
 <script src="scripts/auth.js"></script>
 <script src="scripts/data_manager.js"></script>
@@ -34,11 +34,12 @@
 <script src="scripts/dashboard_views.js"></script>
 
 <script>
-    // Configuración del worker de PDF.js
+    // Inicialización del Worker de PDF.js
     if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     }
 
+    // Inicialización del Dashboard según el rol
     async function initDashboard() {
         const mainContent = document.getElementById('main-content');
         try {
@@ -50,7 +51,7 @@
             } else if (user.role === 'alumno') {
                 renderStudentLayout(user);
             } else if (user.role === 'coordinador') {
-                renderTutorLayout(user); // ESTA FUNCIÓN SE AGREGÓ EN DASHBOARD_VIEWS.JS
+                renderTutorLayout(user); 
             } else {
                 mainContent.innerHTML = `
                     <h2>Rol no reconocido</h2>
@@ -61,8 +62,7 @@
             console.error("Fallo crítico en la inicialización:", error);
             mainContent.innerHTML = `
                 <h2 style="color: red;">Error al Cargar la Aplicación</h2>
-                <p>No se pudo conectar con los servicios. Verifica las reglas de seguridad de Firestore y tu conexión a internet.</p>
-                <p><i>Detalle del error: ${error.message}</i></p>
+                <p>No se pudo conectar con los servicios. Verifica tu conexión a internet.</p>
             `;
         }
     }

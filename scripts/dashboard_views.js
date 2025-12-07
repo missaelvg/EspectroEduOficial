@@ -70,7 +70,10 @@ function getStudentCrosswordWords(all, uid, count = 5) {
 
 function renderDoctorLayout(user) {
     AppState.user = user;
-    document.getElementById('header-title').textContent = `Dr. ${user.username}`;
+    // ACTUALIZADO: Usa el título elegido (Dr., Docente, Ing.)
+    const prefix = user.title || 'Dr.';
+    document.getElementById('header-title').textContent = `${prefix} ${user.username}`;
+    
     const navbar = document.getElementById('navbar');
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderDoctorDashboard();">Inicio</button>
@@ -97,7 +100,10 @@ function renderStudentLayout(user) {
 
 function renderTutorLayout(user) {
     AppState.user = user;
-    document.getElementById('header-title').textContent = `Coord. ${user.username}`;
+    // ACTUALIZADO: Usa el título elegido (Coord., Tutor)
+    const prefix = user.title || 'Coord.';
+    document.getElementById('header-title').textContent = `${prefix} ${user.username}`;
+    
     const navbar = document.getElementById('navbar');
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderTutorDashboard();">Tablero Global</button>
@@ -119,8 +125,12 @@ function setActive(button) {
 
 // Dashboard Docente: Lista de prácticas
 async function renderDoctorDashboard() {
+    const prefix = AppState.user.title || 'Dr.';
     const div = document.getElementById('main-content');
-    div.innerHTML = `<div style="margin-bottom:30px;"><h2 style="margin-bottom:5px; color:#0f172a;">Bienvenido, Dr. ${AppState.user.username}</h2><p style="color:#64748b; margin-top:0;">Panel de control general.</p></div><div id="practices-summary">Cargando...</div>`;
+    
+    // ACTUALIZADO: Saludo con título correcto
+    div.innerHTML = `<div style="margin-bottom:30px;"><h2 style="margin-bottom:5px; color:#0f172a;">Bienvenido, ${prefix} ${AppState.user.username}</h2><p style="color:#64748b; margin-top:0;">Panel de control general.</p></div><div id="practices-summary">Cargando...</div>`;
+    
     try {
         const practices = await getPractices();
         AppState.practices = practices;
@@ -606,6 +616,7 @@ async function handleReportUpload(pid) {
 
 // Dashboard Global
 async function renderTutorDashboard() {
+    const prefix = AppState.user.title || 'Coord.';
     const div = document.getElementById('main-content');
     div.innerHTML = `<h2>Tablero de Control Académico</h2><div id="tutor-stats">Calculando métricas...</div>`;
     
@@ -623,6 +634,7 @@ async function renderTutorDashboard() {
 
         div.innerHTML = `
             <h2>Tablero de Control Académico</h2>
+            <div style="margin-bottom:20px; color:#64748b;">Bienvenido, ${prefix} ${AppState.user.username}</div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div class="card" style="text-align:center; border-left: 4px solid #3b82f6;">
                     <h3 style="margin:0; font-size: 2.5rem; color: #3b82f6;">${stats.studentCount}</h3>

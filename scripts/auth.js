@@ -21,7 +21,7 @@ function getCurrentUser() {
 }
 
 // Registro de nuevos usuarios en Firebase Auth y Firestore
-async function registerUser(username, matricula, password, grupo, email, role) {
+async function registerUser(username, matricula, password, grupo, email, role, title = '') {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const uid = userCredential.user.uid;
@@ -29,12 +29,20 @@ async function registerUser(username, matricula, password, grupo, email, role) {
         // El grupo no aplica para roles administrativos o docentes
         const grupoFinal = (role === 'doctor' || role === 'coordinador') ? 'N/A' : grupo;
 
+        // Si no se pasó título, ponemos uno por defecto según el rol
+        let finalTitle = title;
+        if (!finalTitle) {
+            if (role === 'doctor') finalTitle = 'Dr.';
+            else if (role === 'coordinador') finalTitle = 'Coord.';
+        }
+
         await db.collection('users').doc(uid).set({
             username,
             matricula,
             grupo: grupoFinal,
             email,
             role,
+            title: finalTitle, // Nuevo campo
             uid
         });
         return true;

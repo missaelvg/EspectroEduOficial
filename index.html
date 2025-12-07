@@ -69,6 +69,23 @@
                     <option value="coordinador">Coordinador / Tutor</option> 
                 </select>
 
+                <div id="subRoleDoctor" style="display:none;">
+                    <label>¿Cuál es tu título?</label>
+                    <select id="regTitleDoctor">
+                        <option value="Dr.">Doctor (Dr.)</option>
+                        <option value="Docente">Docente</option>
+                        <option value="Mtro.">Maestro (Mtro.)</option>
+                        <option value="Ing.">Ingeniero (Ing.)</option>
+                    </select>
+                </div>
+
+                <div id="subRoleTutor" style="display:none;">
+                    <label>¿Cuál es tu rol?</label>
+                    <select id="regTitleTutor">
+                        <option value="Coord.">Coordinador</option>
+                        <option value="Tutor">Tutor</option>
+                    </select>
+                </div>
                 <label>Nombre Completo</label>
                 <input type="text" id="regName" placeholder="Tu nombre" required>
                 
@@ -77,7 +94,8 @@
                 
                 <div id="groupContainer">
                     <label>Grupo</label>
-                    <input type="text" id="regGroup" placeholder="Tu grupo" required>
+                    <input type="text" id="regGroup" placeholder="Ej. 3B" required>
+                    <small style="color:#64748b; font-size:0.8em;">*Se guardará en mayúsculas y sin espacios.</small>
                 </div>
                 
                 <label>Correo Institucional</label>
@@ -135,7 +153,7 @@
     checkInitialAuthAndRun();
 
     // Gestión de visibilidad de formularios
-    function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }
+    function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; toggleGroupInput(); }
     function showLogin() { hideAllForms(); document.getElementById('loginForm').style.display = 'block'; }
     function showRecovery() { hideAllForms(); document.getElementById('recoveryForm').style.display = 'block'; }
     function hideAllForms() {
@@ -144,14 +162,24 @@
         document.getElementById('recoveryForm').style.display = 'none';
     }
 
+    // NUEVO: Controla qué inputs se muestran según el rol
     function toggleGroupInput() {
         const role = document.getElementById('regRole').value;
         const groupDiv = document.getElementById('groupContainer');
-        // El grupo solo es relevante para alumnos
-        if (role === 'doctor' || role === 'coordinador') {
-            groupDiv.style.display = 'none';
-        } else {
+        const doctorDiv = document.getElementById('subRoleDoctor');
+        const tutorDiv = document.getElementById('subRoleTutor');
+        
+        // Resetear visibilidad
+        groupDiv.style.display = 'none';
+        doctorDiv.style.display = 'none';
+        tutorDiv.style.display = 'none';
+
+        if (role === 'alumno') {
             groupDiv.style.display = 'block';
+        } else if (role === 'doctor') {
+            doctorDiv.style.display = 'block';
+        } else if (role === 'coordinador') {
+            tutorDiv.style.display = 'block';
         }
     }
 
@@ -188,16 +216,26 @@
         const email = document.getElementById('regEmail').value;
         
         let group = 'N/A';
+        let title = ''; 
+
+        // NUEVO: Lógica de limpieza de grupo y selección de títulos
         if (role === 'alumno') {
-            group = document.getElementById('regGroup').value;
-            if (!group) return alert('El grupo es obligatorio para alumnos.');
+            const rawGroup = document.getElementById('regGroup').value;
+            if (!rawGroup) return alert('El grupo es obligatorio para alumnos.');
+            // Convierte a mayúsculas y quita TODOS los espacios
+            group = rawGroup.toUpperCase().replace(/\s+/g, ''); 
+        } else if (role === 'doctor') {
+            title = document.getElementById('regTitleDoctor').value;
+        } else if (role === 'coordinador') {
+            title = document.getElementById('regTitleTutor').value;
         }
 
         if (!name || !matricula || !email || !password) return alert('Rellena todos los campos.');
         if (password !== confirmPass) return alert("Las contraseñas no coinciden.");
         if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
 
-        const success = await registerUser(name, matricula, password, group, email, role);
+        // Pasamos 'title' a la función de registro
+        const success = await registerUser(name, matricula, password, group, email, role, title);
         if(success) { alert('Registro exitoso.'); showLogin(); }
     }
 

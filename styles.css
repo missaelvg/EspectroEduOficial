@@ -146,18 +146,18 @@ button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 .badge-warning { background: #fef9c3; color: #854d0e; }
 .badge-danger { background: #fee2e2; color: #991b1b; }
 
-/* Mensajes de ayuda en formularios */
+/* Mensajes de ayuda amigables en formularios */
 .input-hint {
     display: block;
-    margin-top: 4px;
-    margin-bottom: 15px;
+    margin-top: 6px;
+    margin-bottom: 20px;
+    background-color: #f0f9ff; /* Fondo azul muy clarito */
+    border-left: 4px solid #3b82f6; /* Línea azul a la izquierda */
+    padding: 10px 15px;
+    border-radius: 0 8px 8px 0;
+    color: #334155; /* Texto gris oscuro legible */
     font-size: 0.85rem;
-    color: var(--text-muted);
-    font-style: italic;
-    background: #f8fafc;
-    padding: 8px;
-    border-left: 3px solid var(--primary-color);
-    border-radius: 0 4px 4px 0;
+    line-height: 1.4;
 }
 
 @media (max-width: 960px) {

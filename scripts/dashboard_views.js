@@ -11,9 +11,10 @@ const AppState = {
 };
 
 // ==================================================================================
-// 1. UTILIDADES Y LÓGICA 
+// 1. UTILIDADES Y LÓGICA DE NEGOCIO
 // ==================================================================================
 
+// Formatea fechas ISO a un formato legible (DD/MM/AAAA HH:MM)
 function formatDate(isoString) {
     if (!isoString) return '-';
     try {
@@ -25,13 +26,14 @@ function formatDate(isoString) {
     } catch (e) { return '-'; }
 }
 
-// RF-12: Cálculo de calificación (80% Reporte, 10% Cuestionario, 10% Crucigrama)
+// RF-12: Calcula la calificación final según la ponderación del SRS
+// Reporte (80%) + Cuestionario (10%) + Crucigrama (10%)
 function calculateWeightedGrade(report, quiz, cross) {
     const r = report || 0;
     const q = quiz || 0;
     const c = cross || 0;
     const final = (r * 0.8) + (q * 0.1) + (c * 0.1);
-    return parseFloat(final.toFixed(1)); 
+    return parseFloat(final.toFixed(1)); // Devuelve con 1 decimal
 }
 
 // LÓGICA DE ALEATORIEDAD DETERMINISTA
@@ -145,7 +147,7 @@ async function renderDoctorDashboard() {
     } catch (e) { div.innerHTML += `<p class="alert-error">Error: ${e.message}</p>`; }
 }
 
-// Vista Crear Práctica (RF-05): 
+// Vista Crear Práctica (RF-05)
 function renderCreatePracticeView() {
     document.getElementById('main-content').innerHTML = `
         <h2>Crear Nueva Práctica</h2>
@@ -155,14 +157,14 @@ function renderCreatePracticeView() {
             
             <label>Diapositivas (PDF)</label>
             <input type="file" id="slidesFile">
-            <small style="color:#64748b; display:block; margin-bottom:15px; font-style:italic;">
-                 *Sube aquí la presentación del tema. La IA leerá este archivo para crear automáticamente el cuestionario y el crucigrama.
+            <small class="input-hint">
+                *Sube aquí la presentación del tema. La IA leerá este archivo para crear automáticamente el cuestionario y el crucigrama.
             </small>
             
             <label>Estándar (PDF)</label>
             <input type="file" id="standardFile">
-            <small style="color:#64748b; display:block; margin-bottom:15px; font-style:italic;">
-                 *Sube el documento con los criterios de evaluación. El estándar ayuda a evaluar el orden y los aspectos técnicos que deben cumplir los reportes.
+            <small class="input-hint">
+                *Sube el documento con los criterios de evaluación. El estándar ayuda a evaluar el orden y los aspectos técnicos que deben cumplir los reportes.
             </small>
             
             <button onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>

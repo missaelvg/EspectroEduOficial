@@ -146,6 +146,20 @@ button:hover:not(.btn-full), .btn:hover { background: var(--primary-hover); }
 .badge-warning { background: #fef9c3; color: #854d0e; }
 .badge-danger { background: #fee2e2; color: #991b1b; }
 
+/* Mensajes de ayuda en formularios */
+.input-hint {
+    display: block;
+    margin-top: 4px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+    background: #f8fafc;
+    padding: 8px;
+    border-left: 3px solid var(--primary-color);
+    border-radius: 0 4px 4px 0;
+}
+
 @media (max-width: 960px) {
     .login-container { flex-direction: column; height: auto; width: 100%; max-width: 500px; margin-top: 20px; max-height: none; overflow: visible; }
     .welcome-side { padding: 2rem; flex: none; min-height: 200px; }

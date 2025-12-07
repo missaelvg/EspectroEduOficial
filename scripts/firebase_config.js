@@ -1,5 +1,5 @@
 // scripts/firebase_config.js
-// Configuración de conexión al proyecto Firebase (Frontend)
+// Configuración de tu proyecto Firebase.
 
 const firebaseConfig = {
   apiKey: "AIzaSyBSGXbBCCwMC1L-t96ATtfVOfdtpiPWWjw",
@@ -11,7 +11,7 @@ const firebaseConfig = {
   measurementId: "G-Z2J9XT9PHC"
 };
 
-// Inicializa Firebase SDK
+// Inicializar servicios
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();

@@ -1,7 +1,7 @@
 // scripts/auth.js
-// Gestión de autenticación de usuarios (Login, Registro, Recuperación).
+// Funciones de autenticación y gestión de usuarios.
 
-// Obtiene el usuario actual y sus datos extendidos desde Firestore
+// Obtiene el usuario actual y su rol desde la base de datos
 function getCurrentUser() {
     return new Promise(resolve => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -20,13 +20,12 @@ function getCurrentUser() {
     });
 }
 
-// Registro de nuevos usuarios en Firebase Auth y Firestore
 async function registerUser(username, matricula, password, grupo, email, role) {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const uid = userCredential.user.uid;
 
-        // El grupo no aplica para roles administrativos o docentes
+        // Si es doctor o coordinador, el grupo es N/A
         const grupoFinal = (role === 'doctor' || role === 'coordinador') ? 'N/A' : grupo;
 
         await db.collection('users').doc(uid).set({
@@ -39,7 +38,7 @@ async function registerUser(username, matricula, password, grupo, email, role) {
         });
         return true;
     } catch (error) {
-        alert("Error al registrar usuario: " + error.message);
+        alert("Error de registro: " + error.message);
         return false;
     }
 }
@@ -49,18 +48,17 @@ async function loginUser(email, password) {
         await auth.signInWithEmailAndPassword(email, password);
         return true;
     } catch (error) {
-        console.error("Error de credenciales:", error);
+        console.error("Error de inicio de sesión:", error);
         return false;
     }
 }
 
-// Envía correo de recuperación (RF-03)
 async function resetPassword(email) {
     try {
         await auth.sendPasswordResetEmail(email);
         return true;
     } catch (error) {
-        console.error("Error al enviar correo de recuperación:", error);
+        console.error("Error al enviar correo:", error);
         alert("Error: " + error.message);
         return false;
     }
@@ -72,7 +70,7 @@ function logoutUser() {
     });
 }
 
-// Middleware de protección de rutas en el frontend
+// Verifica permisos al cargar la página
 async function checkAuth(requiredRole) {
     const user = await getCurrentUser();
     if (!user) {
@@ -80,7 +78,7 @@ async function checkAuth(requiredRole) {
         return null;
     }
     if (requiredRole && user.role !== requiredRole) {
-        alert("No tienes permisos para acceder a esta sección.");
+        alert("Acceso denegado.");
         window.location.href = 'dashboard.html';
         return null;
     }

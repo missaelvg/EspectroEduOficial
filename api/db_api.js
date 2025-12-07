@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
         }
 
         if (action === 'create_practice') {
-            // Objeto limpio para crear práctica (SIN MANUAL)
+          
             const cleanData = {
                 title: data.title,
                 students: {},

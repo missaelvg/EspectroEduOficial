@@ -20,30 +20,15 @@ function getCurrentUser() {
     });
 }
 
-// Registro de nuevos usuarios en Firebase Auth y Firestore
-async function registerUser(username, matricula, password, grupo, email, role, title = '') {
+// Registro de nuevos usuarios
+async function registerUser(username, matricula, password, grupo, email, role) {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const uid = userCredential.user.uid;
-
-        // El grupo no aplica para roles administrativos o docentes
         const grupoFinal = (role === 'doctor' || role === 'coordinador') ? 'N/A' : grupo;
 
-        // Si no se pasó título, ponemos uno por defecto según el rol
-        let finalTitle = title;
-        if (!finalTitle) {
-            if (role === 'doctor') finalTitle = 'Dr.';
-            else if (role === 'coordinador') finalTitle = 'Coord.';
-        }
-
         await db.collection('users').doc(uid).set({
-            username,
-            matricula,
-            grupo: grupoFinal,
-            email,
-            role,
-            title: finalTitle, // Nuevo campo
-            uid
+            username, matricula, grupo: grupoFinal, email, role, uid
         });
         return true;
     } catch (error) {
@@ -62,14 +47,32 @@ async function loginUser(email, password) {
     }
 }
 
-// Envía correo de recuperación (RF-03)
+// --- LOGICA DE RECUPERACIÓN MEJORADA ---
+
+// 1. Envía el correo con instrucciones para volver a index.html
 async function resetPassword(email) {
     try {
-        await auth.sendPasswordResetEmail(email);
+        const actionCodeSettings = {
+            // URL a la que volverá el usuario (tu index.html actual)
+            url: window.location.href, 
+            handleCodeInApp: true
+        };
+        await auth.sendPasswordResetEmail(email, actionCodeSettings);
         return true;
     } catch (error) {
-        console.error("Error al enviar correo de recuperación:", error);
+        console.error("Error envío:", error);
         alert("Error: " + error.message);
+        return false;
+    }
+}
+
+// 2. Confirma el cambio de contraseña usando el código del correo
+async function confirmNewPassword(actionCode, newPassword) {
+    try {
+        await auth.confirmPasswordReset(actionCode, newPassword);
+        return true;
+    } catch (error) {
+        alert("Error al guardar contraseña: " + error.message);
         return false;
     }
 }
@@ -80,7 +83,7 @@ function logoutUser() {
     });
 }
 
-// Middleware de protección de rutas en el frontend
+// Middleware de protección
 async function checkAuth(requiredRole) {
     const user = await getCurrentUser();
     if (!user) {

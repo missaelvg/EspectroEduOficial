@@ -29,7 +29,6 @@
     </section>
 
     <section class="forms-side" style="justify-content: normal;">
-        
         <div class="form-card" style="margin: auto;">
             
             <div id="loginForm">
@@ -69,23 +68,6 @@
                     <option value="coordinador">Coordinador / Tutor</option> 
                 </select>
 
-                <div id="subRoleDoctor" style="display:none;">
-                    <label>¿Cuál es tu título?</label>
-                    <select id="regTitleDoctor">
-                        <option value="Dr.">Doctor (Dr.)</option>
-                        <option value="Docente">Docente</option>
-                        <option value="Mtro.">Maestro (Mtro.)</option>
-                        <option value="Ing.">Ingeniero (Ing.)</option>
-                    </select>
-                </div>
-
-                <div id="subRoleTutor" style="display:none;">
-                    <label>¿Cuál es tu rol?</label>
-                    <select id="regTitleTutor">
-                        <option value="Coord.">Coordinador</option>
-                        <option value="Tutor">Tutor</option>
-                    </select>
-                </div>
                 <label>Nombre Completo</label>
                 <input type="text" id="regName" placeholder="Tu nombre" required>
                 
@@ -94,8 +76,7 @@
                 
                 <div id="groupContainer">
                     <label>Grupo</label>
-                    <input type="text" id="regGroup" placeholder="Ej. 3B" required>
-                    <small style="color:#64748b; font-size:0.8em;">*Se guardará en mayúsculas y sin espacios.</small>
+                    <input type="text" id="regGroup" placeholder="Tu grupo" required>
                 </div>
                 
                 <label>Correo Institucional</label>
@@ -127,7 +108,7 @@
             <div id="recoveryForm" style="display:none;">
                 <h2>Recuperar Acceso</h2>
                 <p class="form-instruction">
-                    Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+                    Ingresa tu correo y te enviaremos un enlace para volver aquí y cambiar tu contraseña.
                 </p>
                 <label>Correo Electrónico</label>
                 <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com">
@@ -138,6 +119,20 @@
                 </div>
             </div>
 
+            <div id="newPasswordForm" style="display:none;">
+                <h2>Nueva Contraseña</h2>
+                <p class="form-instruction">Ingresa tu nueva contraseña segura.</p>
+                
+                <label>Nueva Contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="newPassFinal" placeholder="Nueva contraseña" required>
+                    <span class="toggle-password" onclick="togglePassword('newPassFinal', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </span>
+                </div>
+                <button onclick="handleFinalizeReset()" class="btn-full">GUARDAR CONTRASEÑA</button>
+            </div>
+
         </div>
     </section>
 
@@ -146,46 +141,51 @@
 <script src="scripts/firebase_config.js"></script> 
 <script src="scripts/auth.js"></script>
 <script>
-    async function checkInitialAuthAndRun() {
-        const user = await getCurrentUser();
-        if (user) window.location.href = 'dashboard.html';
-    }
-    checkInitialAuthAndRun();
+    // Variables globales para manejar el reseteo
+    let globalActionCode = null;
+
+    // Al cargar la página, verificamos si venimos de un link de correo
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Detectar parámetros de Firebase en la URL
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode'); // 'resetPassword', 'verifyEmail', etc.
+        const actionCode = params.get('oobCode');
+
+        if (mode === 'resetPassword' && actionCode) {
+            // Si es un reseteo, mostramos el formulario especial
+            hideAllForms();
+            document.getElementById('newPasswordForm').style.display = 'block';
+            globalActionCode = actionCode;
+        } else {
+            // Flujo normal: verificamos si ya hay sesión
+            const user = await getCurrentUser();
+            if (user) window.location.href = 'dashboard.html';
+        }
+    });
 
     // Gestión de visibilidad de formularios
-    function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; toggleGroupInput(); }
+    function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }
     function showLogin() { hideAllForms(); document.getElementById('loginForm').style.display = 'block'; }
     function showRecovery() { hideAllForms(); document.getElementById('recoveryForm').style.display = 'block'; }
     function hideAllForms() {
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('registerForm').style.display = 'none';
         document.getElementById('recoveryForm').style.display = 'none';
+        document.getElementById('newPasswordForm').style.display = 'none';
     }
 
-    // NUEVO: Controla qué inputs se muestran según el rol
     function toggleGroupInput() {
         const role = document.getElementById('regRole').value;
         const groupDiv = document.getElementById('groupContainer');
-        const doctorDiv = document.getElementById('subRoleDoctor');
-        const tutorDiv = document.getElementById('subRoleTutor');
-        
-        // Resetear visibilidad
-        groupDiv.style.display = 'none';
-        doctorDiv.style.display = 'none';
-        tutorDiv.style.display = 'none';
-
-        if (role === 'alumno') {
+        if (role === 'doctor' || role === 'coordinador') {
+            groupDiv.style.display = 'none';
+        } else {
             groupDiv.style.display = 'block';
-        } else if (role === 'doctor') {
-            doctorDiv.style.display = 'block';
-        } else if (role === 'coordinador') {
-            tutorDiv.style.display = 'block';
         }
     }
 
     function togglePassword(inputId, iconSpan) {
         const input = document.getElementById(inputId);
-        // Iconos SVG para ojo abierto y cerrado
         const eyeOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
         const eyeClosed = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
@@ -216,26 +216,16 @@
         const email = document.getElementById('regEmail').value;
         
         let group = 'N/A';
-        let title = ''; 
-
-        // NUEVO: Lógica de limpieza de grupo y selección de títulos
         if (role === 'alumno') {
-            const rawGroup = document.getElementById('regGroup').value;
-            if (!rawGroup) return alert('El grupo es obligatorio para alumnos.');
-            // Convierte a mayúsculas y quita TODOS los espacios
-            group = rawGroup.toUpperCase().replace(/\s+/g, ''); 
-        } else if (role === 'doctor') {
-            title = document.getElementById('regTitleDoctor').value;
-        } else if (role === 'coordinador') {
-            title = document.getElementById('regTitleTutor').value;
+            group = document.getElementById('regGroup').value;
+            if (!group) return alert('El grupo es obligatorio para alumnos.');
         }
 
         if (!name || !matricula || !email || !password) return alert('Rellena todos los campos.');
         if (password !== confirmPass) return alert("Las contraseñas no coinciden.");
         if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
 
-        // Pasamos 'title' a la función de registro
-        const success = await registerUser(name, matricula, password, group, email, role, title);
+        const success = await registerUser(name, matricula, password, group, email, role);
         if(success) { alert('Registro exitoso.'); showLogin(); }
     }
 
@@ -243,7 +233,24 @@
         const email = document.getElementById('recoveryEmail').value.trim();
         if (!email) return alert("Ingresa tu correo.");
         const success = await resetPassword(email);
-        if (success) { alert(`Hemos enviado un enlace a ${email}.`); showLogin(); }
+        if (success) { 
+            alert(`Hemos enviado un enlace a ${email}. Revisa tu bandeja de entrada (y spam).`); 
+            showLogin(); 
+        }
+    }
+
+    // Procesa el cambio final
+    async function handleFinalizeReset() {
+        const newPass = document.getElementById('newPassFinal').value;
+        if (!newPass || newPass.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
+        
+        const success = await confirmNewPassword(globalActionCode, newPass);
+        if (success) {
+            alert("¡Contraseña actualizada! Ya puedes iniciar sesión.");
+            // Limpia la URL para que no vuelva a salir el formulario si refresca
+            window.history.replaceState({}, document.title, window.location.pathname);
+            showLogin();
+        }
     }
 </script>
 </body>

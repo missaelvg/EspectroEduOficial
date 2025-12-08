@@ -27,7 +27,8 @@ module.exports = async (req, res) => {
 
         // Prompt (Instrucción) para la IA: Rol de evaluador estricto
         const promptIA = `
-            Evalúa este reporte contra el estándar. 
+            Evalúa este reporte contra el estándar.
+            No busques gráficos, imágenes, ilustraciones o figuras 
             Respuesta JSON: { "calificacion": (1-10), "justificacion": "texto..." }
             ESTÁNDAR: ${estandar}
             REPORTE: ${reporteTexto}

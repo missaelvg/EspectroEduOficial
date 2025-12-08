@@ -64,8 +64,10 @@
                 <label>Soy:</label>
                 <select id="regRole" onchange="toggleGroupInput()">
                     <option value="alumno">Alumno</option>
-                    <option value="doctor">Doctor / Docente</option>
-                    <option value="coordinador">Coordinador / Tutor</option> 
+                    <option value="doctor">Doctor</option>
+                    <option value="doctor">Docente</option>
+                    <option value="coordinador">Coordinador</option> 
+                    <option value="coordinador">Tutor</option> 
                 </select>
 
                 <label>Nombre Completo</label>
@@ -144,20 +146,16 @@
     // Variables globales para manejar el reseteo
     let globalActionCode = null;
 
-    // Al cargar la página, verificamos si venimos de un link de correo
     document.addEventListener('DOMContentLoaded', async () => {
-        // Detectar parámetros de Firebase en la URL
         const params = new URLSearchParams(window.location.search);
-        const mode = params.get('mode'); // 'resetPassword', 'verifyEmail', etc.
+        const mode = params.get('mode'); 
         const actionCode = params.get('oobCode');
 
         if (mode === 'resetPassword' && actionCode) {
-            // Si es un reseteo, mostramos el formulario especial
             hideAllForms();
             document.getElementById('newPasswordForm').style.display = 'block';
             globalActionCode = actionCode;
         } else {
-            // Flujo normal: verificamos si ya hay sesión
             const user = await getCurrentUser();
             if (user) window.location.href = 'dashboard.html';
         }
@@ -174,13 +172,15 @@
         document.getElementById('newPasswordForm').style.display = 'none';
     }
 
+    // CORRECCIÓN: Lógica simplificada para mostrar el grupo solo a Alumnos
     function toggleGroupInput() {
         const role = document.getElementById('regRole').value;
         const groupDiv = document.getElementById('groupContainer');
-        if (role === 'doctor' || role === 'coordinador') {
-            groupDiv.style.display = 'none';
-        } else {
+        // Si el valor es alumno, mostramos el grupo. Para cualquier otro (doctor, coordinador), se oculta.
+        if (role === 'alumno') {
             groupDiv.style.display = 'block';
+        } else {
+            groupDiv.style.display = 'none';
         }
     }
 
@@ -234,12 +234,11 @@
         if (!email) return alert("Ingresa tu correo.");
         const success = await resetPassword(email);
         if (success) { 
-            alert(`Hemos enviado un enlace a ${email}. Revisa tu bandeja de entrada (y spam).`); 
+            alert(`Hemos enviado un enlace a ${email}. Revisa tu bandeja de entrada.`); 
             showLogin(); 
         }
     }
 
-    // Procesa el cambio final
     async function handleFinalizeReset() {
         const newPass = document.getElementById('newPassFinal').value;
         if (!newPass || newPass.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
@@ -247,7 +246,6 @@
         const success = await confirmNewPassword(globalActionCode, newPass);
         if (success) {
             alert("¡Contraseña actualizada! Ya puedes iniciar sesión.");
-            // Limpia la URL para que no vuelva a salir el formulario si refresca
             window.history.replaceState({}, document.title, window.location.pathname);
             showLogin();
         }

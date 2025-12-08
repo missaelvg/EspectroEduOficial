@@ -62,13 +62,17 @@
                 <p class="form-instruction">Completa tus datos para unirte</p>
                 
                 <label>Soy:</label>
-                <select id="regRole" onchange="toggleGroupInput()">
+                <select id="regRole" onchange="handleRoleChange()">
                     <option value="alumno">Alumno</option>
-                    <option value="doctor">Doctor</option>
-                    <option value="doctor">Docente</option>
-                    <option value="coordinador">Coordinador</option> 
-                    <option value="coordinador">Tutor</option> 
+                    <option value="doctor">Doctor / Docente</option>
+                    <option value="coordinador">Coordinador / Tutor</option> 
                 </select>
+
+                <div id="titleContainer" style="display:none;">
+                    <label id="titleLabel">Selecciona tu cargo:</label>
+                    <select id="regTitle">
+                        </select>
+                </div>
 
                 <label>Nombre Completo</label>
                 <input type="text" id="regName" placeholder="Tu nombre" required>
@@ -110,7 +114,7 @@
             <div id="recoveryForm" style="display:none;">
                 <h2>Recuperar Acceso</h2>
                 <p class="form-instruction">
-                    Ingresa tu correo y te enviaremos un enlace para volver aquí y cambiar tu contraseña.
+                    Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
                 <label>Correo Electrónico</label>
                 <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com">
@@ -124,7 +128,6 @@
             <div id="newPasswordForm" style="display:none;">
                 <h2>Nueva Contraseña</h2>
                 <p class="form-instruction">Ingresa tu nueva contraseña segura.</p>
-                
                 <label>Nueva Contraseña</label>
                 <div class="password-wrapper">
                     <input type="password" id="newPassFinal" placeholder="Nueva contraseña" required>
@@ -143,7 +146,6 @@
 <script src="scripts/firebase_config.js"></script> 
 <script src="scripts/auth.js"></script>
 <script>
-    // Variables globales para manejar el reseteo
     let globalActionCode = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -161,7 +163,6 @@
         }
     });
 
-    // Gestión de visibilidad de formularios
     function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }
     function showLogin() { hideAllForms(); document.getElementById('loginForm').style.display = 'block'; }
     function showRecovery() { hideAllForms(); document.getElementById('recoveryForm').style.display = 'block'; }
@@ -172,15 +173,39 @@
         document.getElementById('newPasswordForm').style.display = 'none';
     }
 
-    // CORRECCIÓN: Lógica simplificada para mostrar el grupo solo a Alumnos
-    function toggleGroupInput() {
+    // LÓGICA DE ROLES Y TÍTULOS ESPECÍFICOS
+    function handleRoleChange() {
         const role = document.getElementById('regRole').value;
         const groupDiv = document.getElementById('groupContainer');
-        // Si el valor es alumno, mostramos el grupo. Para cualquier otro (doctor, coordinador), se oculta.
+        const titleDiv = document.getElementById('titleContainer');
+        const titleSelect = document.getElementById('regTitle');
+        
+        // Limpiar opciones anteriores
+        titleSelect.innerHTML = '';
+        
         if (role === 'alumno') {
             groupDiv.style.display = 'block';
+            titleDiv.style.display = 'none';
         } else {
             groupDiv.style.display = 'none';
+            titleDiv.style.display = 'block';
+            
+            // Llenar opciones específicas según el rol
+            if (role === 'doctor') {
+                const opts = ['Doctor', 'Docente'];
+                opts.forEach(o => {
+                    const el = document.createElement('option');
+                    el.value = o; el.textContent = o;
+                    titleSelect.appendChild(el);
+                });
+            } else if (role === 'coordinador') {
+                const opts = ['Coordinador', 'Tutor'];
+                opts.forEach(o => {
+                    const el = document.createElement('option');
+                    el.value = o; el.textContent = o;
+                    titleSelect.appendChild(el);
+                });
+            }
         }
     }
 
@@ -216,16 +241,22 @@
         const email = document.getElementById('regEmail').value;
         
         let group = 'N/A';
+        let title = 'N/A'; // Título por defecto
+
         if (role === 'alumno') {
             group = document.getElementById('regGroup').value;
             if (!group) return alert('El grupo es obligatorio para alumnos.');
+        } else {
+            // Si es doctor o coordinador, tomamos el título específico
+            title = document.getElementById('regTitle').value;
         }
 
         if (!name || !matricula || !email || !password) return alert('Rellena todos los campos.');
         if (password !== confirmPass) return alert("Las contraseñas no coinciden.");
         if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
 
-        const success = await registerUser(name, matricula, password, group, email, role);
+        // Pasamos 'title' a la función de registro
+        const success = await registerUser(name, matricula, password, group, email, role, title);
         if(success) { alert('Registro exitoso.'); showLogin(); }
     }
 

@@ -21,14 +21,22 @@ function getCurrentUser() {
 }
 
 // Registro de nuevos usuarios
-async function registerUser(username, matricula, password, grupo, email, role) {
+// AHORA ACEPTA EL PARÁMETRO 'TITLE' PARA GUARDAR "DOCTOR", "TUTOR", ETC.
+async function registerUser(username, matricula, password, grupo, email, role, title) {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const uid = userCredential.user.uid;
         const grupoFinal = (role === 'doctor' || role === 'coordinador') ? 'N/A' : grupo;
 
+        // Guardamos 'title' en la base de datos
         await db.collection('users').doc(uid).set({
-            username, matricula, grupo: grupoFinal, email, role, uid
+            username, 
+            matricula, 
+            grupo: grupoFinal, 
+            email, 
+            role, 
+            title: title || 'N/A', // Guardamos el título específico
+            uid
         });
         return true;
     } catch (error) {
@@ -47,21 +55,22 @@ async function loginUser(email, password) {
     }
 }
 
-// --- LOGICA DE RECUPERACIÓN MEJORADA ---
+// --- LOGICA DE RECUPERACIÓN CORREGIDA ---
 
-// 1. Envía el correo con instrucciones para volver a index.html
+// 1. Envía el correo. 
+// SE ELIMINÓ 'handleCodeInApp: true' QUE CAUSABA EL ERROR 400.
+// Solo enviamos la URL limpia para redireccionar al usuario.
 async function resetPassword(email) {
     try {
         const actionCodeSettings = {
-            // URL a la que volverá el usuario (tu index.html actual)
-            url: window.location.href, 
-            handleCodeInApp: true
+            // URL limpia sin parámetros extra para evitar conflictos
+            url: window.location.origin + window.location.pathname
         };
         await auth.sendPasswordResetEmail(email, actionCodeSettings);
         return true;
     } catch (error) {
         console.error("Error envío:", error);
-        alert("Error: " + error.message);
+        alert("Error al enviar correo: " + error.message);
         return false;
     }
 }

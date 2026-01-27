@@ -633,8 +633,14 @@ async function renderTutorDashboard() {
         const globalAvg = totalGrades > 0 ? (totalSchoolScore / totalGrades).toFixed(1) : '0.0';
 
         div.innerHTML = `
-            <h2>Tablero de Control Académico</h2>
-            <div style="margin-bottom:20px; color:#64748b;">Bienvenido, ${prefix} ${AppState.user.username}</div>
+          <h2>Tablero de Control Académico</h2>
+            <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="color:#64748b;">Bienvenido, ${prefix} ${AppState.user.username}</div>
+                <button onclick="descargarBitacoraAuditoria()" style="background-color: #10b981; padding: 10px 15px; font-size: 0.85rem;">
+                    Descargar Bitácora (Auditoría)
+                </button>
+            </div>
+
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div class="card" style="text-align:center; border-left: 4px solid #3b82f6;">
                     <h3 style="margin:0; font-size: 2.5rem; color: #3b82f6;">${stats.studentCount}</h3>

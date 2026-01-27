@@ -45,14 +45,14 @@ async function registerUser(username, matricula, password, grupo, email, role, t
     }
 }
  
- async function loginUser(email, password) {
+async function loginUser(email, password) {
     try {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const uid = userCredential.user.uid;
+        const user = userCredential.user;
 
-        // REGISTRO DE AUDITORÍA: Guardar el inicio de sesión en Firebase
+        // REGISTRO DE AUDITORÍA: Guardar el acceso en Firebase
         await db.collection('access_logs').add({
-            uid: uid,
+            uid: user.uid,
             email: email,
             event: "login",
             timestamp: new Date().toISOString()

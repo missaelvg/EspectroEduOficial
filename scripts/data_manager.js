@@ -91,13 +91,13 @@ async function getPractices() {
 async function descargarBitacoraAuditoria() {
     try {
         const practices = await getPractices();
-        // Extraer logs de acceso de la nueva colección
+        // Obtener los logs de acceso (Seguridad)
         const accessLogs = await db.collection('access_logs').orderBy('timestamp', 'desc').limit(100).get();
         
-        let csvContent = "\ufeff"; // BOM para que Excel separe columnas correctamente
+        let csvContent = "\ufeff"; // Corrige visualización en Excel
         
-        // SECCIÓN 1: ACTIVIDAD DE PRÁCTICAS
-        csvContent += "--- REPORTE DE TRAZABILIDAD ACADÉMICA ---\n";
+        // SECCIÓN 1: TRAZABILIDAD ACADÉMICA
+        csvContent += "--- REPORTE DE ACTIVIDAD ACADÉMICA ---\n";
         csvContent += "Práctica,ID Alumno,Estado,Fecha Actividad,Nota IA\n";
         
         Object.values(practices).forEach(p => {
@@ -110,7 +110,7 @@ async function descargarBitacoraAuditoria() {
             }
         });
 
-        // SECCIÓN 2: AUDITORÍA DE ACCESOS (SEGURIDAD)
+        // SECCIÓN 2: AUDITORÍA DE SEGURIDAD (LOGINS)
         csvContent += "\n--- REGISTRO DE INICIOS DE SESIÓN ---\n";
         csvContent += "ID Usuario,Evento,Fecha y Hora\n";
         
@@ -123,12 +123,12 @@ async function descargarBitacoraAuditoria() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `auditoria_espectroedu_${new Date().getTime()}.csv`;
+        link.download = `bitacora_espectroedu_${new Date().getTime()}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     } catch (e) {
-        console.error("Error al generar bitácora:", e);
-        alert("Error: Asegúrate de haber guardado cambios en auth.js primero.");
+        console.error("Error en bitácora:", e);
+        alert("Error: Asegúrate de guardar cambios en auth.js y data_manager.js");
     }
 }

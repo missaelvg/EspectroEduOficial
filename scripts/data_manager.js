@@ -91,13 +91,20 @@ async function getPractices() {
 async function descargarBitacoraAuditoria() {
     try {
         const practices = await getPractices();
-        // Obtener los logs de acceso (Seguridad)
-        const accessLogs = await db.collection('access_logs').orderBy('timestamp', 'desc').limit(100).get();
         
-        let csvContent = "\ufeff"; // Corrige visualización en Excel
+        // Intentar obtener logs de acceso (si falla por permisos, el catch lo manejará)
+        let accessLogs = [];
+        try {
+            const snapshot = await db.collection('access_logs').orderBy('timestamp', 'desc').limit(100).get();
+            accessLogs = snapshot.docs.map(doc => doc.data());
+        } catch (e) {
+            console.warn("No se pudieron cargar los logs de acceso:", e);
+        }
         
-        // SECCIÓN 1: TRAZABILIDAD ACADÉMICA
-        csvContent += "--- REPORTE DE ACTIVIDAD ACADÉMICA ---\n";
+        let csvContent = "\ufeff"; // BOM para que Excel separe columnas y acepte acentos
+        
+        // SECCIÓN 1: ACTIVIDAD ACADÉMICA
+        csvContent += "--- REPORTE DE TRAZABILIDAD ACADÉMICA ---\n";
         csvContent += "Práctica,ID Alumno,Estado,Fecha Actividad,Nota IA\n";
         
         Object.values(practices).forEach(p => {
@@ -114,8 +121,7 @@ async function descargarBitacoraAuditoria() {
         csvContent += "\n--- REGISTRO DE INICIOS DE SESIÓN ---\n";
         csvContent += "ID Usuario,Evento,Fecha y Hora\n";
         
-        accessLogs.forEach(doc => {
-            const log = doc.data();
+        accessLogs.forEach(log => {
             csvContent += `${log.uid},${log.event},${log.timestamp}\n`;
         });
 
@@ -123,12 +129,12 @@ async function descargarBitacoraAuditoria() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `bitacora_espectroedu_${new Date().getTime()}.csv`;
+        link.download = `auditoria_espectroedu_${new Date().getTime()}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     } catch (e) {
         console.error("Error en bitácora:", e);
-        alert("Error: Asegúrate de guardar cambios en auth.js y data_manager.js");
+        alert("Error al generar el reporte: " + e.message);
     }
 }

@@ -91,10 +91,10 @@ async function getPractices() {
 async function descargarBitacoraAuditoria() {
     try {
         const practices = await getPractices();
-        // Intentar obtener los últimos 100 logs de acceso
+        // Extraer logs de acceso de la nueva colección
         const accessLogs = await db.collection('access_logs').orderBy('timestamp', 'desc').limit(100).get();
         
-        let csvContent = "\ufeff"; // BOM para que Excel detecte acentos y columnas correctamente
+        let csvContent = "\ufeff"; // BOM para que Excel separe columnas correctamente
         
         // SECCIÓN 1: ACTIVIDAD DE PRÁCTICAS
         csvContent += "--- REPORTE DE TRAZABILIDAD ACADÉMICA ---\n";
@@ -123,12 +123,12 @@ async function descargarBitacoraAuditoria() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `bitacora_completa_espectroedu_${new Date().getTime()}.csv`;
+        link.download = `auditoria_espectroedu_${new Date().getTime()}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     } catch (e) {
         console.error("Error al generar bitácora:", e);
-        alert("Error: Asegúrate de que la colección 'access_logs' exista o que los permisos de Firebase sean correctos.");
+        alert("Error: Asegúrate de haber guardado cambios en auth.js primero.");
     }
 }

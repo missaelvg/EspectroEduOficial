@@ -87,3 +87,28 @@ async function getPractices() {
     const result = await callDB('get_all_practices', {}, 'GET');
     return result.practices || {};
 }
+
+async function descargarBitacoraAuditoria() {
+    try {
+        const practices = await getPractices(); // Ya definido en tu código
+        let csv = "Practica,Alumno_UID,Estado,Fecha_Actividad,Nota_IA\n";
+
+        Object.values(practices).forEach(p => {
+            if (p.students) {
+                Object.entries(p.students).forEach(([uid, data]) => {
+                    const fecha = data.reportSubmittedAt || data.completedAt || "N/A";
+                    csv += `${p.title},${uid},${data.status},${fecha},${data.reportScore || 0}\n`;
+                });
+            }
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bitacora_espectroedu_${new Date().getTime()}.csv`;
+        a.click();
+    } catch (e) {
+        alert("Error al generar la bitácora: " + e.message);
+    }
+}

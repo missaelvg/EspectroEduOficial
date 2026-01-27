@@ -88,41 +88,47 @@ async function getPractices() {
     return result.practices || {};
 }
 
-async function descargarBitacoraCompleta() {
+async function descargarBitacoraAuditoria() {
     try {
         const practices = await getPractices();
-        // Intentar obtener logs de acceso si creaste la colección
-        const accessSnapshot = await db.collection('access_logs').orderBy('timestamp', 'desc').limit(100).get();
+        // Intentar obtener los últimos 100 logs de acceso
+        const accessLogs = await db.collection('access_logs').orderBy('timestamp', 'desc').limit(100).get();
         
-        let csvContent = "\ufeff"; // BOM para que Excel reconozca tildes
+        let csvContent = "\ufeff"; // BOM para que Excel detecte acentos y columnas correctamente
         
-        // SECCIÓN 1: ACTIVIDAD ACADÉMICA
-        csvContent += "--- REPORTE DE ACTIVIDAD ACADÉMICA ---\n";
-        csvContent += "Práctica,ID Alumno,Estado,Última Actividad,Calificación IA\n";
+        // SECCIÓN 1: ACTIVIDAD DE PRÁCTICAS
+        csvContent += "--- REPORTE DE TRAZABILIDAD ACADÉMICA ---\n";
+        csvContent += "Práctica,ID Alumno,Estado,Fecha Actividad,Nota IA\n";
         
         Object.values(practices).forEach(p => {
             if (p.students) {
                 Object.entries(p.students).forEach(([uid, data]) => {
-                    csvContent += `${p.title},${uid},${data.status},${data.reportSubmittedAt || data.completedAt || 'N/A'},${data.reportScore || 0}\n`;
+                    const titulo = p.title.replace(/,/g, ""); 
+                    const fecha = data.reportSubmittedAt || data.completedAt || "N/A";
+                    csvContent += `${titulo},${uid},${data.status},${fecha},${data.reportScore || 0}\n`;
                 });
             }
         });
 
-        // SECCIÓN 2: AUDITORÍA DE ACCESOS
-        csvContent += "\n--- HISTORIAL DE ACCESOS (SEGURIDAD) ---\n";
+        // SECCIÓN 2: AUDITORÍA DE ACCESOS (SEGURIDAD)
+        csvContent += "\n--- REGISTRO DE INICIOS DE SESIÓN ---\n";
         csvContent += "ID Usuario,Evento,Fecha y Hora\n";
         
-        accessSnapshot.forEach(doc => {
+        accessLogs.forEach(doc => {
             const log = doc.data();
             csvContent += `${log.uid},${log.event},${log.timestamp}\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `auditoria_completa_espectroedu.csv`;
+        link.href = url;
+        link.download = `bitacora_completa_espectroedu_${new Date().getTime()}.csv`;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     } catch (e) {
-        console.error("Error al generar reporte:", e);
+        console.error("Error al generar bitácora:", e);
+        alert("Error: Asegúrate de que la colección 'access_logs' exista o que los permisos de Firebase sean correctos.");
     }
 }

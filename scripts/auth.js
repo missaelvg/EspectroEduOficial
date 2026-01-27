@@ -44,15 +44,15 @@ async function registerUser(username, matricula, password, grupo, email, role, t
         return false;
     }
 }
-
-async function loginUser(email, password) {
+ 
+ async function loginUser(email, password) {
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const uid = userCredential.user.uid;
+        await auth.signInWithEmailAndPassword(email, password);
         
-        // REGISTRO DE AUDITORÍA: Guardar el inicio de sesión
+        // Registro de Auditoría: Guardar el inicio de sesión en una nueva colección
+        const user = auth.currentUser;
         await db.collection('access_logs').add({
-            uid: uid,
+            uid: user.uid,
             email: email,
             event: "login",
             timestamp: new Date().toISOString()

@@ -47,7 +47,17 @@ async function registerUser(username, matricula, password, grupo, email, role, t
 
 async function loginUser(email, password) {
     try {
-        await auth.signInWithEmailAndPassword(email, password);
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+        
+        // REGISTRO DE AUDITORÍA: Guardar el inicio de sesión
+        await db.collection('access_logs').add({
+            uid: uid,
+            email: email,
+            event: "login",
+            timestamp: new Date().toISOString()
+        });
+        
         return true;
     } catch (error) {
         console.error("Error de credenciales:", error);

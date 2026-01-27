@@ -88,27 +88,41 @@ async function getPractices() {
     return result.practices || {};
 }
 
-async function descargarBitacoraAuditoria() {
+async function descargarBitacoraCompleta() {
     try {
-        const practices = await getPractices(); // Ya definido en tu código
-        let csv = "Practica,Alumno_UID,Estado,Fecha_Actividad,Nota_IA\n";
-
+        const practices = await getPractices();
+        // Intentar obtener logs de acceso si creaste la colección
+        const accessSnapshot = await db.collection('access_logs').orderBy('timestamp', 'desc').limit(100).get();
+        
+        let csvContent = "\ufeff"; // BOM para que Excel reconozca tildes
+        
+        // SECCIÓN 1: ACTIVIDAD ACADÉMICA
+        csvContent += "--- REPORTE DE ACTIVIDAD ACADÉMICA ---\n";
+        csvContent += "Práctica,ID Alumno,Estado,Última Actividad,Calificación IA\n";
+        
         Object.values(practices).forEach(p => {
             if (p.students) {
                 Object.entries(p.students).forEach(([uid, data]) => {
-                    const fecha = data.reportSubmittedAt || data.completedAt || "N/A";
-                    csv += `${p.title},${uid},${data.status},${fecha},${data.reportScore || 0}\n`;
+                    csvContent += `${p.title},${uid},${data.status},${data.reportSubmittedAt || data.completedAt || 'N/A'},${data.reportScore || 0}\n`;
                 });
             }
         });
 
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `bitacora_espectroedu_${new Date().getTime()}.csv`;
-        a.click();
+        // SECCIÓN 2: AUDITORÍA DE ACCESOS
+        csvContent += "\n--- HISTORIAL DE ACCESOS (SEGURIDAD) ---\n";
+        csvContent += "ID Usuario,Evento,Fecha y Hora\n";
+        
+        accessSnapshot.forEach(doc => {
+            const log = doc.data();
+            csvContent += `${log.uid},${log.event},${log.timestamp}\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `auditoria_completa_espectroedu.csv`;
+        link.click();
     } catch (e) {
-        alert("Error al generar la bitácora: " + e.message);
+        console.error("Error al generar reporte:", e);
     }
 }

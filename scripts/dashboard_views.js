@@ -332,7 +332,7 @@ function rList(list) {
         list.forEach(s => {
             const enrollments = pMap[s.uid] || [];
             const groupLabel = s.grupo ? `<span class="badge badge-info">${s.grupo}</span>` : '';
-            const statusLabel = enrollments.length > 0 ? `<span class="badge badge-success">Inscrito (${enrollments.length})</span>` : `<span class="badge" style="background:#e2e8f0; color:var(--text-muted)">No inscrito</span>`;
+            const statusLabel = enrollments.length > 0 ? `<span class="badge badge-success">✅ Inscrito (${enrollments.length})</span>` : `<span class="badge" style="background:#e2e8f0; color:var(--text-muted)">⏳ No inscrito</span>`;
             
             h += `<div class="student-list-item">
                 <div style="display:flex; align-items:center; gap:15px;">
@@ -418,7 +418,7 @@ async function renderDoctorGradesView() {
             const date = formatDate(d.completedAt || d.reportSubmittedAt);
             if(final > 0) { sum += final; count++; if(final >= 7.0) aprobados++; }
             
-            let statusBadge = final >= 7.0 ? '<span class="badge badge-success">Aprobado</span>' : (final > 0 ? '<span class="badge badge-warning">Requiere Atención</span>' : '<span class="badge" style="background:#f1f5f9;color:#64748b;">Pendiente</span>');
+            let statusBadge = final >= 7.0 ? '<span class="badge badge-success">✅ Aprobado</span>' : (final > 0 ? '<span class="badge badge-warning">⚠️ Requiere Atención</span>' : '<span class="badge" style="background:#f1f5f9;color:#64748b;">⏳ Pendiente</span>');
             
             rows += `<tr>
                 <td><strong>${info?.username||'?'}</strong></td>
@@ -763,10 +763,10 @@ async function renderTutorDashboard() {
                         <tbody>
                             ${groupsList.map(g => {
                                 const avg = g.gradesCount > 0 ? (g.totalScore / g.gradesCount).toFixed(1) : '0.0';
-                                let badge = '<span class="badge badge-success">Excelente</span>';
-                                if(avg < 8) badge = '<span class="badge badge-warning">Regular</span>';
-                                if(avg < 6) badge = '<span class="badge badge-danger" style="background:var(--danger-color); color:white;">Crítico</span>';
-                                if(g.gradesCount === 0) badge = '<span class="badge" style="background:#f1f5f9;color:var(--text-muted)">Sin datos</span>';
+                                let badge = '<span class="badge badge-success">✅ Excelente</span>';
+                                if(avg > 0 && avg < 8) badge = '<span class="badge badge-warning">⚠️ Regular</span>';
+                                if(avg > 0 && avg < 6) badge = '<span class="badge badge-danger" style="background:var(--danger-color); color:white;">❌ Crítico</span>';
+                                if(g.gradesCount === 0) badge = '<span class="badge" style="background:#f1f5f9;color:var(--text-muted)">⏳ Sin datos</span>';
                                 return `<tr><td><strong>${g.name}</strong></td><td>${g.studentCount}</td><td>${avg}</td><td>${badge}</td></tr>`;
                             }).join('')}
                         </tbody>

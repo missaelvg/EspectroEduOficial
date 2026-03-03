@@ -17,7 +17,7 @@
 <header id="header">
     <div id="header-title">EspectroEdu</div>
     <nav id="navbar"></nav>
-    <button id="logoutButton" onclick="logoutUser()">Cerrar Sesión</button>
+    <button id="logoutButton" onclick="logoutUser()" data-i18n="logout">Cerrar Sesión</button>
 </header>
 <main>
     <div id="main-content">
@@ -25,21 +25,45 @@
     </div>
 </main>
 
-<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad">♿</div>
-<div id="a11y-panel" class="hidden">
-    <h4 style="margin-top:0;">Herramientas de Accesibilidad</h4>
-    <label style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <input type="checkbox" id="hc-toggle" onchange="toggleHighContrast()" style="width:auto; min-height:auto;"> 
-        Alto Contraste
+<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad">♿</div>
+<div id="a11y-panel" style="display:none; position: fixed; background: var(--card-bg); padding: 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 1000; border: 1px solid var(--border-color);">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+        <span style="font-size:1.5rem;">⚙️</span>
+        <h4 style="margin:0; color:var(--brand-dark);" data-i18n="a11y_title">Herramientas de Accesibilidad</h4>
+    </div>
+    
+    <label style="display:block; margin-bottom:15px;">
+        <span style="font-weight:600; display:block; margin-bottom:5px;" data-i18n="a11y_lang">🌐 Idioma</span>
+        <div style="display:flex; gap:10px;">
+            <button id="lang-es" class="btn btn-full active" style="margin:0; padding:8px;" onclick="setLanguage('es')">Español</button>
+            <button id="lang-en" class="btn btn-secondary btn-full" style="margin:0; padding:8px;" onclick="setLanguage('en')">English</button>
+        </div>
     </label>
-    <label style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <input type="checkbox" id="hl-toggle" onchange="toggleHighlightLinks()" style="width:auto; min-height:auto;"> 
-        Resaltar Enlaces
+
+    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:600;">
+        <span data-i18n="a11y_daltonism">👁️ Modo Daltonismo</span>
+        <input type="checkbox" id="daltonism-toggle" onchange="toggleDaltonism()" style="width:20px; min-height:20px; margin:0;"> 
     </label>
-    <label style="display:block; margin-bottom:10px;">
-        Tamaño de Fuente: <span id="fs-val">16px</span>
-        <input type="range" id="fs-toggle" min="14" max="24" value="16" onchange="changeFontSize()" style="width:100%; min-height:auto; padding:0;">
+
+    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:600;">
+        <span data-i18n="a11y_audio">🔊 Guía Auditiva</span>
+        <input type="checkbox" id="audio-toggle" onchange="toggleAudioGuide()" style="width:20px; min-height:20px; margin:0;"> 
     </label>
+
+    <label style="display:block; margin-bottom:15px; font-weight:600;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span data-i18n="a11y_font">T Tamaño de Fuente</span>
+            <span id="fs-val" style="color:var(--text-muted); font-weight:400;">16px</span>
+        </div>
+        <input type="range" id="fs-toggle" min="14" max="22" value="16" onchange="changeFontSize()" style="width:100%; min-height:auto; padding:0;">
+    </label>
+
+    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:600;">
+        <span data-i18n="a11y_highlight">🔗 Resaltar Enlaces</span>
+        <input type="checkbox" id="hl-toggle" onchange="toggleHighlightLinks()" style="width:20px; min-height:20px; margin:0;"> 
+    </label>
+
+    <p style="font-size:0.8rem; color:var(--text-muted); text-align:center; margin-top:20px;" data-i18n="a11y_footer">Estos ajustes se guardarán para tu próxima visita.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
@@ -49,6 +73,7 @@
 <script src="scripts/auth.js"></script>
 <script src="scripts/data_manager.js"></script>
 <script src="scripts/utils.js"></script>
+<script src="scripts/accessibility.js"></script>
 <script src="scripts/dashboard_views.js"></script>
 
 <script>
@@ -77,23 +102,6 @@
         }
     }
     
-    // Funciones de Accesibilidad
-    function toggleA11yMenu() {
-        const panel = document.getElementById('a11y-panel');
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-    }
-    function toggleHighContrast() {
-        document.body.classList.toggle('high-contrast');
-    }
-    function toggleHighlightLinks() {
-        document.body.classList.toggle('highlight-links');
-    }
-    function changeFontSize() {
-        const size = document.getElementById('fs-toggle').value;
-        document.documentElement.style.setProperty('--font-size-base', size + 'px');
-        document.getElementById('fs-val').innerText = size + 'px';
-    }
-
     initDashboard();
 </script>
 </body>

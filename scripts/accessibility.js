@@ -22,7 +22,8 @@ const translations = {
         "login_enter": "ENTRAR",
         "login_no_account": "¿No tienes cuenta?",
         "login_register": "Regístrate gratis",
-        "login_forgot": "¿Olvidaste tu contraseña?"
+        "login_forgot": "¿Olvidaste tu contraseña?",
+        "logout": "Cerrar Sesión"
     },
     en: {
         "a11y_title": "Accessibility Tools",
@@ -39,7 +40,8 @@ const translations = {
         "login_enter": "LOGIN",
         "login_no_account": "Don't have an account?",
         "login_register": "Sign up for free",
-        "login_forgot": "Forgot your password?"
+        "login_forgot": "Forgot your password?",
+        "logout": "Log Out"
     }
 };
 

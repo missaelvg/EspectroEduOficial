@@ -356,3 +356,49 @@ body.login-page {
         padding: 2rem;
     }
 }
+
+/* =========================================
+   ACCESIBILIDAD: DALTONISMO Y GUÍA AUDITIVA
+   ========================================= */
+
+body.daltonism-mode {
+    /* Paleta optimizada para Protanopia, Deuteranopia y Tritanopia */
+    --primary-color: #0077BB;
+    --brand-dark: #0077BB;
+    --success-color: #117733;
+    --danger-color: #AA0000;
+    --warning-color: #DDAA00;
+    --accent-color: #CC7722;
+}
+
+body.daltonism-mode * {
+    border-width: 3px !important;
+}
+
+body.daltonism-mode .card, 
+body.daltonism-mode .drop-zone {
+    /* Patrón de fondo para mayor diferenciación sin depender del color */
+    background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 8px);
+}
+
+/* Indicadores de Guía Auditiva */
+html.audio-guide-active {
+    cursor: help;
+}
+
+.speaking-indicator {
+    outline: 4px solid var(--warning-color) !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 12px var(--warning-color);
+    transition: outline 0.1s ease-in-out;
+}
+
+#a11y-panel {
+    width: 320px;
+    bottom: 90px;
+    right: 20px;
+}
+.btn-full.active {
+    background: var(--primary-color);
+    color: white;
+}

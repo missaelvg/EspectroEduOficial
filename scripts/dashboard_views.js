@@ -1,5 +1,9 @@
 // scripts/dashboard_views.js
-// CONTROLADOR DE VISTAS (FRONTEND) Actualizado al Nuevo Diseño y Funcionalidad
+// ----------------------------------------------------------------------------------
+// CONTROLADOR DE VISTAS (FRONTEND)
+// Maneja la interfaz, navegación y lógica de presentación para Docentes, Alumnos y Coordinadores.
+// ACTUALIZADO CON UI KIT INCLUSIVO Y NUEVOS FLUJOS (Fase de Diseño)
+// ----------------------------------------------------------------------------------
 
 const AppState = {
     user: null,      
@@ -7,41 +11,65 @@ const AppState = {
     users: [],       
 };
 
+// ==================================================================================
+// 1. UTILIDADES Y LÓGICA DE NEGOCIO
+// ==================================================================================
+
 function formatDate(isoString) {
     if (!isoString) return '-';
     try {
         const date = new Date(isoString);
-        return date.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleString('es-MX', { 
+            day: '2-digit', month: '2-digit', year: '2-digit', 
+            hour: '2-digit', minute: '2-digit' 
+        });
     } catch (e) { return '-'; }
 }
 
 function calculateWeightedGrade(report, quiz, cross) {
-    const r = report || 0; const q = quiz || 0; const c = cross || 0;
-    return parseFloat(((r * 0.8) + (q * 0.1) + (c * 0.1)).toFixed(1));
+    const r = report || 0;
+    const q = quiz || 0;
+    const c = cross || 0;
+    const final = (r * 0.8) + (q * 0.1) + (c * 0.1);
+    return parseFloat(final.toFixed(1)); 
 }
 
-function getStudentQuestions(all, uid, count = 5) { /* Lógica aleatoria mantenida */
+function getStudentQuestions(all, uid, count = 5) {
     if (!all || all.length === 0) return [];
-    let seed = 0; for (let i = 0; i < uid.length; i++) seed += uid.charCodeAt(i);
+    let seed = 0; 
+    for (let i = 0; i < uid.length; i++) seed += uid.charCodeAt(i);
     const s = [...all];
-    for (let i = s.length - 1; i > 0; i--) { const j = (seed * (i + 1)) % (i + 1); [s[i], s[j]] = [s[j], s[i]]; seed++; }
+    for (let i = s.length - 1; i > 0; i--) { 
+        const j = (seed * (i + 1)) % (i + 1); 
+        [s[i], s[j]] = [s[j], s[i]]; 
+        seed++; 
+    }
     return s.slice(0, count);
 }
+
 function getStudentCrosswordWords(all, uid, count = 5) {
     if (!all || all.length === 0) return [];
     let seed = 0; for (let i = 0; i < uid.length; i++) seed += uid.charCodeAt(i) + 5; 
     const s = [...all];
-    for (let i = s.length - 1; i > 0; i--) { const j = (seed * (i + 1)) % (i + 1); [s[i], s[j]] = [s[j], s[i]]; seed++; }
+    for (let i = s.length - 1; i > 0; i--) { 
+        const j = (seed * (i + 1)) % (i + 1); 
+        [s[i], s[j]] = [s[j], s[i]]; 
+        seed++; 
+    }
     return s.slice(0, count);
 }
 
-// ---------------------------------------------------------
-// RUTAS Y MENÚS
-// ---------------------------------------------------------
+// ==================================================================================
+// 2. NAVEGACIÓN Y ROLES
+// ==================================================================================
+
 function renderDoctorLayout(user) {
     AppState.user = user;
-    document.getElementById('header-title').textContent = `${user.title || 'Dr.'} ${user.username}`;
-    document.getElementById('navbar').innerHTML = `
+    const prefix = user.title || 'Dr.';
+    document.getElementById('header-title').textContent = `${prefix} ${user.username}`;
+    
+    const navbar = document.getElementById('navbar');
+    navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderDoctorDashboard();">Inicio</button>
         <button onclick="setActive(this); renderCreatePracticeView();">Crear Práctica</button>
         <button onclick="setActive(this); renderManageStudentsView();">Gestionar Alumnos</button>
@@ -53,7 +81,8 @@ function renderDoctorLayout(user) {
 function renderStudentLayout(user) {
     AppState.user = user;
     document.getElementById('header-title').textContent = `Alumno: ${user.username}`;
-    document.getElementById('navbar').innerHTML = `
+    const navbar = document.getElementById('navbar');
+    navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderStudentDashboard();">Inicio</button>
         <button onclick="setActive(this); renderStudentPracticesView();">Mis Prácticas</button>
         <button onclick="setActive(this); renderStudentActivitiesView();">Actividades</button>
@@ -65,8 +94,11 @@ function renderStudentLayout(user) {
 
 function renderTutorLayout(user) {
     AppState.user = user;
-    document.getElementById('header-title').textContent = `${user.title || 'Coord.'} ${user.username}`;
-    document.getElementById('navbar').innerHTML = `
+    const prefix = user.title || 'Coord.';
+    document.getElementById('header-title').textContent = `${prefix} ${user.username}`;
+    
+    const navbar = document.getElementById('navbar');
+    navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderTutorDashboard();">Tablero Global</button>
         <button onclick="setActive(this); renderTutorGroupsView();">Análisis por Grupos</button>
         <button onclick="setActive(this); renderTutorAuditView();">Auditoría de Prácticas</button>
@@ -80,9 +112,9 @@ function setActive(button) {
     button.classList.add('active');
 }
 
-// ---------------------------------------------------------
-// VISTAS DEL DOCENTE (Actualizadas)
-// ---------------------------------------------------------
+// ==================================================================================
+// 3. VISTAS DEL DOCENTE
+// ==================================================================================
 
 async function renderDoctorDashboard() {
     const div = document.getElementById('main-content');
@@ -235,7 +267,7 @@ async function handlePracticeCreation() {
                 await savePracticeContent(pid, { generatedContent: gen }); 
                 pBar.style.width = '100%';
                 logDiv.innerHTML = '<p class="alert-success">¡Práctica creada con éxito!</p>'; 
-            } catch(e) { logDiv.innerHTML = '<p class="alert-warning">Error en IA. Intenta subir nuevamente.</p>'; }
+            } catch(e) { logDiv.innerHTML = '<p class="alert-warning">Creada parcialmente (Error IA). Intenta subir nuevamente el PDF.</p>'; }
         } else { 
             pBar.style.width = '100%';
             logDiv.innerHTML = '<p class="alert-warning">Documento escaneado. No se detectó texto para la IA.</p>'; 
@@ -250,7 +282,6 @@ async function renderManageStudentsView() {
     AppState.practices = p; 
     AppState.users = u.filter(x => x.role === 'alumno');
     
-    // Extraer grupos únicos para el filtro
     const groups = [...new Set(AppState.users.map(u => u.grupo).filter(g => g))];
 
     document.getElementById('main-content').innerHTML = `
@@ -301,11 +332,11 @@ function rList(list) {
         list.forEach(s => {
             const enrollments = pMap[s.uid] || [];
             const groupLabel = s.grupo ? `<span class="badge badge-info">${s.grupo}</span>` : '';
-            const statusLabel = enrollments.length > 0 ? `<span class="badge badge-success">Inscrito (${enrollments.length})</span>` : `<span class="badge" style="background:#e2e8f0;">No inscrito</span>`;
+            const statusLabel = enrollments.length > 0 ? `<span class="badge badge-success">Inscrito (${enrollments.length})</span>` : `<span class="badge" style="background:#e2e8f0; color:var(--text-muted)">No inscrito</span>`;
             
             h += `<div class="student-list-item">
                 <div style="display:flex; align-items:center; gap:15px;">
-                    <input type="checkbox" class="student-cb" value="${s.uid}" style="width:20px; min-height:20px;">
+                    <input type="checkbox" class="student-cb" value="${s.uid}" style="width:20px; min-height:20px; cursor:pointer;">
                     <div><strong>${s.username}</strong> ${groupLabel} ${statusLabel}<br><small style="color:var(--text-muted);">${s.matricula}</small></div>
                 </div>
                 <div style="text-align:right;">
@@ -424,9 +455,10 @@ async function renderDoctorGradesView() {
     document.getElementById('grades-by-practice').innerHTML = html;
 }
 
-// ---------------------------------------------------------
-// VISTAS DEL ALUMNO (Mantenimiento de funciones base adaptadas visualmente)
-// ---------------------------------------------------------
+// ==================================================================================
+// 4. VISTAS DEL ALUMNO
+// ==================================================================================
+
 function renderStudentDashboard() {
     document.getElementById('main-content').innerHTML = `
         <div style="margin-bottom:30px;">
@@ -513,9 +545,7 @@ async function handleReportUpload(pid) {
     } catch(e){ log.innerHTML = `<span class="alert-error">${e.message}</span>`; }
 }
 
-// Las vistas de Actividades, Crucigrama, y Cuestionario permanecen intactas en su lógica
-// pero se benefician automáticamente de los nuevos estilos CSS implementados.
-async function renderStudentActivitiesView(shouldFetch = true) { /* ... Mantiene implementación original ... */ 
+async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
     div.innerHTML = '<h2>Actividades Complementarias</h2><div id="act-list">Cargando...</div>';
     try {
@@ -541,7 +571,8 @@ async function renderStudentActivitiesView(shouldFetch = true) { /* ... Mantiene
         });
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
-function renderQuiz(p) { /* Lógica Original Conservada */
+
+function renderQuiz(p) {
     const d = document.getElementById(`quiz-${p.id}`);
     const fullBank = p.generatedContent?.cuestionario;
     if (!fullBank) return d.innerHTML = "<p class='alert-error'>Error: Cuestionario no disponible.</p>";
@@ -554,7 +585,8 @@ function renderQuiz(p) { /* Lógica Original Conservada */
     });
     d.innerHTML = h + `<button class="btn btn-full" onclick="subQuiz(event, '${p.id}')">ENVIAR RESPUESTAS</button>`;
 }
-async function subQuiz(e, pid) { /* Lógica Original Conservada */
+
+async function subQuiz(e, pid) {
     const btn = e.target; btn.disabled = true;
     let p = AppState.practices[pid]; 
     if(!p) { const all = await getPractices(); p = all[pid]; AppState.practices = all; }
@@ -576,7 +608,8 @@ async function subQuiz(e, pid) { /* Lógica Original Conservada */
     if (AppState.practices[pid]?.students[AppState.user.uid]) { AppState.practices[pid].students[AppState.user.uid].quizScore = sc; AppState.practices[pid].students[AppState.user.uid].status = 'Crucigrama Pendiente'; }
     alert(`Resultado: ${sc}/10`); renderStudentActivitiesView(false); 
 }
-function renderCrossword(p) { /* Lógica Original Conservada */
+
+function renderCrossword(p) {
     const d = document.getElementById(`cross-${p.id}`);
     const allWordsData = p.generatedContent?.crucigrama;
     if(!allWordsData) return d.innerHTML="<p>Error crucigrama</p>";
@@ -609,7 +642,8 @@ function renderCrossword(p) { /* Lógica Original Conservada */
         });
     });
 }
-function generateCrosswordLayout(words) { /* Lógica Original Conservada */
+
+function generateCrosswordLayout(words) {
     const size=18; let grid=Array(size).fill(0).map(()=>Array(size).fill(null)); let placed=[];
     words.sort((a,b)=>b.word.length-a.word.length); if(words.length===0) return null;
     const f=words.shift(); const sr=Math.floor(size/2), sc=Math.floor((size-f.word.length)/2);
@@ -637,13 +671,15 @@ function generateCrosswordLayout(words) { /* Lógica Original Conservada */
     }
     let num = 1; placed.forEach(w => { const cell = grid[w.row][w.col]; if(!cell.num) { cell.num = num; num++; } w.number = cell.num; }); return { grid, placedWordsInfo: placed };
 }
-function canPlace(grid, word, r, c, o) { /* Lógica Original Conservada */
+
+function canPlace(grid, word, r, c, o) {
     if(r<0 || c<0 || r>=grid.length || c>=grid[0].length) return false;
     if(o==='across') { if(c+word.length > grid[0].length) return false; } else { if(r+word.length > grid.length) return false; }
     for(let i=0; i<word.length; i++) { let cr = r + (o==='down'?i:0); let cc = c + (o==='across'?i:0); const cell = grid[cr][cc]; if(cell && cell.char !== word[i]) return false; }
     return true;
 }
-async function handleCrosswordSubmit(e, pid) { /* Lógica Original Conservada */
+
+async function handleCrosswordSubmit(e, pid) {
     const btn = e.target; btn.disabled=true;
     let p = AppState.practices[pid]; if(!p) { const all=await getPractices(); p=all[pid]; }
     let corr=0, tot=0;
@@ -655,7 +691,7 @@ async function handleCrosswordSubmit(e, pid) { /* Lógica Original Conservada */
     alert(`Crucigrama calificado. Puntuación: ${cScore}/10`); renderStudentActivitiesView();
 }
 
-async function renderStudentGradesView() { /* Lógica Original Conservada */
+async function renderStudentGradesView() {
     document.getElementById('main-content').innerHTML = '<h2>Mis Calificaciones Históricas</h2><div id="grades-list">Cargando...</div>';
     const practices = await getPractices(); const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
     if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<div class="card"><p>Aún no tienes calificaciones registradas.</p></div>'; return; }
@@ -667,21 +703,82 @@ async function renderStudentGradesView() { /* Lógica Original Conservada */
     document.getElementById('grades-list').innerHTML = html + '</tbody></table></div>';
 }
 
-function renderStudentProfileView() { /* Lógica Original Conservada */
+function renderStudentProfileView() {
     const u = AppState.user;
     document.getElementById('main-content').innerHTML = `<h2>Mi Perfil Académico</h2><div class="card"><label>Matrícula Institucional</label><input value="${u.matricula}" disabled style="background:#f1f5f9; cursor:not-allowed;"><label>Nombre Completo</label><input id="pN" value="${u.username}"><label>Grupo</label><input id="pG" value="${u.grupo||''}"><label>Correo Electrónico</label><input id="pE" value="${u.email}"><button class="btn btn-full" onclick="updProf()">GUARDAR CAMBIOS</button></div>`;
 }
+
 async function updProf(){ await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); alert("Perfil guardado exitosamente."); }
 
-// Las vistas del Coordinador (Tutor) permanecen con su lógica intacta.
-async function renderTutorDashboard() { /* Lógica Original Conservada pero aprovechando el CSS automático */
-    // ... La lógica actual del archivo subido no necesita cambios funcionales para adaptarse al nuevo diseño CSS,
-    // el cual se aplica automáticamente a las clases 'card', 'table-container' y 'badge'.
-    renderTutorLayout(AppState.user);
-}
-// ... Se retienen las demás funciones de getGlobalStats, renderTutorGroupsView y renderTutorAuditView iguales.
+// ==================================================================================
+// 5. VISTAS DEL COORDINADOR / TUTOR
+// ==================================================================================
 
-// Estadísticas para el tutor (Datos)
+async function renderTutorDashboard() {
+    const prefix = AppState.user.title || 'Coord.';
+    const div = document.getElementById('main-content');
+    div.innerHTML = `<h2>Tablero de Control Académico</h2><div id="tutor-stats">Calculando métricas...</div>`;
+    
+    try {
+        const stats = await getGlobalStats();
+        const groupsList = Object.values(stats.groupsData);
+        let totalSchoolScore = 0;
+        let totalGrades = 0;
+        
+        groupsList.forEach(g => {
+            totalSchoolScore += g.totalScore;
+            totalGrades += g.gradesCount;
+        });
+        const globalAvg = totalGrades > 0 ? (totalSchoolScore / totalGrades).toFixed(1) : '0.0';
+
+        div.innerHTML = `
+          <h2>Tablero de Control Académico</h2>
+            <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="color:var(--text-muted);">Bienvenido, ${prefix} ${AppState.user.username}</div>
+                <button class="btn" onclick="descargarBitacoraAuditoria()" style="background-color: var(--success-color); padding: 10px 15px; font-size: 0.85rem;">
+                    Descargar Bitácora (Auditoría)
+                </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                <div class="card" style="text-align:center; border-left: 4px solid var(--primary-color);">
+                    <h3 style="margin:0; font-size: 2.5rem; color: var(--primary-color);">${stats.studentCount}</h3>
+                    <p style="color:var(--text-muted);">Alumnos Totales</p>
+                </div>
+                <div class="card" style="text-align:center; border-left: 4px solid var(--accent-color);">
+                    <h3 style="margin:0; font-size: 2.5rem; color: var(--accent-color);">${stats.practicesCount}</h3>
+                    <p style="color:var(--text-muted);">Prácticas Activas</p>
+                </div>
+                <div class="card" style="text-align:center; border-left: 4px solid var(--success-color);">
+                    <h3 style="margin:0; font-size: 2.5rem; color: var(--success-color);">${globalAvg}</h3>
+                    <p style="color:var(--text-muted);">Promedio Global (Escuela)</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h4>Rendimiento Rápido por Grupo</h4>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Grupo</th><th>Alumnos</th><th>Promedio General</th><th>Estado</th></tr></thead>
+                        <tbody>
+                            ${groupsList.map(g => {
+                                const avg = g.gradesCount > 0 ? (g.totalScore / g.gradesCount).toFixed(1) : '0.0';
+                                let badge = '<span class="badge badge-success">Excelente</span>';
+                                if(avg < 8) badge = '<span class="badge badge-warning">Regular</span>';
+                                if(avg < 6) badge = '<span class="badge badge-danger" style="background:var(--danger-color); color:white;">Crítico</span>';
+                                if(g.gradesCount === 0) badge = '<span class="badge" style="background:#f1f5f9;color:var(--text-muted)">Sin datos</span>';
+                                return `<tr><td><strong>${g.name}</strong></td><td>${g.studentCount}</td><td>${avg}</td><td>${badge}</td></tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        div.innerHTML = `<p class="alert-error">Error cargando datos: ${e.message}</p>`;
+    }
+}
+
 async function getGlobalStats() {
     const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
     AppState.practices = practices;
@@ -690,7 +787,6 @@ async function getGlobalStats() {
     const students = users.filter(u => u.role === 'alumno');
     const groupsData = {};
 
-    // Agrupa alumnos
     students.forEach(s => {
         const g = s.grupo || 'Sin Grupo';
         if (!groupsData[g]) {
@@ -700,7 +796,6 @@ async function getGlobalStats() {
         groupsData[g].studentsIds.push(s.uid);
     });
 
-    // Calcula calificaciones
     Object.values(practices).forEach(p => {
         if (p.students) {
             Object.entries(p.students).forEach(([uid, data]) => {
@@ -722,7 +817,6 @@ async function getGlobalStats() {
     return { groupsData, practicesCount: Object.keys(practices).length, studentCount: students.length };
 }
 
-// Vista: Grupos
 async function renderTutorGroupsView() {
     document.getElementById('main-content').innerHTML = `<h2>Detalle por Grupos</h2><div id="groups-detail">Cargando...</div>`;
     const stats = await getGlobalStats();
@@ -734,16 +828,16 @@ async function renderTutorGroupsView() {
         html += `
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="margin:0; color: #0f172a;">Grupo ${g.name}</h3>
-                    <span class="badge-info" style="font-size:1em;">Promedio: ${avg}</span>
+                    <h3 style="margin:0; color: var(--brand-dark);">Grupo ${g.name}</h3>
+                    <span class="badge badge-info" style="font-size:1em;">Promedio: ${avg}</span>
                 </div>
                 <details>
-                    <summary style="cursor:pointer; color:#3b82f6; font-weight:600;">Ver lista de alumnos (${g.studentCount})</summary>
-                    <div style="margin-top:10px; padding:10px; background:#f8fafc; border-radius:8px;">
+                    <summary style="cursor:pointer; color:var(--primary-color); font-weight:600;">Ver lista de alumnos (${g.studentCount})</summary>
+                    <div style="margin-top:10px; padding:10px; background:var(--bg-color); border-radius:var(--radius-sm);">
                         <ul style="list-style:none; padding:0; margin:0;">
                             ${g.studentsIds.map(uid => {
                                 const s = AppState.users.find(u => u.uid === uid);
-                                return `<li style="padding:5px 0; border-bottom:1px solid #e2e8f0; font-size:0.9em;">
+                                return `<li style="padding:5px 0; border-bottom:1px solid var(--border-color); font-size:0.9em;">
                                     <strong>${s.matricula}</strong> - ${s.username}
                                 </li>`;
                             }).join('')}
@@ -758,9 +852,8 @@ async function renderTutorGroupsView() {
     document.getElementById('groups-detail').innerHTML = html;
 }
 
-// Vista: Auditoría
 async function renderTutorAuditView() {
-    document.getElementById('main-content').innerHTML = `<h2>Auditoría de Prácticas</h2><p style="color:#64748b;">Vista de solo lectura del progreso académico.</p><div id="audit-list">Cargando...</div>`;
+    document.getElementById('main-content').innerHTML = `<h2>Auditoría de Prácticas</h2><p style="color:var(--text-muted);">Vista de solo lectura del progreso académico.</p><div id="audit-list">Cargando...</div>`;
     
     const practices = await getPractices(); 
     const list = Object.values(practices);
@@ -784,28 +877,28 @@ async function renderTutorAuditView() {
         const completionRate = totalStudents > 0 ? Math.round((completedCount / totalStudents) * 100) : 0;
 
         html += `
-            <div class="card" style="border-left: 4px solid #f59e0b;">
+            <div class="card" style="border-left: 4px solid var(--warning-color);">
                 <div style="display:flex; justify-content:space-between;">
                     <h4 style="margin:0;">${p.title}</h4>
-                    <span style="font-size:0.85em; color:#64748b;">ID: ${p.id}</span>
+                    <span style="font-size:0.85em; color:var(--text-muted);">ID: ${p.id}</span>
                 </div>
                 <div style="margin-top:15px; display:flex; gap:20px; flex-wrap:wrap;">
                     <div>
-                        <span style="display:block; font-size:0.8em; color:#64748b;">Inscritos</span>
+                        <span style="display:block; font-size:0.8em; color:var(--text-muted);">Inscritos</span>
                         <strong style="font-size:1.2em;">${totalStudents}</strong>
                     </div>
                     <div>
-                        <span style="display:block; font-size:0.8em; color:#64748b;">Completaron</span>
-                        <strong style="font-size:1.2em; color:#166534;">${completedCount}</strong>
+                        <span style="display:block; font-size:0.8em; color:var(--text-muted);">Completaron</span>
+                        <strong style="font-size:1.2em; color:var(--success-color);">${completedCount}</strong>
                     </div>
                     <div>
-                        <span style="display:block; font-size:0.8em; color:#64748b;">Tasa de Éxito</span>
-                        <strong style="font-size:1.2em; color:#3b82f6;">${completionRate}%</strong>
+                        <span style="display:block; font-size:0.8em; color:var(--text-muted);">Tasa de Éxito</span>
+                        <strong style="font-size:1.2em; color:var(--primary-color);">${completionRate}%</strong>
                     </div>
                 </div>
                 
-                <div style="margin-top:15px; background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden;">
-                    <div style="background:#3b82f6; width:${completionRate}%; height:100%;"></div>
+                <div style="margin-top:15px; background:var(--border-color); height:8px; border-radius:4px; overflow:hidden;">
+                    <div style="background:var(--primary-color); width:${completionRate}%; height:100%;"></div>
                 </div>
             </div>
         `;

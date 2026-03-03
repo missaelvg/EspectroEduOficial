@@ -2,7 +2,6 @@
 // ----------------------------------------------------------------------------------
 // CONTROLADOR DE VISTAS (FRONTEND)
 // Maneja la interfaz, navegación y lógica de presentación para Docentes, Alumnos y Coordinadores.
-// ACTUALIZADO CON UI KIT INCLUSIVO Y NUEVOS FLUJOS (Fase de Diseño)
 // ----------------------------------------------------------------------------------
 
 const AppState = {
@@ -70,10 +69,10 @@ function renderDoctorLayout(user) {
     
     const navbar = document.getElementById('navbar');
     navbar.innerHTML = `
-        <button class="active" onclick="setActive(this); renderDoctorDashboard();">Inicio</button>
-        <button onclick="setActive(this); renderCreatePracticeView();">Crear Práctica</button>
-        <button onclick="setActive(this); renderManageStudentsView();">Gestionar Alumnos</button>
-        <button onclick="setActive(this); renderDoctorGradesView();">Ver Calificaciones</button> 
+        <button class="active" onclick="setActive(this); renderDoctorDashboard();" data-i18n="nav_home">Inicio</button>
+        <button onclick="setActive(this); renderCreatePracticeView();" data-i18n="nav_create">Crear Práctica</button>
+        <button onclick="setActive(this); renderManageStudentsView();" data-i18n="nav_manage">Gestionar Alumnos</button>
+        <button onclick="setActive(this); renderDoctorGradesView();" data-i18n="nav_grades">Ver Calificaciones</button> 
     `;
     renderDoctorDashboard();
 }
@@ -83,11 +82,11 @@ function renderStudentLayout(user) {
     document.getElementById('header-title').textContent = `Alumno: ${user.username}`;
     const navbar = document.getElementById('navbar');
     navbar.innerHTML = `
-        <button class="active" onclick="setActive(this); renderStudentDashboard();">Inicio</button>
-        <button onclick="setActive(this); renderStudentPracticesView();">Mis Prácticas</button>
-        <button onclick="setActive(this); renderStudentActivitiesView();">Actividades</button>
-        <button onclick="setActive(this); renderStudentGradesView();">Calificaciones</button>
-        <button onclick="setActive(this); renderStudentProfileView();">Mi Perfil</button>
+        <button class="active" onclick="setActive(this); renderStudentDashboard();" data-i18n="nav_home">Inicio</button>
+        <button onclick="setActive(this); renderStudentPracticesView();" data-i18n="nav_my_practices">Mis Prácticas</button>
+        <button onclick="setActive(this); renderStudentActivitiesView();" data-i18n="nav_activities">Actividades</button>
+        <button onclick="setActive(this); renderStudentGradesView();" data-i18n="nav_grades">Calificaciones</button>
+        <button onclick="setActive(this); renderStudentProfileView();" data-i18n="nav_profile">Mi Perfil</button>
     `;
     renderStudentDashboard();
 }
@@ -99,9 +98,9 @@ function renderTutorLayout(user) {
     
     const navbar = document.getElementById('navbar');
     navbar.innerHTML = `
-        <button class="active" onclick="setActive(this); renderTutorDashboard();">Tablero Global</button>
-        <button onclick="setActive(this); renderTutorGroupsView();">Análisis por Grupos</button>
-        <button onclick="setActive(this); renderTutorAuditView();">Auditoría de Prácticas</button>
+        <button class="active" onclick="setActive(this); renderTutorDashboard();" data-i18n="nav_global">Tablero Global</button>
+        <button onclick="setActive(this); renderTutorGroupsView();" data-i18n="nav_groups">Análisis por Grupos</button>
+        <button onclick="setActive(this); renderTutorAuditView();" data-i18n="nav_audit">Auditoría de Prácticas</button>
     `;
     renderTutorDashboard();
 }
@@ -143,30 +142,30 @@ async function renderDoctorDashboard() {
 
         let html = `
             <div style="margin-bottom:30px;">
-                <h2 style="margin-bottom:5px; color:var(--primary-color);">Bienvenido, ${AppState.user.title || 'Dr.'} ${AppState.user.username}</h2>
-                <p style="color:var(--text-muted); margin-top:0;">Panel de control general - Vista inmediata de tus métricas académicas.</p>
+                <h2 style="margin-bottom:5px; color:var(--primary-color);"><span data-i18n="dash_welcome">Bienvenido</span>, ${AppState.user.title || 'Dr.'} ${AppState.user.username}</h2>
+                <p style="color:var(--text-muted); margin-top:0;" data-i18n="dash_desc">Panel de control general - Vista inmediata de tus métricas académicas.</p>
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div class="card" style="display:flex; align-items:center; gap:20px; border-left: 6px solid var(--primary-color); padding: 1.5rem;">
-                    <div><h3 style="margin:0; font-size: 2.2rem; color: var(--primary-color);">${totalAlumnos}</h3><p style="margin:0; color:var(--text-muted); font-weight:600;">Total Alumnos</p></div>
+                    <div><h3 style="margin:0; font-size: 2.2rem; color: var(--primary-color);">${totalAlumnos}</h3><p style="margin:0; color:var(--text-muted); font-weight:600;" data-i18n="dash_total_students">Total Alumnos</p></div>
                 </div>
                 <div class="card" style="display:flex; align-items:center; gap:20px; border-left: 6px solid var(--success-color); padding: 1.5rem;">
-                    <div><h3 style="margin:0; font-size: 2.2rem; color: var(--success-color);">${promedio}</h3><p style="margin:0; color:var(--text-muted); font-weight:600;">Promedio General</p></div>
+                    <div><h3 style="margin:0; font-size: 2.2rem; color: var(--success-color);">${promedio}</h3><p style="margin:0; color:var(--text-muted); font-weight:600;" data-i18n="dash_avg">Promedio General</p></div>
                 </div>
                 <div class="card" style="display:flex; align-items:center; gap:20px; border-left: 6px solid var(--accent-color); padding: 1.5rem;">
-                    <div><h3 style="margin:0; font-size: 2.2rem; color: var(--accent-color);">${totalPracticas}</h3><p style="margin:0; color:var(--text-muted); font-weight:600;">Prácticas Activas</p></div>
+                    <div><h3 style="margin:0; font-size: 2.2rem; color: var(--accent-color);">${totalPracticas}</h3><p style="margin:0; color:var(--text-muted); font-weight:600;" data-i18n="dash_active_prac">Prácticas Activas</p></div>
                 </div>
             </div>
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <h3 style="margin:0; color: var(--brand-dark);">Mis Prácticas</h3>
-                <button class="btn" onclick="document.querySelectorAll('#navbar button')[1].click()">+ Nueva Práctica</button>
+                <h3 style="margin:0; color: var(--brand-dark);" data-i18n="dash_my_prac">Mis Prácticas</h3>
+                <button class="btn" onclick="document.querySelectorAll('#navbar button')[1].click()" data-i18n="dash_new_prac">+ Nueva Práctica</button>
             </div>
         `;
 
         const list = Object.values(practices);
-        if (list.length === 0) html += `<div class="card"><p>No hay prácticas creadas.</p></div>`;
+        if (list.length === 0) html += `<div class="card"><p data-i18n="dash_no_prac">No hay prácticas creadas.</p></div>`;
         else {
             list.forEach(p => {
                 const count = Object.keys(p.students || {}).length;
@@ -183,6 +182,7 @@ async function renderDoctorDashboard() {
             });
         }
         div.innerHTML = html;
+        if(window.updateTranslations) window.updateTranslations();
     } catch (e) { div.innerHTML = `<p class="alert-error">Error: ${e.message}</p>`; }
 }
 
@@ -462,8 +462,8 @@ async function renderDoctorGradesView() {
 function renderStudentDashboard() {
     document.getElementById('main-content').innerHTML = `
         <div style="margin-bottom:30px;">
-            <h1 style="color:var(--primary-color);">¡Hola, ${AppState.user.username}!</h1>
-            <p style="color:var(--text-muted); font-size:1.1rem;">Bienvenido a tu espacio de aprendizaje en EspectroEdu.</p>
+            <h1 style="color:var(--primary-color);">¡<span data-i18n="dash_hello">Hola</span>, ${AppState.user.username}!</h1>
+            <p style="color:var(--text-muted); font-size:1.1rem;" data-i18n="dash_student_desc">Bienvenido a tu espacio de aprendizaje en EspectroEdu.</p>
         </div>
 
         <div class="card" style="border-left: 6px solid var(--accent-color);">
@@ -471,18 +471,19 @@ function renderStudentDashboard() {
             <div class="steps-container">
                 <div class="step-item">
                     <div class="step-icon">1</div>
-                    <div class="step-text">Descarga las <strong>Diapositivas y el Estándar</strong> en la sección "Mis Prácticas".</div>
+                    <div class="step-text" data-i18n="student_step_1">Descarga las <strong>Diapositivas y el Estándar</strong> en la sección "Mis Prácticas".</div>
                 </div>
                 <div class="step-item">
                     <div class="step-icon">2</div>
-                    <div class="step-text">Sube tu reporte en PDF para recibir evaluación automática por nuestra Inteligencia Artificial.</div>
+                    <div class="step-text" data-i18n="student_step_2">Sube tu reporte en PDF para recibir evaluación automática por nuestra Inteligencia Artificial.</div>
                 </div>
                 <div class="step-item">
                     <div class="step-icon">3</div>
-                    <div class="step-text">Completa las <strong>Actividades Interactivas</strong> (Cuestionario y Crucigrama) para finalizar tu evaluación.</div>
+                    <div class="step-text" data-i18n="student_step_3">Completa las <strong>Actividades Interactivas</strong> (Cuestionario y Crucigrama) para finalizar tu evaluación.</div>
                 </div>
             </div>
         </div>`;
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 async function renderStudentPracticesView() {
@@ -734,7 +735,7 @@ async function renderTutorDashboard() {
         div.innerHTML = `
           <h2>Tablero de Control Académico</h2>
             <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-                <div style="color:var(--text-muted);">Bienvenido, ${prefix} ${AppState.user.username}</div>
+                <div style="color:var(--text-muted);"><span data-i18n="dash_welcome">Bienvenido</span>, ${prefix} ${AppState.user.username}</div>
                 <button class="btn" onclick="descargarBitacoraAuditoria()" style="background-color: var(--success-color); padding: 10px 15px; font-size: 0.85rem;">
                     Descargar Bitácora (Auditoría)
                 </button>
@@ -743,15 +744,15 @@ async function renderTutorDashboard() {
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div class="card" style="text-align:center; border-left: 4px solid var(--primary-color);">
                     <h3 style="margin:0; font-size: 2.5rem; color: var(--primary-color);">${stats.studentCount}</h3>
-                    <p style="color:var(--text-muted);">Alumnos Totales</p>
+                    <p style="color:var(--text-muted);" data-i18n="dash_total_students">Alumnos Totales</p>
                 </div>
                 <div class="card" style="text-align:center; border-left: 4px solid var(--accent-color);">
                     <h3 style="margin:0; font-size: 2.5rem; color: var(--accent-color);">${stats.practicesCount}</h3>
-                    <p style="color:var(--text-muted);">Prácticas Activas</p>
+                    <p style="color:var(--text-muted);" data-i18n="dash_active_prac">Prácticas Activas</p>
                 </div>
                 <div class="card" style="text-align:center; border-left: 4px solid var(--success-color);">
                     <h3 style="margin:0; font-size: 2.5rem; color: var(--success-color);">${globalAvg}</h3>
-                    <p style="color:var(--text-muted);">Promedio Global (Escuela)</p>
+                    <p style="color:var(--text-muted);" data-i18n="dash_avg">Promedio Global (Escuela)</p>
                 </div>
             </div>
             
@@ -774,6 +775,7 @@ async function renderTutorDashboard() {
                 </div>
             </div>
         `;
+        if(window.updateTranslations) window.updateTranslations();
     } catch (e) {
         div.innerHTML = `<p class="alert-error">Error cargando datos: ${e.message}</p>`;
     }

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bienvenido - EspectroEdu</title>
 <link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -32,13 +33,13 @@
         <div class="form-card" style="margin: auto;">
             
             <div id="loginForm">
-                <h2>¡Hola de nuevo!</h2>
-                <p class="form-instruction">Ingresa tus credenciales para acceder</p>
+                <h2 data-i18n="login_welcome">¡Hola de nuevo!</h2>
+                <p class="form-instruction" data-i18n="login_instruction">Ingresa tus credenciales para acceder</p>
                 
-                <label>Correo Electrónico</label>
+                <label data-i18n="login_email">Correo Electrónico</label>
                 <input type="email" id="loginEmail" placeholder="ejemplo@espectro.edu">
                 
-                <label>Contraseña</label>
+                <label data-i18n="login_pass">Contraseña</label>
                 <div class="password-wrapper">
                     <input type="password" id="loginPassword" placeholder="••••••••">
                     <span class="toggle-password" onclick="togglePassword('loginPassword', this)">
@@ -47,13 +48,13 @@
                 </div>
                 
                 <div style="text-align: right;">
-                    <a href="#" onclick="showRecovery()" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                    <a href="#" onclick="showRecovery()" class="forgot-link" data-i18n="login_forgot">¿Olvidaste tu contraseña?</a>
                 </div>
 
-                <button onclick="handleLogin()" class="btn-full">ENTRAR</button>
+                <button onclick="handleLogin()" class="btn-full" data-i18n="login_enter">ENTRAR</button>
                 
                 <div class="form-footer">
-                    ¿No tienes cuenta? <a href="#" onclick="showRegister()">Regístrate gratis</a>
+                    <span data-i18n="login_no_account">¿No tienes cuenta?</span> <a href="#" onclick="showRegister()" data-i18n="login_register">Regístrate gratis</a>
                 </div>
             </div>
 
@@ -143,8 +144,50 @@
 
 </main>
 
+<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad">♿</div>
+<div id="a11y-panel" style="display:none; position: fixed; background: var(--card-bg); padding: 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 1000; border: 1px solid var(--border-color);">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+        <span style="font-size:1.5rem;">⚙️</span>
+        <h4 style="margin:0; color:var(--brand-dark);" data-i18n="a11y_title">Herramientas de Accesibilidad</h4>
+    </div>
+    
+    <label style="display:block; margin-bottom:15px;">
+        <span style="font-weight:600; display:block; margin-bottom:5px;" data-i18n="a11y_lang">🌐 Idioma</span>
+        <div style="display:flex; gap:10px;">
+            <button id="lang-es" class="btn btn-full active" style="margin:0; padding:8px;" onclick="setLanguage('es')">Español</button>
+            <button id="lang-en" class="btn btn-secondary btn-full" style="margin:0; padding:8px;" onclick="setLanguage('en')">English</button>
+        </div>
+    </label>
+
+    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:600;">
+        <span data-i18n="a11y_daltonism">👁️ Modo Daltonismo</span>
+        <input type="checkbox" id="daltonism-toggle" onchange="toggleDaltonism()" style="width:20px; min-height:20px; margin:0;"> 
+    </label>
+
+    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:600;">
+        <span data-i18n="a11y_audio">🔊 Guía Auditiva</span>
+        <input type="checkbox" id="audio-toggle" onchange="toggleAudioGuide()" style="width:20px; min-height:20px; margin:0;"> 
+    </label>
+
+    <label style="display:block; margin-bottom:15px; font-weight:600;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span data-i18n="a11y_font">T Tamaño de Fuente</span>
+            <span id="fs-val" style="color:var(--text-muted); font-weight:400;">16px</span>
+        </div>
+        <input type="range" id="fs-toggle" min="14" max="22" value="16" onchange="changeFontSize()" style="width:100%; min-height:auto; padding:0;">
+    </label>
+
+    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:600;">
+        <span data-i18n="a11y_highlight">🔗 Resaltar Enlaces</span>
+        <input type="checkbox" id="hl-toggle" onchange="toggleHighlightLinks()" style="width:20px; min-height:20px; margin:0;"> 
+    </label>
+
+    <p style="font-size:0.8rem; color:var(--text-muted); text-align:center; margin-top:20px;" data-i18n="a11y_footer">Estos ajustes se guardarán para tu próxima visita.</p>
+</div>
+
 <script src="scripts/firebase_config.js"></script> 
 <script src="scripts/auth.js"></script>
+<script src="scripts/accessibility.js"></script>
 <script>
     let globalActionCode = null;
 

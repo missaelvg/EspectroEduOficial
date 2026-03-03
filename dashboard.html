@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard - EspectroEdu</title>
 <link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -24,6 +25,23 @@
     </div>
 </main>
 
+<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad">♿</div>
+<div id="a11y-panel" class="hidden">
+    <h4 style="margin-top:0;">Herramientas de Accesibilidad</h4>
+    <label style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <input type="checkbox" id="hc-toggle" onchange="toggleHighContrast()" style="width:auto; min-height:auto;"> 
+        Alto Contraste
+    </label>
+    <label style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <input type="checkbox" id="hl-toggle" onchange="toggleHighlightLinks()" style="width:auto; min-height:auto;"> 
+        Resaltar Enlaces
+    </label>
+    <label style="display:block; margin-bottom:10px;">
+        Tamaño de Fuente: <span id="fs-val">16px</span>
+        <input type="range" id="fs-toggle" min="14" max="24" value="16" onchange="changeFontSize()" style="width:100%; min-height:auto; padding:0;">
+    </label>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
@@ -34,12 +52,10 @@
 <script src="scripts/dashboard_views.js"></script>
 
 <script>
-    // Inicialización del Worker de PDF.js
     if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     }
 
-    // Inicialización del Dashboard según el rol
     async function initDashboard() {
         const mainContent = document.getElementById('main-content');
         try {
@@ -53,20 +69,31 @@
             } else if (user.role === 'coordinador') {
                 renderTutorLayout(user); 
             } else {
-                mainContent.innerHTML = `
-                    <h2>Rol no reconocido</h2>
-                    <p>Tu cuenta no tiene un rol válido asignado. Por favor, contacta al administrador.</p>
-                `;
+                mainContent.innerHTML = `<h2>Rol no reconocido</h2><p>Tu cuenta no tiene un rol válido asignado. Por favor, contacta al administrador.</p>`;
             }
         } catch (error) {
             console.error("Fallo crítico en la inicialización:", error);
-            mainContent.innerHTML = `
-                <h2 style="color: red;">Error al Cargar la Aplicación</h2>
-                <p>No se pudo conectar con los servicios. Verifica tu conexión a internet.</p>
-            `;
+            mainContent.innerHTML = `<h2 style="color: red;">Error al Cargar la Aplicación</h2><p>No se pudo conectar con los servicios. Verifica tu conexión a internet.</p>`;
         }
     }
     
+    // Funciones de Accesibilidad
+    function toggleA11yMenu() {
+        const panel = document.getElementById('a11y-panel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+    function toggleHighContrast() {
+        document.body.classList.toggle('high-contrast');
+    }
+    function toggleHighlightLinks() {
+        document.body.classList.toggle('highlight-links');
+    }
+    function changeFontSize() {
+        const size = document.getElementById('fs-toggle').value;
+        document.documentElement.style.setProperty('--font-size-base', size + 'px');
+        document.getElementById('fs-val').innerText = size + 'px';
+    }
+
     initDashboard();
 </script>
 </body>

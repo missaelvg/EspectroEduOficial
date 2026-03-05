@@ -1,10 +1,10 @@
 /* styles.css - Diseño Inclusivo EspectroEdu (WCAG 2.2) y Login Moderno */
 
 :root {
-    /* Paleta de colores UI Kit */
-    --primary-color: #27376c;       
-    --primary-hover: #1e2a52;
-    --brand-dark: #1e2852;          
+    /* Paleta de colores UI Kit basada en PDF EspectroEdu */
+    --primary-color: #1A237E;       
+    --primary-hover: #121858;
+    --brand-dark: #1A237E;          
     --accent-color: #00695C;
     --spectrum-gradient: linear-gradient(90deg, #f03e3e, #f59f00, #37b24d, #1c7ed6, #7048e8);
     --bg-color: #F4F7F9; 
@@ -13,7 +13,7 @@
     --text-muted: #64748b;
     --border-color: #e2e8f0;
     
-    /* Colores Semánticos */
+    /* Colores Semánticos según PDF */
     --success-color: #2E7D32;
     --danger-color: #D32F2F;
     --warning-color: #DD3322;
@@ -87,7 +87,7 @@ input, select, textarea {
     transition: all 0.2s; 
     min-height: 48px; 
 }
-input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(39, 55, 108, 0.15); }
+input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.15); }
 label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin-left: 4px; margin-bottom:0; display: block; }
 
 /* BOTONES */
@@ -159,8 +159,8 @@ main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
 body.login-page {
     margin: 0;
     padding: 0;
-    background-color: #243464; /* Azul profundo base */
-    background-image: radial-gradient(circle at 50% 50%, #2a3d75 0%, #1c2752 100%);
+    background-color: var(--brand-dark); 
+    background-image: radial-gradient(circle at 50% 50%, #2a3d75 0%, #1A237E 100%);
     font-family: 'Noto Sans', sans-serif;
     height: 100vh;
     overflow: hidden;
@@ -272,10 +272,9 @@ body.login-page {
     display: block;
 }
 
-/* Configuraciones de Inputs Generales (Normales, sin ícono) */
 .form-card input, .form-card select {
     width: 100%;
-    padding: 14px 16px; /* Padding normalizado para que el texto empiece bien a la izquierda */
+    padding: 14px 16px; 
     margin-top: 0;
     margin-bottom: 20px;
     border: 1px solid #cbd5e1;
@@ -290,164 +289,45 @@ body.login-page {
 .form-card input:focus, .form-card select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(39, 55, 108, 0.15);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.15);
 }
 
-.form-card input::placeholder {
-    color: #cbd5e1;
-}
+.form-card input::placeholder { color: #cbd5e1; }
 
-/* Inputs con Iconos Integrados (Solución a la alineación) */
-.input-with-icon {
-    position: relative;
-    width: 100%;
-    margin-bottom: 20px; /* Movimos el margen hacia el contenedor para que calcule el 50% perfecto */
-}
+.input-with-icon { position: relative; width: 100%; margin-bottom: 20px; }
+.input-with-icon input { padding-left: 45px !important; margin-bottom: 0 !important; }
+.input-with-icon svg.left-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
 
-.input-with-icon input {
-    padding-left: 45px !important; /* Espacio extra SOLO para los que tienen ícono */
-    margin-bottom: 0 !important; /* Quitamos el margen interior para no desfasar el centro */
-}
+.password-wrapper input { padding-right: 45px !important; }
+input[type="password"]::-ms-reveal, input[type="password"]::-ms-clear, input[type="password"]::-webkit-contacts-auto-fill-button { display: none !important; }
+.toggle-password { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; display: flex; transition: color 0.2s; }
+.toggle-password:hover { color: var(--primary-color); }
 
-.input-with-icon svg.left-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    pointer-events: none; 
-}
+.input-row { display: flex; gap: 15px; width: 100%; }
 
-/* Controles de Contraseña */
-.password-wrapper input {
-    padding-right: 45px !important; /* Espacio extra a la derecha para que el texto no pise el ojo */
-}
+.forgot-container { text-align: right; margin-top: -10px; margin-bottom: 25px; }
+.forgot-link { color: var(--primary-color); font-size: 0.85rem; font-weight: 700; text-decoration: none; }
+.forgot-link:hover { text-decoration: underline; }
 
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear,
-input[type="password"]::-webkit-contacts-auto-fill-button {
-    display: none !important;
-}
+.form-card .btn-full { background: var(--primary-color); color: white; border: none; padding: 16px; font-weight: 700; width: 100%; border-radius: 10px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease; }
+.form-card .btn-full:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
 
-.toggle-password {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%); /* Ahora esto quedará perfectamente alineado también */
-    cursor: pointer;
-    color: #94a3b8;
-    display: flex;
-    transition: color 0.2s;
-}
+.form-footer { text-align: center; margin-top: 25px; font-size: 0.9rem; color: #64748b; }
+.form-footer a { color: var(--primary-color); font-weight: 700; text-decoration: none; margin-left: 5px; }
+.form-footer a:hover { text-decoration: underline; }
 
-.toggle-password:hover {
-    color: var(--primary-color);
-}
-
-.input-row {
-    display: flex;
-    gap: 15px;
-    width: 100%;
-}
-
-/* Links y Botones */
-.forgot-container {
-    text-align: right;
-    margin-top: -10px;
-    margin-bottom: 25px;
-}
-
-.forgot-link {
-    color: var(--primary-color);
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.forgot-link:hover {
-    text-decoration: underline;
-}
-
-.form-card .btn-full {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 16px;
-    font-weight: 700;
-    width: 100%;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.form-card .btn-full:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-}
-
-.form-footer {
-    text-align: center;
-    margin-top: 25px;
-    font-size: 0.9rem;
-    color: #64748b;
-}
-
-.form-footer a {
-    color: var(--primary-color);
-    font-weight: 700;
-    text-decoration: none;
-    margin-left: 5px;
-}
-
-.form-footer a:hover {
-    text-decoration: underline;
-}
-
-/* RESPONSIVO PARA TELÉFONOS - LOGIN */
+/* RESPONSIVO */
 @media (max-width: 900px) {
-    body.login-page {
-        overflow: auto; 
-        height: auto;
-    }
-    
-    .login-fullscreen-container {
-        flex-direction: column;
-        height: auto;
-        min-height: 100vh;
-        gap: 2rem;
-        padding: 1.5rem;
-    }
-
-    .welcome-side {
-        flex: none;
-        align-items: center;
-        text-align: center;
-        padding: 2rem 1rem;
-    }
-
+    body.login-page { overflow: auto; height: auto; }
+    .login-fullscreen-container { flex-direction: column; height: auto; min-height: 100vh; gap: 2rem; padding: 1.5rem; }
+    .welcome-side { flex: none; align-items: center; text-align: center; padding: 2rem 1rem; }
     .welcome-text { display: none; }
-
-    .forms-side {
-        flex: none;
-        width: 100%;
-    }
-    
-    .form-card {
-        padding: 30px 20px;
-    }
-
-    .input-row {
-        flex-direction: column; 
-        gap: 0;
-    }
+    .forms-side { flex: none; width: 100%; }
+    .form-card { padding: 30px 20px; }
+    .input-row { flex-direction: column; gap: 0; }
 }
 
-/* =========================================
-   ACCESIBILIDAD: DALTONISMO Y GUÍA AUDITIVA
-   ========================================= */
-
+/* ACCESIBILIDAD: DALTONISMO Y GUÍA AUDITIVA */
 body.daltonism-mode {
     --primary-color: #0077BB;
     --brand-dark: #0077BB;
@@ -457,19 +337,9 @@ body.daltonism-mode {
     --accent-color: #CC7722;
 }
 
-body.daltonism-mode * {
-    border-width: 3px !important;
-}
-
-body.daltonism-mode .card, 
-body.daltonism-mode .drop-zone {
-    background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 8px);
-}
-
-html.audio-guide-active {
-    cursor: help;
-}
-
+body.daltonism-mode * { border-width: 3px !important; }
+body.daltonism-mode .card, body.daltonism-mode .drop-zone { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 8px); }
+html.audio-guide-active { cursor: help; }
 .speaking-indicator {
     outline: 4px solid var(--warning-color) !important;
     outline-offset: 2px;

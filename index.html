@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bienvenido - EspectroEdu</title>
 <link rel="icon" type="image/png" href="logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -52,7 +52,7 @@
                     <a href="#" onclick="showRecovery()" class="forgot-link" data-i18n="login_forgot">¿Olvidaste tu contraseña?</a>
                 </div>
 
-                <button onclick="handleLogin()" class="btn-full" data-i18n="login_enter">Iniciar Sesión</button>
+                <button onclick="handleLogin()" class="btn-full" data-i18n="login_enter">ENTRAR</button>
                 
                 <div class="form-footer">
                     <span data-i18n="login_no_account">¿No tienes cuenta?</span> <a href="#" onclick="showRegister()" data-i18n="login_register">Regístrate gratis</a>
@@ -62,7 +62,7 @@
             <div id="registerForm" style="display:none;">
                 <div class="form-header">
                     <h2>Crear Cuenta</h2>
-                    <p class="form-instruction">Únete a nuestra plataforma educativa</p>
+                    <p class="form-instruction">Completa tus datos para unirte</p>
                 </div>
                 
                 <div class="input-row">
@@ -113,7 +113,7 @@
                     </span>
                 </div>
                 
-                <button onclick="handleRegister()" class="btn-full">Crear Cuenta</button>
+                <button onclick="handleRegister()" class="btn-full">REGISTRARME</button>
                 
                 <div class="form-footer">
                     ¿Ya tienes cuenta? <a href="#" onclick="showLogin()">Inicia Sesión</a>
@@ -123,11 +123,11 @@
             <div id="recoveryForm" style="display:none;">
                 <div class="form-header">
                     <h2>Recuperar Acceso</h2>
-                    <p class="form-instruction">Ingresa tu correo y te enviaremos un enlace seguro para restablecer tu contraseña.</p>
+                    <p class="form-instruction">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
                 </div>
                 <label>Correo Electrónico</label>
                 <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com">
-                <button onclick="handleRecovery()" class="btn-full">Enviar Enlace</button>
+                <button onclick="handleRecovery()" class="btn-full">ENVIAR ENLACE</button>
                 
                 <div class="form-footer">
                     <a href="#" onclick="showLogin()">← Volver al inicio</a>
@@ -146,7 +146,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </span>
                 </div>
-                <button onclick="handleFinalizeReset()" class="btn-full">Guardar Contraseña</button>
+                <button onclick="handleFinalizeReset()" class="btn-full">GUARDAR CONTRASEÑA</button>
             </div>
 
         </div>

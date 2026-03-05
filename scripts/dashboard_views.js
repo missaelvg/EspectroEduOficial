@@ -79,7 +79,7 @@ function renderDoctorLayout(user) {
 
 function renderStudentLayout(user) {
     AppState.user = user;
-    document.getElementById('header-title').textContent = `Alumno: ${user.username}`;
+    document.getElementById('header-title').textContent = `${user.username}`;
     const navbar = document.getElementById('navbar');
     navbar.innerHTML = `
         <button class="active" onclick="setActive(this); renderStudentDashboard();" data-i18n="nav_home">Inicio</button>
@@ -117,7 +117,7 @@ function setActive(button) {
 
 async function renderDoctorDashboard() {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<p>Cargando métricas y tablero visual...</p>`;
+    div.innerHTML = `<p data-i18n="loading">Cargando métricas y tablero visual...</p>`;
     
     try {
         const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
@@ -172,7 +172,7 @@ async function renderDoctorDashboard() {
                 html += `<div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h4 style="margin:0;">${p.title}</h4>
-                        <span class="badge badge-info">${count} alumnos inscritos</span>
+                        <span class="badge badge-info">${count} alumnos</span>
                     </div>
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-secondary" onclick="renderDoctorGradesView()">Ver Calificaciones</button>
@@ -188,7 +188,7 @@ async function renderDoctorDashboard() {
 
 function renderCreatePracticeView() {
     document.getElementById('main-content').innerHTML = `
-        <h2>Crear Nueva Práctica</h2>
+        <h2 data-i18n="view_create_title">Crear Nueva Práctica</h2>
         <div class="card">
             <label>Título de la Práctica</label>
             <input type="text" id="practiceTitle" placeholder="Ej. Óptica Geométrica">
@@ -215,6 +215,7 @@ function renderCreatePracticeView() {
         
     setupDragAndDrop('slidesFile', 'dz-slides');
     setupDragAndDrop('standardFile', 'dz-standard');
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 function setupDragAndDrop(inputId, zoneId) {
@@ -285,7 +286,7 @@ async function renderManageStudentsView() {
     const groups = [...new Set(AppState.users.map(u => u.grupo).filter(g => g))];
 
     document.getElementById('main-content').innerHTML = `
-        <h2>Gestionar Alumnos</h2>
+        <h2 data-i18n="view_manage_title">Gestionar Alumnos</h2>
         <div class="card" style="display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
             <input type="text" id="sSearch" placeholder="Buscar alumno..." onkeyup="hSearch()" style="flex:1; min-width:250px; margin:0;">
             <select id="fGroup" onchange="hSearch()" style="width:auto; margin:0;">
@@ -312,9 +313,10 @@ async function renderManageStudentsView() {
                 <div id="batchLog" style="margin-left:auto; font-weight:600;"></div>
             </div>
         </div>
-        <div id="sList">Cargando...</div>`;
+        <div id="sList" data-i18n="loading">Cargando...</div>`;
     
     rList(AppState.users);
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 function rList(list) {
@@ -397,10 +399,10 @@ async function handleDeletePractice(pid) { if(confirm("¿Estás seguro de borrar
 async function renderDoctorGradesView() {
     document.getElementById('main-content').innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>Calificaciones por Práctica</h2>
+            <h2 data-i18n="view_grades_title">Calificaciones por Práctica</h2>
             <button class="btn btn-secondary" onclick="window.print()">Exportar PDF</button>
         </div>
-        <div id="grades-by-practice">Cargando...</div>`;
+        <div id="grades-by-practice" data-i18n="loading">Cargando...</div>`;
         
     const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
     const uMap = new Map(users.map(u => [u.uid, u]));
@@ -453,6 +455,7 @@ async function renderDoctorGradesView() {
         html += `</div>`;
     }
     document.getElementById('grades-by-practice').innerHTML = html;
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 // ==================================================================================
@@ -488,7 +491,7 @@ function renderStudentDashboard() {
 
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
-    div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list">Cargando...</div>';
+    div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list" data-i18n="loading">Cargando...</div>';
     try {
         const practices = await getPractices(); 
         AppState.practices = practices; 
@@ -548,7 +551,7 @@ async function handleReportUpload(pid) {
 
 async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
-    div.innerHTML = '<h2>Actividades Complementarias</h2><div id="act-list">Cargando...</div>';
+    div.innerHTML = '<h2>Actividades Complementarias</h2><div id="act-list" data-i18n="loading">Cargando...</div>';
     try {
         if (shouldFetch) { AppState.practices = await getPractices(); }
         const myP = Object.values(AppState.practices).filter(p => p.students && p.students[AppState.user.uid]);
@@ -693,7 +696,7 @@ async function handleCrosswordSubmit(e, pid) {
 }
 
 async function renderStudentGradesView() {
-    document.getElementById('main-content').innerHTML = '<h2>Mis Calificaciones Históricas</h2><div id="grades-list">Cargando...</div>';
+    document.getElementById('main-content').innerHTML = '<h2>Mis Calificaciones Históricas</h2><div id="grades-list" data-i18n="loading">Cargando...</div>';
     const practices = await getPractices(); const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
     if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<div class="card"><p>Aún no tienes calificaciones registradas.</p></div>'; return; }
     let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica evaluada</th><th>Reporte IA (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Ponderación Final</th><th>Fecha Fin</th></tr></thead><tbody>`;
@@ -718,7 +721,7 @@ async function updProf(){ await updateUserProfile(AppState.user.uid, {username: 
 async function renderTutorDashboard() {
     const prefix = AppState.user.title || 'Coord.';
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2>Tablero de Control Académico</h2><div id="tutor-stats">Calculando métricas...</div>`;
+    div.innerHTML = `<h2>Tablero de Control Académico</h2><div id="tutor-stats" data-i18n="loading">Calculando métricas...</div>`;
     
     try {
         const stats = await getGlobalStats();
@@ -820,7 +823,7 @@ async function getGlobalStats() {
 }
 
 async function renderTutorGroupsView() {
-    document.getElementById('main-content').innerHTML = `<h2>Detalle por Grupos</h2><div id="groups-detail">Cargando...</div>`;
+    document.getElementById('main-content').innerHTML = `<h2>Detalle por Grupos</h2><div id="groups-detail" data-i18n="loading">Cargando...</div>`;
     const stats = await getGlobalStats();
     const groups = Object.values(stats.groupsData);
     
@@ -855,7 +858,7 @@ async function renderTutorGroupsView() {
 }
 
 async function renderTutorAuditView() {
-    document.getElementById('main-content').innerHTML = `<h2>Auditoría de Prácticas</h2><p style="color:var(--text-muted);">Vista de solo lectura del progreso académico.</p><div id="audit-list">Cargando...</div>`;
+    document.getElementById('main-content').innerHTML = `<h2>Auditoría de Prácticas</h2><p style="color:var(--text-muted);">Vista de solo lectura del progreso académico.</p><div id="audit-list" data-i18n="loading">Cargando...</div>`;
     
     const practices = await getPractices(); 
     const list = Object.values(practices);

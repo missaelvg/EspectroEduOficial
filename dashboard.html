@@ -20,12 +20,12 @@
     <button id="logoutButton" onclick="logoutUser()" data-i18n="logout">Cerrar Sesión</button>
 </header>
 <main>
-    <div id="main-content">
+    <div id="main-content" data-i18n="loading">
         Cargando...
     </div>
 </main>
 
-<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: var(--shadow-md); border: 2px solid white; transition: 0.2s;">♿</div>
+<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: var(--shadow-md); border: 2px solid white; transition: 0.2s;">⚙️</div>
 
 <div id="a11y-panel" style="display:none; position: fixed; bottom: 90px; right: 20px; width: 320px; max-height: 80vh; overflow-y: auto; background: var(--card-bg); padding: 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 1000; border: 1px solid var(--border-color);">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
@@ -53,7 +53,7 @@
 
     <label style="display:block; margin-bottom:15px; font-weight:600;">
         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <span data-i18n="a11y_font">T Tamaño de Fuente</span>
+            <span data-i18n="a11y_font">Tamaño de Fuente</span>
             <span id="fs-val" style="color:var(--text-muted); font-weight:400;">16px</span>
         </div>
         <input type="range" id="fs-toggle" min="14" max="22" value="16" onchange="changeFontSize()" style="width:100%; min-height:auto; padding:0;">

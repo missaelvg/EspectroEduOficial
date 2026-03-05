@@ -20,9 +20,9 @@
         <div class="brand-content">
             <img src="logo.png" alt="Logo EspectroEdu" class="logo-img">
             <h1>EspectroEdu</h1>
-            <p class="subtitle">Laboratorios de Óptica</p>
+            <p class="subtitle" data-i18n="app_subtitle">Laboratorios de Óptica</p>
             <div class="welcome-text">
-                <p>Plataforma inteligente para la gestión, análisis y aprendizaje en óptica biomédica.</p>
+                <p data-i18n="app_desc">Plataforma inteligente para la gestión, análisis y aprendizaje en óptica biomédica.</p>
             </div>
             <div class="spectrum-bar"></div>
         </div>
@@ -40,7 +40,7 @@
                 <label data-i18n="login_email">Correo Electrónico</label>
                 <div class="input-with-icon">
                     <svg class="left-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    <input type="email" id="loginEmail" placeholder="ejemplo@espectro.edu">
+                    <input type="email" id="loginEmail" placeholder="ejemplo@espectro.edu" data-i18n="email_ph">
                 </div>
                 
                 <label data-i18n="login_pass">Contraseña</label>
@@ -65,46 +65,46 @@
 
             <div id="registerForm" style="display:none;">
                 <div class="form-header">
-                    <h2>Crear Cuenta</h2>
-                    <p class="form-instruction">Completa tus datos para unirte</p>
+                    <h2 data-i18n="reg_title">Crear Cuenta</h2>
+                    <p class="form-instruction" data-i18n="reg_desc">Completa tus datos para unirte</p>
                 </div>
                 
                 <div class="input-row">
                     <div style="flex: 1;">
-                        <label>Soy:</label>
+                        <label data-i18n="role_label">Soy:</label>
                         <select id="regRole" onchange="handleRoleChange()">
-                            <option value="alumno">Alumno</option>
-                            <option value="doctor">Doctor / Docente</option>
-                            <option value="coordinador">Coordinador / Tutor</option> 
+                            <option value="alumno" data-i18n="role_student">Alumno</option>
+                            <option value="doctor" data-i18n="role_doctor">Doctor / Docente</option>
+                            <option value="coordinador" data-i18n="role_tutor">Coordinador / Tutor</option> 
                         </select>
                     </div>
                     <div id="titleContainer" style="display:none; flex: 1;">
-                        <label id="titleLabel">Cargo:</label>
+                        <label id="titleLabel" data-i18n="title_label">Cargo:</label>
                         <select id="regTitle"></select>
                     </div>
                 </div>
 
-                <label>Nombre Completo</label>
-                <input type="text" id="regName" placeholder="Tu nombre" required>
+                <label data-i18n="name_label">Nombre Completo</label>
+                <input type="text" id="regName" placeholder="Tu nombre" data-i18n="name_ph" required>
                 
                 <div class="input-row">
                     <div style="flex: 1;">
-                        <label>Matrícula / ID</label>
-                        <input type="text" id="regMatricula" placeholder="Tu matrícula" required>
+                        <label data-i18n="id_label">Matrícula / ID</label>
+                        <input type="text" id="regMatricula" placeholder="Tu matrícula" data-i18n="id_ph" required>
                     </div>
                     <div id="groupContainer" style="flex: 1;">
-                        <label>Grupo</label>
-                        <input type="text" id="regGroup" placeholder="Ej. 8A" required>
+                        <label data-i18n="group_label">Grupo</label>
+                        <input type="text" id="regGroup" placeholder="Ej. 8A" data-i18n="group_ph" required>
                     </div>
                 </div>
                 
-                <label>Correo Institucional</label>
+                <label data-i18n="email_label">Correo Institucional</label>
                 <div class="input-with-icon">
                     <svg class="left-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    <input type="email" id="regEmail" placeholder="ejemplo@espectro.edu" required>
+                    <input type="email" id="regEmail" placeholder="ejemplo@espectro.edu" data-i18n="email_ph" required>
                 </div>
                 
-                <label>Contraseña</label>
+                <label data-i18n="pass_label">Contraseña</label>
                 <div class="input-with-icon password-wrapper">
                     <svg class="left-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                     <input type="password" id="regPassword" placeholder="••••••••" required>
@@ -113,60 +113,60 @@
                     </span>
                 </div>
 
-                <label>Confirmar Contraseña</label>
+                <label data-i18n="pass_confirm_label">Confirmar Contraseña</label>
                 <div class="input-with-icon password-wrapper">
                     <svg class="left-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    <input type="password" id="regPasswordConfirm" placeholder="Repite la contraseña" required>
+                    <input type="password" id="regPasswordConfirm" placeholder="Repite la contraseña" data-i18n="pass_confirm_ph" required>
                     <span class="toggle-password" onclick="togglePassword('regPasswordConfirm', this)">
                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </span>
                 </div>
                 
-                <button onclick="handleRegister()" class="btn-full" style="margin-top: 15px;">REGISTRARME</button>
+                <button onclick="handleRegister()" class="btn-full" style="margin-top: 15px;" data-i18n="btn_register">REGISTRARME</button>
                 
                 <div class="form-footer">
-                    ¿Ya tienes cuenta? <a href="#" onclick="showLogin()">Inicia Sesión</a>
+                    <span data-i18n="already_account">¿Ya tienes cuenta?</span> <a href="#" onclick="showLogin()" data-i18n="login_link">Inicia Sesión</a>
                 </div>
             </div>
 
             <div id="recoveryForm" style="display:none;">
                 <div class="form-header">
-                    <h2>Recuperar Acceso</h2>
-                    <p class="form-instruction">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
+                    <h2 data-i18n="rec_title">Recuperar Acceso</h2>
+                    <p class="form-instruction" data-i18n="rec_desc">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
                 </div>
-                <label>Correo Electrónico</label>
+                <label data-i18n="login_email">Correo Electrónico</label>
                 <div class="input-with-icon">
                     <svg class="left-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com">
+                    <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com" data-i18n="email_ph">
                 </div>
-                <button onclick="handleRecovery()" class="btn-full">ENVIAR ENLACE</button>
+                <button onclick="handleRecovery()" class="btn-full" data-i18n="rec_btn">ENVIAR ENLACE</button>
                 
                 <div class="form-footer">
-                    <a href="#" onclick="showLogin()">← Volver al inicio</a>
+                    <a href="#" onclick="showLogin()" data-i18n="rec_back">← Volver al inicio</a>
                 </div>
             </div>
 
             <div id="newPasswordForm" style="display:none;">
                 <div class="form-header">
-                    <h2>Nueva Contraseña</h2>
-                    <p class="form-instruction">Ingresa tu nueva contraseña segura.</p>
+                    <h2 data-i18n="new_pass_title">Nueva Contraseña</h2>
+                    <p class="form-instruction" data-i18n="new_pass_desc">Ingresa tu nueva contraseña segura.</p>
                 </div>
-                <label>Nueva Contraseña</label>
+                <label data-i18n="new_pass_title">Nueva Contraseña</label>
                 <div class="input-with-icon password-wrapper">
                     <svg class="left-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    <input type="password" id="newPassFinal" placeholder="Nueva contraseña" required>
+                    <input type="password" id="newPassFinal" placeholder="Nueva contraseña" data-i18n="pass_confirm_ph" required>
                     <span class="toggle-password" onclick="togglePassword('newPassFinal', this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </span>
                 </div>
-                <button onclick="handleFinalizeReset()" class="btn-full">GUARDAR CONTRASEÑA</button>
+                <button onclick="handleFinalizeReset()" class="btn-full" data-i18n="new_pass_btn">GUARDAR CONTRASEÑA</button>
             </div>
 
         </div>
     </section>
 </main>
 
-<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 2px solid white; transition: 0.2s;">♿</div>
+<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 2px solid white; transition: 0.2s;">⚙️</div>
 
 <div id="a11y-panel" style="display:none; position: fixed; bottom: 90px; right: 20px; width: 320px; max-height: 80vh; overflow-y: auto; background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 1000; border: 1px solid var(--border-color);">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
@@ -194,7 +194,7 @@
 
     <label style="display:block; margin-bottom:15px; font-weight:600;">
         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <span data-i18n="a11y_font">T Tamaño de Fuente</span>
+            <span data-i18n="a11y_font">Tamaño de Fuente</span>
             <span id="fs-val" style="color:var(--text-muted); font-weight:400;">16px</span>
         </div>
         <input type="range" id="fs-toggle" min="14" max="22" value="16" onchange="changeFontSize()" style="width:100%; min-height:auto; padding:0;">

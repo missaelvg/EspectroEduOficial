@@ -181,40 +181,41 @@ main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
 }
 
 /* =========================================
-   ESTILOS PARA LA PANTALLA DE LOGIN / REGISTRO
+   ESTILOS PARA LA PANTALLA DE LOGIN / REGISTRO (MODERNIZADO)
    ========================================= */
 
-body.login-page { 
-    background-color: #0f172a; 
+body.login-page {
+    background-color: #f8fafc; /* Fondo más limpio y moderno */
     display: flex;
-    justify-content: center; 
-    align-items: center; 
-    min-height: 100vh; 
-    padding: 20px; 
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    margin: 0;
 }
 
-.login-container { 
-    display: flex; 
-    width: 100%; 
-    max-width: 1100px; 
-    background: var(--card-bg); 
-    border-radius: var(--radius-md); 
-    box-shadow: var(--shadow-md); 
-    overflow: hidden; 
+.login-container {
+    display: flex;
+    width: 100%;
+    max-width: 1050px;
+    background: #ffffff;
+    border-radius: 24px; /* Bordes suaves estilo Figma */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08); /* Sombra elegante */
+    overflow: hidden;
     min-height: 600px;
 }
 
 /* Identidad Visual - Lado Izquierdo */
-.welcome-side { 
-    flex: 1; 
-    background-color: var(--brand-dark); 
-    color: white; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: center; 
-    padding: 3rem; 
-    text-align: center; 
+.welcome-side {
+    flex: 1;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    text-align: center;
 }
 
 .brand-content {
@@ -223,115 +224,169 @@ body.login-page {
 
 .logo-img {
     width: 120px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); /* Le da volumen al logo */
 }
 
 .welcome-side h1 {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 .subtitle {
     font-size: 1.2rem;
-    opacity: 0.8;
-    margin-top: 5px;
+    opacity: 0.9;
+    margin-top: 8px;
+    font-weight: 500;
 }
 
-.spectrum-bar { 
-    height: 6px; 
-    width: 80px; 
-    background: var(--spectrum-gradient); 
-    border-radius: 10px; 
-    margin: 20px auto; 
+.spectrum-bar {
+    height: 6px;
+    width: 60px;
+    background: white;
+    border-radius: 10px;
+    margin: 24px auto;
+    opacity: 0.5;
 }
 
 .welcome-text p {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     line-height: 1.6;
+    opacity: 0.9;
 }
 
 /* Formularios - Lado Derecho */
-.forms-side { 
-    flex: 1.2; 
-    padding: 3rem; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    background-color: var(--card-bg);
+.forms-side {
+    flex: 1.2;
+    padding: 4rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
 }
 
 .form-card {
     width: 100%;
-    max-width: 450px;
+    max-width: 400px;
 }
 
 .form-card h2 {
     color: var(--brand-dark);
-    font-size: 2rem;
-    margin-bottom: 5px;
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 .form-instruction {
     color: var(--text-muted);
-    margin-bottom: 25px;
+    margin-bottom: 32px;
+    font-size: 1.05rem;
 }
 
-/* Inputs y Botones Interactivos */
+/* Inputs Modernizados */
+.form-card label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.form-card input, .form-card select {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background-color: #f8fafc;
+    font-size: 1rem;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+}
+
+.form-card input:focus, .form-card select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.1); /* Efecto de foco moderno */
+}
+
+/* Contenedor de la contraseña y solución del doble ojo */
 .password-wrapper {
     position: relative;
     display: flex;
     align-items: center;
+    margin-bottom: 20px;
 }
 
 .password-wrapper input {
-    padding-right: 45px;
+    margin-bottom: 0; /* Anula el margen inferior para que lo maneje el wrapper */
+    padding-right: 50px; /* Espacio para que el texto no pise el ojo */
 }
 
 .toggle-password {
     position: absolute;
-    right: 15px;
-    top: 20px;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
-    color: var(--text-muted);
-    transition: 0.2s;
+    color: #94a3b8;
+    transition: color 0.2s;
+    display: flex;
 }
 
 .toggle-password:hover {
     color: var(--primary-color);
 }
 
+/* AQUÍ SE ELIMINA EL OJO NATIVO DEL NAVEGADOR */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-contacts-auto-fill-button {
+    display: none !important;
+}
+
 .forgot-link {
     color: var(--primary-color);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     text-decoration: none;
     font-weight: 600;
     display: inline-block;
-    margin-bottom: 20px;
+    margin-top: 5px;
+    margin-bottom: 24px;
+    transition: color 0.2s;
 }
 
-.btn-full { 
-    background: var(--primary-color); 
-    color: white; 
-    border: none; 
-    padding: 14px; 
-    font-weight: 700; 
-    width: 100%; 
-    border-radius: var(--radius-sm); 
-    cursor: pointer; 
-    font-size: 1rem;
-    min-height: 48px; 
-    transition: 0.2s;
-    margin-top: 10px;
+.forgot-link:hover {
+    color: var(--accent-color);
+}
+
+.btn-full {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 16px;
+    font-weight: 700;
+    width: 100%;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.2); /* Sombra en el botón */
 }
 
 .btn-full:hover {
     background: var(--primary-hover);
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(26, 35, 126, 0.3);
 }
 
 .form-footer {
     text-align: center;
-    margin-top: 25px;
+    margin-top: 32px;
     font-size: 0.95rem;
     color: var(--text-muted);
 }
@@ -340,18 +395,39 @@ body.login-page {
     color: var(--primary-color);
     font-weight: 700;
     text-decoration: none;
+    transition: color 0.2s;
 }
 
-/* Responsividad para pantallas móviles */
+.form-footer a:hover {
+    color: var(--accent-color);
+}
+
+/* Responsividad para Teléfonos */
 @media (max-width: 768px) {
+    body.login-page {
+        padding: 0;
+        background: #ffffff;
+    }
+    
     .login-container {
         flex-direction: column;
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
     }
+
     .welcome-side {
-        padding: 2rem;
+        padding: 3rem 2rem;
+        flex: none; /* Evita que crezca de más en móvil */
     }
+
     .forms-side {
-        padding: 2rem;
+        padding: 3rem 2rem;
+        align-items: flex-start;
+    }
+    
+    .form-card h2 {
+        font-size: 1.8rem;
     }
 }
 

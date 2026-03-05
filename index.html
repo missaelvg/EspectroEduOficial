@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bienvenido - EspectroEdu</title>
 <link rel="icon" type="image/png" href="logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -15,7 +15,7 @@
 </head>
 <body class="login-page">
 
-<main class="login-container">
+<main class="login-fullscreen-container">
     <section class="welcome-side">
         <div class="brand-content">
             <img src="logo.png" alt="Logo EspectroEdu" class="logo-img">
@@ -28,12 +28,14 @@
         </div>
     </section>
 
-    <section class="forms-side" style="justify-content: normal;">
-        <div class="form-card" style="margin: auto;">
+    <section class="forms-side">
+        <div class="form-card">
             
             <div id="loginForm">
-                <h2 data-i18n="login_welcome">¡Hola de nuevo!</h2>
-                <p class="form-instruction" data-i18n="login_instruction">Ingresa tus credenciales para acceder</p>
+                <div class="form-header">
+                    <h2 data-i18n="login_welcome">¡Hola de nuevo!</h2>
+                    <p class="form-instruction" data-i18n="login_instruction">Ingresa tus credenciales para acceder</p>
+                </div>
                 
                 <label data-i18n="login_email">Correo Electrónico</label>
                 <input type="email" id="loginEmail" placeholder="ejemplo@espectro.edu">
@@ -46,11 +48,11 @@
                     </span>
                 </div>
                 
-                <div style="text-align: right;">
+                <div class="forgot-container">
                     <a href="#" onclick="showRecovery()" class="forgot-link" data-i18n="login_forgot">¿Olvidaste tu contraseña?</a>
                 </div>
 
-                <button onclick="handleLogin()" class="btn-full" data-i18n="login_enter">ENTRAR</button>
+                <button onclick="handleLogin()" class="btn-full" data-i18n="login_enter">Iniciar Sesión</button>
                 
                 <div class="form-footer">
                     <span data-i18n="login_no_account">¿No tienes cuenta?</span> <a href="#" onclick="showRegister()" data-i18n="login_register">Regístrate gratis</a>
@@ -58,31 +60,38 @@
             </div>
 
             <div id="registerForm" style="display:none;">
-                <h2>Crear Cuenta</h2>
-                <p class="form-instruction">Completa tus datos para unirte</p>
+                <div class="form-header">
+                    <h2>Crear Cuenta</h2>
+                    <p class="form-instruction">Únete a nuestra plataforma educativa</p>
+                </div>
                 
-                <label>Soy:</label>
-                <select id="regRole" onchange="handleRoleChange()">
-                    <option value="alumno">Alumno</option>
-                    <option value="doctor">Doctor / Docente</option>
-                    <option value="coordinador">Coordinador / Tutor</option> 
-                </select>
-
-                <div id="titleContainer" style="display:none;">
-                    <label id="titleLabel">Selecciona tu cargo:</label>
-                    <select id="regTitle">
+                <div class="input-row">
+                    <div style="flex: 1;">
+                        <label>Soy:</label>
+                        <select id="regRole" onchange="handleRoleChange()">
+                            <option value="alumno">Alumno</option>
+                            <option value="doctor">Doctor / Docente</option>
+                            <option value="coordinador">Coordinador / Tutor</option> 
                         </select>
+                    </div>
+                    <div id="titleContainer" style="display:none; flex: 1;">
+                        <label id="titleLabel">Cargo:</label>
+                        <select id="regTitle"></select>
+                    </div>
                 </div>
 
                 <label>Nombre Completo</label>
                 <input type="text" id="regName" placeholder="Tu nombre" required>
                 
-                <label>Matrícula / ID</label>
-                <input type="text" id="regMatricula" placeholder="Tu matrícula" required>
-                
-                <div id="groupContainer">
-                    <label>Grupo</label>
-                    <input type="text" id="regGroup" placeholder="Tu grupo" required>
+                <div class="input-row">
+                    <div style="flex: 1;">
+                        <label>Matrícula / ID</label>
+                        <input type="text" id="regMatricula" placeholder="Tu matrícula" required>
+                    </div>
+                    <div id="groupContainer" style="flex: 1;">
+                        <label>Grupo</label>
+                        <input type="text" id="regGroup" placeholder="Ej. 8A" required>
+                    </div>
                 </div>
                 
                 <label>Correo Institucional</label>
@@ -104,7 +113,7 @@
                     </span>
                 </div>
                 
-                <button onclick="handleRegister()" class="btn-full">REGISTRARME</button>
+                <button onclick="handleRegister()" class="btn-full">Crear Cuenta</button>
                 
                 <div class="form-footer">
                     ¿Ya tienes cuenta? <a href="#" onclick="showLogin()">Inicia Sesión</a>
@@ -112,13 +121,13 @@
             </div>
 
             <div id="recoveryForm" style="display:none;">
-                <h2>Recuperar Acceso</h2>
-                <p class="form-instruction">
-                    Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
-                </p>
+                <div class="form-header">
+                    <h2>Recuperar Acceso</h2>
+                    <p class="form-instruction">Ingresa tu correo y te enviaremos un enlace seguro para restablecer tu contraseña.</p>
+                </div>
                 <label>Correo Electrónico</label>
                 <input type="email" id="recoveryEmail" placeholder="tucorreo@ejemplo.com">
-                <button onclick="handleRecovery()" class="btn-full">ENVIAR ENLACE</button>
+                <button onclick="handleRecovery()" class="btn-full">Enviar Enlace</button>
                 
                 <div class="form-footer">
                     <a href="#" onclick="showLogin()">← Volver al inicio</a>
@@ -126,8 +135,10 @@
             </div>
 
             <div id="newPasswordForm" style="display:none;">
-                <h2>Nueva Contraseña</h2>
-                <p class="form-instruction">Ingresa tu nueva contraseña segura.</p>
+                <div class="form-header">
+                    <h2>Nueva Contraseña</h2>
+                    <p class="form-instruction">Ingresa tu nueva contraseña segura.</p>
+                </div>
                 <label>Nueva Contraseña</label>
                 <div class="password-wrapper">
                     <input type="password" id="newPassFinal" placeholder="Nueva contraseña" required>
@@ -135,17 +146,16 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </span>
                 </div>
-                <button onclick="handleFinalizeReset()" class="btn-full">GUARDAR CONTRASEÑA</button>
+                <button onclick="handleFinalizeReset()" class="btn-full">Guardar Contraseña</button>
             </div>
 
         </div>
     </section>
-
 </main>
 
-<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: var(--shadow-md); border: 2px solid white; transition: 0.2s;">♿</div>
+<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 2px solid white; transition: 0.2s;">♿</div>
 
-<div id="a11y-panel" style="display:none; position: fixed; bottom: 90px; right: 20px; width: 320px; max-height: 80vh; overflow-y: auto; background: var(--card-bg); padding: 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 1000; border: 1px solid var(--border-color);">
+<div id="a11y-panel" style="display:none; position: fixed; bottom: 90px; right: 20px; width: 320px; max-height: 80vh; overflow-y: auto; background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 1000; border: 1px solid var(--border-color);">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
         <span style="font-size:1.5rem;">⚙️</span>
         <h4 style="margin:0; color:var(--brand-dark);" data-i18n="a11y_title">Herramientas de Accesibilidad</h4>
@@ -216,14 +226,12 @@
         document.getElementById('newPasswordForm').style.display = 'none';
     }
 
-    // LÓGICA DE ROLES Y TÍTULOS ESPECÍFICOS
     function handleRoleChange() {
         const role = document.getElementById('regRole').value;
         const groupDiv = document.getElementById('groupContainer');
         const titleDiv = document.getElementById('titleContainer');
         const titleSelect = document.getElementById('regTitle');
         
-        // Limpiar opciones anteriores
         titleSelect.innerHTML = '';
         
         if (role === 'alumno') {
@@ -233,17 +241,14 @@
             groupDiv.style.display = 'none';
             titleDiv.style.display = 'block';
             
-            // Llenar opciones específicas según el rol
             if (role === 'doctor') {
-                const opts = ['Doctor', 'Docente'];
-                opts.forEach(o => {
+                ['Doctor', 'Docente'].forEach(o => {
                     const el = document.createElement('option');
                     el.value = o; el.textContent = o;
                     titleSelect.appendChild(el);
                 });
             } else if (role === 'coordinador') {
-                const opts = ['Coordinador', 'Tutor'];
-                opts.forEach(o => {
+                ['Coordinador', 'Tutor'].forEach(o => {
                     const el = document.createElement('option');
                     el.value = o; el.textContent = o;
                     titleSelect.appendChild(el);
@@ -254,8 +259,8 @@
 
     function togglePassword(inputId, iconSpan) {
         const input = document.getElementById(inputId);
-        const eyeOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-        const eyeClosed = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+        const eyeOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const eyeClosed = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
         if (input.type === "password") {
             input.type = "text";
@@ -284,13 +289,12 @@
         const email = document.getElementById('regEmail').value;
         
         let group = 'N/A';
-        let title = 'N/A'; // Título por defecto
+        let title = 'N/A';
 
         if (role === 'alumno') {
             group = document.getElementById('regGroup').value;
             if (!group) return alert('El grupo es obligatorio para alumnos.');
         } else {
-            // Si es doctor o coordinador, tomamos el título específico
             title = document.getElementById('regTitle').value;
         }
 
@@ -298,7 +302,6 @@
         if (password !== confirmPass) return alert("Las contraseñas no coinciden.");
         if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
 
-        // Pasamos 'title' a la función de registro
         const success = await registerUser(name, matricula, password, group, email, role, title);
         if(success) { alert('Registro exitoso.'); showLogin(); }
     }

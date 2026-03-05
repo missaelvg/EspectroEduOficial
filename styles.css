@@ -2,11 +2,11 @@
 
 :root {
     /* Paleta de colores UI Kit */
-    --primary-color: #1A237E;       
-    --primary-hover: #12195e;
-    --brand-dark: #1A237E;          
+    --primary-color: #27376c;       
+    --primary-hover: #1e2a52;
+    --brand-dark: #1e2852;          
     --accent-color: #00695C;
-    --spectrum-gradient: linear-gradient(135deg, #1A237E, #00695C, #2E7D32, #D32F2F);
+    --spectrum-gradient: linear-gradient(90deg, #f03e3e, #f59f00, #37b24d, #1c7ed6, #7048e8);
     --bg-color: #F4F7F9; 
     --card-bg: #ffffff;
     --text-main: #1e293b;
@@ -79,7 +79,7 @@ input, select, textarea {
     padding: 16px; 
     margin-top: 4px; 
     margin-bottom: 16px; 
-    border: 2px solid var(--border-color); 
+    border: 1.5px solid var(--border-color); 
     border-radius: var(--radius-sm); 
     background-color: var(--card-bg); 
     font-size: 1rem; 
@@ -87,7 +87,7 @@ input, select, textarea {
     transition: all 0.2s; 
     min-height: 48px; 
 }
-input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.2); }
+input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(39, 55, 108, 0.15); }
 label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin-left: 4px; margin-bottom:0; display: block; }
 
 /* BOTONES */
@@ -149,9 +149,8 @@ main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
     header { flex-direction: column; gap: 10px; text-align: center; padding: 10px 15px; }
     #header-title { width: 100%; margin-bottom: 5px; }
     nav#navbar { width: 100%; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
-    .student-list-item { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .student-list-item > div { width: 100%; text-align: left !important; }
 }
+
 
 /* =========================================
    ESTILOS PARA LA PANTALLA DE LOGIN / REGISTRO (FULL-SCREEN MODERNO)
@@ -160,90 +159,74 @@ main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 2rem; }
 body.login-page {
     margin: 0;
     padding: 0;
-    background-color: #ffffff;
+    background-color: #243464; /* Azul profundo base */
+    background-image: radial-gradient(circle at 50% 50%, #2a3d75 0%, #1c2752 100%);
     font-family: 'Noto Sans', sans-serif;
     height: 100vh;
-    overflow: hidden; /* Evita scroll innecesario en PC */
+    overflow: hidden;
 }
 
 .login-fullscreen-container {
     display: flex;
-    width: 100vw;
+    max-width: 1200px;
     height: 100vh;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
+    margin: 0 auto;
+    padding: 2rem;
+    align-items: center;
+    gap: 4rem;
 }
 
-/* Lado Izquierdo - Branding */
+/* Lado Izquierdo - Branding (Alineado a la izquierda) */
 .welcome-side {
     flex: 1;
-    background: linear-gradient(145deg, var(--primary-color) 0%, #004d40 100%);
     color: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
-    padding: 3rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Patrón sutil de fondo */
-.welcome-side::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-image: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0%, transparent 50%),
-                      radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
-    pointer-events: none;
+    align-items: flex-start; /* Alineado a la izquierda como en la imagen */
+    padding: 2rem;
+    text-align: left;
 }
 
 .brand-content {
     max-width: 480px;
-    z-index: 1;
 }
 
 .logo-img {
-    width: 140px;
-    margin-bottom: 30px;
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
-    transition: transform 0.3s ease;
-}
-
-.logo-img:hover {
-    transform: scale(1.05);
+    width: 120px; /* Tamaño ajustado */
+    margin-bottom: 25px;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
 }
 
 .welcome-side h1 {
-    font-size: 3.2rem;
+    font-size: 3.5rem;
     margin: 0;
     font-weight: 800;
     letter-spacing: -1px;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .subtitle {
-    font-size: 1.4rem;
-    opacity: 0.9;
-    margin-top: 10px;
+    font-size: 1.5rem;
+    color: #e2e8f0;
+    margin-top: 5px;
+    margin-bottom: 25px;
     font-weight: 500;
 }
 
-.spectrum-bar {
-    height: 4px;
-    width: 80px;
-    background: white;
-    border-radius: 10px;
-    margin: 30px auto;
-    opacity: 0.6;
+.welcome-text p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+    margin-bottom: 30px;
 }
 
-.welcome-text p {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    opacity: 0.85;
+.spectrum-bar {
+    height: 6px;
+    width: 100%; /* Barra completa debajo del texto */
+    max-width: 300px;
+    background: var(--spectrum-gradient);
+    border-radius: 10px;
 }
 
 /* Lado Derecho - Formulario Moderno */
@@ -252,28 +235,24 @@ body.login-page {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #ffffff;
-    padding: 2rem;
-    overflow-y: auto; 
 }
 
 .form-card {
     width: 100%;
     max-width: 420px; 
-    padding: 20px;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    margin: 0;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 40px rgba(255, 255, 255, 0.05); /* Efecto de brillo sutil */
+    color: #0f172a;
 }
 
 .form-header {
-    margin-bottom: 35px;
+    margin-bottom: 30px;
 }
 
 .form-card h2 {
-    color: #0f172a;
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     margin: 0 0 8px 0;
     font-weight: 800;
     letter-spacing: -0.5px;
@@ -281,29 +260,42 @@ body.login-page {
 
 .form-instruction {
     color: #64748b;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     margin: 0;
 }
 
-/* Inputs y Labels del Formulario */
+/* Inputs con Iconos Integrados */
 .form-card label {
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
     color: #334155;
     margin-bottom: 8px;
-    margin-left: 0;
     display: block;
+}
+
+.input-with-icon {
+    position: relative;
+    width: 100%;
+}
+
+.input-with-icon svg.left-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none; /* Evita que estorbe al hacer clic */
 }
 
 .form-card input, .form-card select {
     width: 100%;
-    padding: 14px 16px;
+    padding: 14px 16px 14px 45px; /* Espacio extra a la izquierda para el icono */
     margin-top: 0;
     margin-bottom: 20px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 12px; 
-    background-color: #f8fafc;
-    font-size: 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px; 
+    background-color: #ffffff;
+    font-size: 0.95rem;
     color: #1e293b;
     transition: all 0.2s ease;
     box-sizing: border-box;
@@ -312,27 +304,18 @@ body.login-page {
 .form-card input:focus, .form-card select:focus {
     outline: none;
     border-color: var(--primary-color);
-    background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.1);
+    box-shadow: 0 0 0 3px rgba(39, 55, 108, 0.15);
 }
 
 .form-card input::placeholder {
-    color: #94a3b8;
+    color: #cbd5e1;
 }
 
-/* SOLUCIÓN DEL OJO DOBLE EN CONTRASEÑA */
-.password-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
+/* Controles de Contraseña */
 .password-wrapper input {
-    margin-bottom: 20px; 
-    padding-right: 45px; 
+    padding-right: 45px; /* Espacio extra a la derecha para el ojo */
 }
 
-/* Elimina el ojo nativo de navegadores como Edge/Chrome */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear,
 input[type="password"]::-webkit-contacts-auto-fill-button {
@@ -342,9 +325,10 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
 .toggle-password {
     position: absolute;
     right: 16px;
-    top: 20px; 
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
-    color: #64748b;
+    color: #94a3b8;
     display: flex;
     transition: color 0.2s;
 }
@@ -368,14 +352,12 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
 
 .forgot-link {
     color: var(--primary-color);
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
     text-decoration: none;
-    transition: color 0.2s;
 }
 
 .forgot-link:hover {
-    color: var(--accent-color);
     text-decoration: underline;
 }
 
@@ -386,23 +368,22 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     padding: 16px;
     font-weight: 700;
     width: 100%;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 1.05rem;
+    font-size: 1rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.2);
 }
 
 .form-card .btn-full:hover {
     background: var(--primary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(26, 35, 126, 0.3);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
 .form-footer {
     text-align: center;
-    margin-top: 30px;
-    font-size: 0.95rem;
+    margin-top: 25px;
+    font-size: 0.9rem;
     color: #64748b;
 }
 
@@ -428,36 +409,28 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
         flex-direction: column;
         height: auto;
         min-height: 100vh;
+        gap: 2rem;
+        padding: 1.5rem;
     }
 
     .welcome-side {
         flex: none;
-        padding: 3rem 2rem;
-        min-height: 35vh; 
+        align-items: center;
+        text-align: center;
+        padding: 2rem 1rem;
     }
 
-    .logo-img {
-        width: 100px;
-        margin-bottom: 15px;
-    }
-
-    .welcome-side h1 {
-        font-size: 2.2rem;
-    }
-
-    .welcome-text {
-        display: none; 
-    }
+    .welcome-text { display: none; }
 
     .forms-side {
         flex: none;
-        padding: 3rem 1.5rem;
-        align-items: flex-start;
-        border-radius: 24px 24px 0 0; 
-        margin-top: -24px;
-        z-index: 10;
+        width: 100%;
     }
     
+    .form-card {
+        padding: 30px 20px;
+    }
+
     .input-row {
         flex-direction: column; 
         gap: 0;

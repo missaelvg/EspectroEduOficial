@@ -176,14 +176,14 @@ body.login-page {
     gap: 4rem;
 }
 
-/* Lado Izquierdo - Branding (Alineado a la izquierda) */
+/* Lado Izquierdo - Branding */
 .welcome-side {
     flex: 1;
     color: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start; /* Alineado a la izquierda como en la imagen */
+    align-items: flex-start; 
     padding: 2rem;
     text-align: left;
 }
@@ -193,7 +193,7 @@ body.login-page {
 }
 
 .logo-img {
-    width: 120px; /* Tamaño ajustado */
+    width: 120px; 
     margin-bottom: 25px;
     filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
 }
@@ -223,7 +223,7 @@ body.login-page {
 
 .spectrum-bar {
     height: 6px;
-    width: 100%; /* Barra completa debajo del texto */
+    width: 100%; 
     max-width: 300px;
     background: var(--spectrum-gradient);
     border-radius: 10px;
@@ -243,7 +243,7 @@ body.login-page {
     padding: 40px;
     background: #ffffff;
     border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 40px rgba(255, 255, 255, 0.05); /* Efecto de brillo sutil */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 40px rgba(255, 255, 255, 0.05); 
     color: #0f172a;
 }
 
@@ -264,7 +264,6 @@ body.login-page {
     margin: 0;
 }
 
-/* Inputs con Iconos Integrados */
 .form-card label {
     font-size: 0.85rem;
     font-weight: 700;
@@ -273,23 +272,10 @@ body.login-page {
     display: block;
 }
 
-.input-with-icon {
-    position: relative;
-    width: 100%;
-}
-
-.input-with-icon svg.left-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    pointer-events: none; /* Evita que estorbe al hacer clic */
-}
-
+/* Configuraciones de Inputs Generales (Normales, sin ícono) */
 .form-card input, .form-card select {
     width: 100%;
-    padding: 14px 16px 14px 45px; /* Espacio extra a la izquierda para el icono */
+    padding: 14px 16px; /* Padding normalizado para que el texto empiece bien a la izquierda */
     margin-top: 0;
     margin-bottom: 20px;
     border: 1px solid #cbd5e1;
@@ -311,9 +297,30 @@ body.login-page {
     color: #cbd5e1;
 }
 
+/* Inputs con Iconos Integrados (Solución a la alineación) */
+.input-with-icon {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px; /* Movimos el margen hacia el contenedor para que calcule el 50% perfecto */
+}
+
+.input-with-icon input {
+    padding-left: 45px !important; /* Espacio extra SOLO para los que tienen ícono */
+    margin-bottom: 0 !important; /* Quitamos el margen interior para no desfasar el centro */
+}
+
+.input-with-icon svg.left-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none; 
+}
+
 /* Controles de Contraseña */
 .password-wrapper input {
-    padding-right: 45px; /* Espacio extra a la derecha para el ojo */
+    padding-right: 45px !important; /* Espacio extra a la derecha para que el texto no pise el ojo */
 }
 
 input[type="password"]::-ms-reveal,
@@ -326,7 +333,7 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     position: absolute;
     right: 16px;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%); /* Ahora esto quedará perfectamente alineado también */
     cursor: pointer;
     color: #94a3b8;
     display: flex;

@@ -2,19 +2,28 @@
 // Gestión de autenticación de usuarios (Login, Registro, Recuperación).
 
 // Obtiene el usuario actual y sus datos extendidos desde Firestore
+
 function getCurrentUser() {
     return new Promise(resolve => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             unsubscribe();
             if (user) {
-                const doc = await db.collection('users').doc(user.uid).get();
-                if (doc.exists) {
-                    resolve({ uid: user.uid, ...doc.data() });
-                } else {
-                    resolve({ uid: user.uid, email: user.email, role: 'unknown' });
+                try {
+                    // Intentamos obtener tu rol de la base de datos
+                    const doc = await db.collection('users').doc(user.uid).get();
+                    if (doc.exists) {
+                        resolve({ uid: user.uid, ...doc.data() });
+                    } else {
+                        resolve({ uid: user.uid, email: user.email, role: 'unknown' });
+                    }
+                } catch (error) {
+                    // Si algo falla, atrapamos el error para que no se congele la pantalla
+                    console.error("Error consultando tu perfil en BD:", error);
+                    alert("Hubo un problema de conexión al leer tu perfil. Verifica tu red e intenta recargar.");
+                    resolve(null); 
                 }
             } else {
-                resolve(null);
+                resolve(null); // No hay nadie logueado
             }
         });
     });

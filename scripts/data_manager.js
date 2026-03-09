@@ -72,13 +72,16 @@ async function callDB(action, data = {}, method = 'POST') {
             await db.collection('users').doc(data.uid).update(allowedUpdates);
             return { message: 'OK' };
         }
-        throw new Error(`Acción desconocida: ${action}`);
+        
+        console.warn(`Acción en BD omitida o no encontrada: ${action}`);
+        return {}; // Evita que la aplicación crashee si busca algo raro
     } catch (e) {
-        console.error(`Fallo en callDB local [${action}]:`, e);
+        console.error(`Fallo en base de datos [${action}]:`, e);
         throw e;
     }
 }
 
+// Subida de archivos
 async function uploadFile(file, path) {
     if (!file) throw new Error("Archivo no seleccionado.");
     const storageRef = firebase.storage().ref();
@@ -87,6 +90,7 @@ async function uploadFile(file, path) {
     return await fileRef.getDownloadURL();
 }
 
+// Funciones del ciclo de vida de EspectroEdu
 async function createPractice(practiceData) { return (await callDB('create_practice', practiceData)).practiceId; }
 async function savePracticeContent(practiceId, content) { await callDB('update_practice_content', { practiceId, content }); }
 async function enrollStudent(practiceId, studentUid) { await callDB('enroll_student_to_practice', { practiceId, studentUid }); }
@@ -98,6 +102,21 @@ async function submitStudentReport(practiceId, studentUid, reportUrl) { await ca
 async function updateStudentProgress(practiceId, studentUid, data) { await callDB('update_student_progress', { practiceId, studentUid, ...data }); }
 async function updateUserProfile(uid, updateData) { await callDB('update_user_profile', { uid, updateData }); }
 async function getPractices() { return (await callDB('get_all_practices', {}, 'GET')).practices || {}; }
+
+// ¡Nuevas funciones añadidas para evitar bloqueos de perfiles!
+async function getUserProfile(uid) {
+    try {
+        const doc = await db.collection('users').doc(uid).get();
+        return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    } catch(e) { console.error("Error al buscar perfil:", e); return null; }
+}
+
+async function getPracticeById(practiceId) {
+    try {
+        const doc = await db.collection('practices').doc(practiceId).get();
+        return doc.exists ? { id: doc.id, ...doc.data() } : null;
+    } catch(e) { console.error("Error al buscar práctica:", e); return null; }
+}
 
 async function descargarBitacoraAuditoria() {
     try {
@@ -117,12 +136,18 @@ async function descargarBitacoraAuditoria() {
             }
         });
 
-        csvContent += "\n--- REGISTRO DE INICIOS DE SESIÓN ---\nID Usuario,Evento,Fecha y Hora\n";
-        accessLogs.forEach(log => { csvContent += `${log.uid},${log.event},${log.timestamp}\n`; });
-
         const link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-        link.download = `auditoria_espectroedu_${new Date().getTime()}.csv`;
+        link.download = `auditoria_espectroedu.csv`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     } catch (e) { alert("Error al generar el reporte: " + e.message); }
 }
+
+// Exponer funciones globalmente para proteger contra fallos de módulos
+window.callDB = callDB; window.uploadFile = uploadFile; window.createPractice = createPractice; 
+window.savePracticeContent = savePracticeContent; window.enrollStudent = enrollStudent; 
+window.unenrollStudent = unenrollStudent; window.deletePractice = deletePractice; window.deleteUser = deleteUser; 
+window.getAllUsers = getAllUsers; window.submitStudentReport = submitStudentReport; 
+window.updateStudentProgress = updateStudentProgress; window.updateUserProfile = updateUserProfile; 
+window.getPractices = getPractices; window.getUserProfile = getUserProfile; 
+window.getPracticeById = getPracticeById; window.descargarBitacoraAuditoria = descargarBitacoraAuditoria;

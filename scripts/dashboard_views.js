@@ -313,7 +313,7 @@ async function renderManageStudentsView() {
                 <div id="batchLog" style="margin-left:auto; font-weight:600;"></div>
             </div>
         </div>
-      <div id="list">Cargando...</div>`;
+        <div id="sList">Cargando...</div>`;
     
     rList(AppState.users);
     if(window.updateTranslations) window.updateTranslations();
@@ -402,7 +402,7 @@ async function renderDoctorGradesView() {
             <h2 data-i18n="view_grades_title">Calificaciones por Práctica</h2>
             <button class="btn btn-secondary" onclick="window.print()" data-i18n="btn_export">Exportar PDF</button>
         </div>
-      <div id="grades-list">Cargando...</div>`;
+        <div id="grades-by-practice">Cargando...</div>`;
         
     const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
     const uMap = new Map(users.map(u => [u.uid, u]));
@@ -501,6 +501,7 @@ function renderStudentDashboard() {
 
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
+    // CORREGIDO: Se quitó data-i18n="loading" de id="list"
     div.innerHTML = `<h2 data-i18n="nav_my_practices">Mis Prácticas</h2><div id="list">Cargando...</div>`;
     try {
         const practices = await getPractices(); 
@@ -562,7 +563,8 @@ async function handleReportUpload(pid) {
 
 async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2 data-i18n="nav_activities">Actividades Complementarias</h2><div id="act-list" >Cargando...</div>`;
+    // CORREGIDO: Se quitó data-i18n="loading" de id="act-list"
+    div.innerHTML = `<h2 data-i18n="nav_activities">Actividades Complementarias</h2><div id="act-list">Cargando...</div>`;
     try {
         if (shouldFetch) { AppState.practices = await getPractices(); }
         const myP = Object.values(AppState.practices).filter(p => p.students && p.students[AppState.user.uid]);
@@ -576,7 +578,9 @@ async function renderStudentActivitiesView(shouldFetch = true) {
             const cid = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             let scoreBadge = st.quizScore !== undefined && st.quizScore !== null ? `<div class="alert-success" style="margin-bottom:15px;">Cuestionario Completado. Tu puntuación: ${st.quizScore}/10</div>` : '';
 
-            return `<div class="card"><h4>${p.title}</h4>${scoreBadge}<div id="${cid}" data-i18n="loading">Generando actividad...</div></div>`;
+            // El data-i18n="loading" aquí está bien porque renderQuiz lo reemplaza rápido, 
+            // pero si falla, se prefiere quitarlo también para evitar el borrado del traductor.
+            return `<div class="card"><h4>${p.title}</h4>${scoreBadge}<div id="${cid}">Generando actividad...</div></div>`;
         }).join('');
         
         document.getElementById('act-list').innerHTML = html;
@@ -629,7 +633,7 @@ async function subQuiz(e, pid) {
 function renderCrossword(p) {
     const d = document.getElementById(`cross-${p.id}`);
     const allWordsData = p.generatedContent?.crucigrama;
-    if(!allWordsData) return d.innerHTML="<p data-i18n='loading'>Error IA</p>";
+    if(!allWordsData) return d.innerHTML="<p>Error IA</p>";
     
     const myWordsData = getStudentCrosswordWords(allWordsData, AppState.user.uid, 5);
     const words = myWordsData.map(w => ({ word: w.word.toUpperCase(), clue: w.clue }));
@@ -736,7 +740,7 @@ async function handleCrosswordSubmit(e, pid) {
 }
 
 async function renderStudentGradesView() {
-    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_grades">Mis Calificaciones Históricas</h2><div id="grades-list" data-i18n="loading">Cargando...</div>`;
+    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_grades">Mis Calificaciones Históricas</h2><div id="grades-list">Cargando...</div>`;
     const practices = await getPractices(); const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
     if (myP.length === 0) { document.getElementById('grades-list').innerHTML = `<div class="card"><p data-i18n="dash_no_prac">Aún no tienes calificaciones.</p></div>`; return; }
     let html = `<div class="table-container"><table class="styled-table"><thead><tr><th data-i18n="nav_create">Práctica</th><th data-i18n="table_report">Reporte (80%)</th><th data-i18n="table_quiz">Cuestionario (10%)</th><th data-i18n="table_cross">Crucigrama (10%)</th><th data-i18n="table_final">Ponderación Final</th><th data-i18n="table_date">Fecha Fin</th></tr></thead><tbody>`;
@@ -775,7 +779,8 @@ async function updProf(){ await updateUserProfile(AppState.user.uid, {username: 
 async function renderTutorDashboard() {
     const prefix = AppState.user.title || 'Coord.';
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2 data-i18n="nav_global">Tablero de Control</h2><div id="tutor-stats" data-i18n="loading">Calculando...</div>`;
+    // CORREGIDO: Se quitó data-i18n="loading" de id="tutor-stats"
+    div.innerHTML = `<h2 data-i18n="nav_global">Tablero de Control</h2><div id="tutor-stats">Calculando...</div>`;
     
     try {
         const stats = await getGlobalStats();
@@ -875,7 +880,8 @@ async function getGlobalStats() {
 }
 
 async function renderTutorGroupsView() {
-    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_groups">Análisis por Grupos</h2><div id="groups-detail" data-i18n="loading">Cargando...</div>`;
+    // CORREGIDO: Se quitó data-i18n="loading" de id="groups-detail"
+    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_groups">Análisis por Grupos</h2><div id="groups-detail">Cargando...</div>`;
     const stats = await getGlobalStats();
     const groups = Object.values(stats.groupsData);
     
@@ -911,7 +917,8 @@ async function renderTutorGroupsView() {
 }
 
 async function renderTutorAuditView() {
-    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_audit">Auditoría de Prácticas</h2><p style="color:var(--text-muted);" data-i18n="dash_desc">Vista de solo lectura del progreso académico.</p><div id="audit-list" data-i18n="loading">Cargando...</div>`;
+    // CORREGIDO: Se quitó data-i18n="loading" de id="audit-list"
+    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_audit">Auditoría de Prácticas</h2><p style="color:var(--text-muted);" data-i18n="dash_desc">Vista de solo lectura del progreso académico.</p><div id="audit-list">Cargando...</div>`;
     
     const practices = await getPractices(); 
     const list = Object.values(practices);

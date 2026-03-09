@@ -1,6 +1,3 @@
-// scripts/data_manager.js
-// Capa de abstracción para comunicarse con la API Backend (db_api.js).
-// Función genérica local que reemplaza al backend
 async function callDB(action, data = {}, method = 'POST') {
     try {
         if (action === 'get_all_practices') {
@@ -82,7 +79,6 @@ async function callDB(action, data = {}, method = 'POST') {
     }
 }
 
-// Subida de archivos a Firebase Storage
 async function uploadFile(file, path) {
     if (!file) throw new Error("Archivo no seleccionado.");
     const storageRef = firebase.storage().ref();
@@ -91,7 +87,6 @@ async function uploadFile(file, path) {
     return await fileRef.getDownloadURL();
 }
 
-// Métodos expuestos para mantener compatibilidad con dashboard_views.js
 async function createPractice(practiceData) { return (await callDB('create_practice', practiceData)).practiceId; }
 async function savePracticeContent(practiceId, content) { await callDB('update_practice_content', { practiceId, content }); }
 async function enrollStudent(practiceId, studentUid) { await callDB('enroll_student_to_practice', { practiceId, studentUid }); }

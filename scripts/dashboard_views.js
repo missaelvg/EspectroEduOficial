@@ -175,8 +175,8 @@ async function renderDoctorDashboard() {
                         <span class="badge badge-info">${count} alumnos</span>
                     </div>
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                        <button class="btn btn-secondary" onclick="renderDoctorGradesView()">Ver Calificaciones</button>
-                        <button onclick="handleDeletePractice('${p.id}')" class="btn btn-danger">Borrar</button>
+                        <button class="btn btn-secondary" onclick="renderDoctorGradesView()" data-i18n="nav_grades">Ver Calificaciones</button>
+                        <button onclick="handleDeletePractice('${p.id}')" class="btn btn-danger" data-i18n="btn_delete">Borrar</button>
                     </div>
                 </div>`;
             });
@@ -190,27 +190,27 @@ function renderCreatePracticeView() {
     document.getElementById('main-content').innerHTML = `
         <h2 data-i18n="view_create_title">Crear Nueva Práctica</h2>
         <div class="card">
-            <label>Título de la Práctica</label>
+            <label data-i18n="pract_title_label">Título de la Práctica</label>
             <input type="text" id="practiceTitle" placeholder="Ej. Óptica Geométrica">
             
-            <label>Diapositivas (PDF)</label>
+            <label data-i18n="pract_slides_label">Diapositivas (PDF)</label>
             <div class="drop-zone" id="dz-slides">
-                <span>↑ Arrastra y suelta tu archivo aquí</span>
-                <p>O haz clic para seleccionar (La IA generará el cuestionario basándose en esto)</p>
+                <span data-i18n="pract_drop_text">↑ Arrastra y suelta tu archivo aquí</span>
+                <p data-i18n="pract_click_text">O haz clic para seleccionar (La IA generará el cuestionario basándose en esto)</p>
             </div>
             <input type="file" id="slidesFile" style="display:none;" accept=".pdf">
             
-            <label>Estándar de Evaluación (PDF)</label>
+            <label data-i18n="pract_standard_label">Estándar de Evaluación (PDF)</label>
             <div class="drop-zone" id="dz-standard">
-                <span>↑ Arrastra y suelta tu archivo aquí</span>
-                <p>O haz clic para seleccionar (Criterios de evaluación para la IA)</p>
+                <span data-i18n="pract_drop_text">↑ Arrastra y suelta tu archivo aquí</span>
+                <p data-i18n="pract_click_text">O haz clic para seleccionar (Criterios de evaluación para la IA)</p>
             </div>
             <input type="file" id="standardFile" style="display:none;" accept=".pdf">
             
             <div class="progress-container" id="ai-progress-bar"><div class="progress-bar" id="ai-progress-inner"></div></div>
             <div id="creationLog" style="margin-top:15px; margin-bottom:15px; font-weight:600;"></div>
             
-            <button class="btn btn-full" onclick="handlePracticeCreation()">CREAR PRÁCTICA</button>
+            <button class="btn btn-full" onclick="handlePracticeCreation()" data-i18n="pract_btn_create">CREAR PRÁCTICA</button>
         </div>`;
         
     setupDragAndDrop('slidesFile', 'dz-slides');
@@ -288,32 +288,32 @@ async function renderManageStudentsView() {
     document.getElementById('main-content').innerHTML = `
         <h2 data-i18n="view_manage_title">Gestionar Alumnos</h2>
         <div class="card" style="display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
-            <input type="text" id="sSearch" placeholder="Buscar alumno..." onkeyup="hSearch()" style="flex:1; min-width:250px; margin:0;">
+            <input type="text" id="sSearch" data-i18n="search_student" placeholder="Buscar alumno..." onkeyup="hSearch()" style="flex:1; min-width:250px; margin:0;">
             <select id="fGroup" onchange="hSearch()" style="width:auto; margin:0;">
-                <option value="">Todos los Grupos</option>
+                <option value="" data-i18n="all_groups">Todos los Grupos</option>
                 ${groups.map(g => `<option value="${g}">${g}</option>`).join('')}
             </select>
             <select id="fStatus" onchange="hSearch()" style="width:auto; margin:0;">
-                <option value="">Cualquier Estado</option>
-                <option value="inscrito">Inscrito en Prácticas</option>
-                <option value="no_inscrito">Sin Prácticas</option>
+                <option value="" data-i18n="any_status">Cualquier Estado</option>
+                <option value="inscrito" data-i18n="status_enrolled">Inscrito en Prácticas</option>
+                <option value="no_inscrito" data-i18n="status_not_enrolled">Sin Prácticas</option>
             </select>
         </div>
         
         <div class="card" style="padding: 1rem 2rem;">
             <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
                 <label style="display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" style="width:auto; min-height:auto;"> Seleccionar Todo
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" style="width:auto; min-height:auto;"> <span data-i18n="select_all_label">Seleccionar Todo</span>
                 </label>
                 <select id="batchPractice" style="width:auto; margin:0;">
-                    <option value="">Elegir Práctica...</option>
+                    <option value="" data-i18n="choose_pract">Elegir Práctica...</option>
                     ${Object.values(AppState.practices).map(p=>`<option value="${p.id}">${p.title}</option>`).join('')}
                 </select>
-                <button class="btn" onclick="hEnrollBatch()">Inscribir Seleccionados</button>
+                <button class="btn" onclick="hEnrollBatch()" data-i18n="btn_enroll">Inscribir Seleccionados</button>
                 <div id="batchLog" style="margin-left:auto; font-weight:600;"></div>
             </div>
         </div>
-      <div id="sList">Cargando...</div>`;
+      <div id="sList"><p data-i18n="loading">Cargando...</p></div>`;
     
     rList(AppState.users);
     if(window.updateTranslations) window.updateTranslations();
@@ -329,12 +329,12 @@ function rList(list) {
         });
     });
 
-    if (list.length === 0) h = '<div class="card"><p>No se encontraron alumnos.</p></div>';
+    if (list.length === 0) h = '<div class="card"><p data-i18n="dash_no_prac">No se encontraron alumnos.</p></div>';
     else {
         list.forEach(s => {
             const enrollments = pMap[s.uid] || [];
             const groupLabel = s.grupo ? `<span class="badge badge-info">${s.grupo}</span>` : '';
-            const statusLabel = enrollments.length > 0 ? `<span class="badge badge-success">✅ Inscrito (${enrollments.length})</span>` : `<span class="badge" style="background:#e2e8f0; color:var(--text-muted)">⏳ No inscrito</span>`;
+            const statusLabel = enrollments.length > 0 ? `<span class="badge badge-success" data-i18n="status_enrolled">✅ Inscrito (${enrollments.length})</span>` : `<span class="badge" style="background:#e2e8f0; color:var(--text-muted)" data-i18n="status_not_enrolled">⏳ No inscrito</span>`;
             
             h += `<div class="student-list-item">
                 <div style="display:flex; align-items:center; gap:15px;">
@@ -342,7 +342,7 @@ function rList(list) {
                     <div><strong>${s.username}</strong> ${groupLabel} ${statusLabel}<br><small style="color:var(--text-muted);">${s.matricula}</small></div>
                 </div>
                 <div style="text-align:right;">
-                    <button onclick="hDel('${s.uid}')" class="btn btn-danger" style="padding: 8px 15px;">Borrar</button>
+                    <button onclick="hDel('${s.uid}')" class="btn btn-danger" style="padding: 8px 15px;" data-i18n="btn_delete">Borrar</button>
                 </div>
             </div>`;
         });
@@ -400,9 +400,9 @@ async function renderDoctorGradesView() {
     document.getElementById('main-content').innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h2 data-i18n="view_grades_title">Calificaciones por Práctica</h2>
-            <button class="btn btn-secondary" onclick="window.print()">Exportar PDF</button>
+            <button class="btn btn-secondary" onclick="window.print()" data-i18n="btn_export">Exportar PDF</button>
         </div>
-       <div id="grades-by-practice">Cargando...</div>`;
+       <div id="grades-by-practice"><p data-i18n="loading">Cargando...</p></div>`;
         
     const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
     const uMap = new Map(users.map(u => [u.uid, u]));
@@ -417,10 +417,11 @@ async function renderDoctorGradesView() {
             const d = studs[sid];
             const info = uMap.get(sid);
             const final = calculateWeightedGrade(d.reportScore, d.quizScore, d.crosswordScore);
-            const date = formatDate(d.completedAt || d.reportSubmittedAt);
             if(final > 0) { sum += final; count++; if(final >= 7.0) aprobados++; }
             
-            let statusBadge = final >= 7.0 ? '<span class="badge badge-success">✅ Aprobado</span>' : (final > 0 ? '<span class="badge badge-warning">⚠️ Requiere Atención</span>' : '<span class="badge" style="background:#f1f5f9;color:#64748b;">⏳ Pendiente</span>');
+            let statusBadge = final >= 7.0 
+                ? '<span class="badge badge-success" data-i18n="grade_approved">✅ Aprobado</span>' 
+                : (final > 0 ? '<span class="badge badge-warning" data-i18n="grade_attention">⚠️ Requiere Atención</span>' : '<span class="badge" style="background:#f1f5f9;color:#64748b;" data-i18n="grade_pending">⏳ Pendiente</span>');
             
             rows += `<tr>
                 <td><strong>${info?.username||'?'}</strong></td>
@@ -440,15 +441,24 @@ async function renderDoctorGradesView() {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:15px;">
                 <h4 style="margin:0;">${p.title}</h4>
                 <div style="display:flex; gap:15px;">
-                    <span class="badge badge-info" style="font-size:1em;">Promedio: ${avg}</span>
-                    <span class="badge badge-success" style="font-size:1em;">Aprobados: ${aprobados}/${Object.keys(studs).length}</span>
+                    <span class="badge badge-info" style="font-size:1em;"><span data-i18n="dash_avg">Promedio</span>: ${avg}</span>
+                    <span class="badge badge-success" style="font-size:1em;"><span data-i18n="grade_approved">Aprobados</span>: ${aprobados}/${Object.keys(studs).length}</span>
                 </div>
             </div>`;
             
-        if (Object.keys(studs).length === 0) html += '<p style="color:var(--text-muted);">Sin alumnos inscritos.</p>';
+        if (Object.keys(studs).length === 0) html += `<p style="color:var(--text-muted);" data-i18n="dash_no_prac">Sin alumnos inscritos.</p>`;
         else {
             html += `<div class="table-container"><table class="styled-table">
-                <thead><tr><th>Nombre</th><th>Matrícula</th><th>Grupo</th><th>Reporte (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Final</th><th>Estado</th></tr></thead>
+                <thead><tr>
+                    <th data-i18n="table_name">Nombre</th>
+                    <th data-i18n="table_id">Matrícula</th>
+                    <th data-i18n="table_group">Grupo</th>
+                    <th data-i18n="table_report">Reporte (80%)</th>
+                    <th data-i18n="table_quiz">Cuestionario (10%)</th>
+                    <th data-i18n="table_cross">Crucigrama (10%)</th>
+                    <th data-i18n="table_final">Final</th>
+                    <th data-i18n="table_status">Estado</th>
+                </tr></thead>
                 <tbody>${rows}</tbody>
             </table></div>`;
         }
@@ -470,7 +480,7 @@ function renderStudentDashboard() {
         </div>
 
         <div class="card" style="border-left: 6px solid var(--accent-color);">
-            <h3 style="margin-top:0;">Instrucciones para tus prácticas</h3>
+            <h3 style="margin-top:0;" data-i18n="dash_desc">Instrucciones para tus prácticas</h3>
             <div class="steps-container">
                 <div class="step-item">
                     <div class="step-icon">1</div>
@@ -491,39 +501,40 @@ function renderStudentDashboard() {
 
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
-    div.innerHTML = '<h2>Entrega de Reportes</h2><div id="list" data-i18n="loading">Cargando...</div>';
+    div.innerHTML = `<h2 data-i18n="nav_my_practices">Mis Prácticas</h2><div id="list" data-i18n="loading">Cargando...</div>`;
     try {
         const practices = await getPractices(); 
         AppState.practices = practices; 
         const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
-        if (myP.length === 0) { document.getElementById('list').innerHTML = '<div class="card"><p>No tienes prácticas asignadas por tu profesor en este momento.</p></div>'; return; }
+        if (myP.length === 0) { document.getElementById('list').innerHTML = `<div class="card"><p data-i18n="dash_no_prac">No tienes prácticas asignadas.</p></div>`; return; }
         
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
             const dl = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
-                            <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary">Diapositivas</a>
-                            <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary">Estándar Evaluación</a>
+                            <a href="${p.slidesPdfUrl}" target="_blank" class="btn btn-secondary" data-i18n="btn_slides">Diapositivas</a>
+                            <a href="${p.standardPdfUrl}" target="_blank" class="btn btn-secondary" data-i18n="btn_standard">Estándar Evaluación</a>
                         </div>`;
             if (st.reportUrl) {
                 return `<div class="card">
                             <h4>${p.title}</h4>
                             <div class="alert-success">
-                                <strong>Reporte Entregado Correctamente</strong><br>Calificación Asignada por IA: ${st.reportScore||'Pendiente'}
+                                <strong data-i18n="report_delivered">Reporte Entregado Correctamente</strong><br><span data-i18n="report_ia_score">Calificación Asignada por IA</span>: ${st.reportScore||'Pendiente'}
                             </div>
                             ${st.reportFeedback ? `<div style="margin-top:15px;padding:15px;background:var(--bg-color);border-radius:var(--radius-sm); border-left:4px solid var(--primary-color);">${st.reportFeedback}</div>` : ''}
-                            <p style="margin-top:15px;font-weight:600;">Material de Consulta:</p>${dl}
+                            <p style="margin-top:15px;font-weight:600;" data-i18n="consult_material">Material de Consulta:</p>${dl}
                         </div>`;
             }
             return `<div class="card">
                         <h4>${p.title}</h4>
-                        <p style="color:var(--text-muted);">Para comenzar, revisa los materiales de la práctica:</p>${dl}<hr style="border-top:1px solid var(--border-color); margin: 20px 0;">
-                        <label>Sube tu reporte elaborado en PDF:</label>
+                        <p style="color:var(--text-muted);" data-i18n="dash_desc">Para comenzar, revisa los materiales:</p>${dl}<hr style="border-top:1px solid var(--border-color); margin: 20px 0;">
+                        <label data-i18n="upload_report_label">Sube tu reporte elaborado en PDF:</label>
                         <input type="file" id="rep-${p.id}" accept="application/pdf">
-                        <button class="btn btn-full" onclick="handleReportUpload('${p.id}')">ENTREGAR REPORTE PARA EVALUACIÓN</button>
+                        <button class="btn btn-full" onclick="handleReportUpload('${p.id}')" data-i18n="btn_send_report">ENTREGAR REPORTE</button>
                         <div id="log-${p.id}" style="margin-top:15px; font-weight:600;"></div>
                     </div>`;
         }).join('');
         document.getElementById('list').innerHTML = html;
+        if(window.updateTranslations) window.updateTranslations();
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
@@ -551,21 +562,21 @@ async function handleReportUpload(pid) {
 
 async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
-    div.innerHTML = '<h2>Actividades Complementarias</h2><div id="act-list" data-i18n="loading">Cargando...</div>';
+    div.innerHTML = `<h2 data-i18n="nav_activities">Actividades Complementarias</h2><div id="act-list" data-i18n="loading">Cargando...</div>`;
     try {
         if (shouldFetch) { AppState.practices = await getPractices(); }
         const myP = Object.values(AppState.practices).filter(p => p.students && p.students[AppState.user.uid]);
-        if (myP.length === 0) { document.getElementById('act-list').innerHTML = '<div class="card"><p>Sin actividades pendientes.</p></div>'; return; }
+        if (myP.length === 0) { document.getElementById('act-list').innerHTML = `<div class="card"><p data-i18n="dash_no_prac">Sin actividades pendientes.</p></div>`; return; }
         
         const html = myP.map(p => {
             const st = p.students[AppState.user.uid];
-            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div class="alert-warning">Para desbloquear las actividades, primero debes entregar tu reporte.</div></div>`;
-            if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success">¡Has completado todas las actividades de esta práctica!</div></div>`;
+            if (!st.reportUrl) return `<div class="card"><h4>${p.title}</h4><div class="alert-warning" data-i18n="act_blocked">Primero debes entregar tu reporte.</div></div>`;
+            if (st.completed) return `<div class="card"><h4>${p.title}</h4><div class="alert-success" data-i18n="act_completed">¡Has completado todas las actividades!</div></div>`;
             
             const cid = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             let scoreBadge = st.quizScore !== undefined && st.quizScore !== null ? `<div class="alert-success" style="margin-bottom:15px;">Cuestionario Completado. Tu puntuación: ${st.quizScore}/10</div>` : '';
 
-            return `<div class="card"><h4>${p.title}</h4>${scoreBadge}<div id="${cid}">Generando actividad...</div></div>`;
+            return `<div class="card"><h4>${p.title}</h4>${scoreBadge}<div id="${cid}" data-i18n="loading">Generando actividad...</div></div>`;
         }).join('');
         
         document.getElementById('act-list').innerHTML = html;
@@ -573,21 +584,23 @@ async function renderStudentActivitiesView(shouldFetch = true) {
             const st = p.students[AppState.user.uid];
             if (st.reportUrl && !st.completed) { if (st.status === 'Crucigrama Pendiente') renderCrossword(p); else renderQuiz(p); }
         });
+        if(window.updateTranslations) window.updateTranslations();
     } catch (e) { div.innerHTML = `<p class="alert-error">${e.message}</p>`; }
 }
 
 function renderQuiz(p) {
     const d = document.getElementById(`quiz-${p.id}`);
     const fullBank = p.generatedContent?.cuestionario;
-    if (!fullBank) return d.innerHTML = "<p class='alert-error'>Error: Cuestionario no disponible.</p>";
+    if (!fullBank) return d.innerHTML = "<p class='alert-error' data-i18n='loading'>Error IA</p>";
     const myQuestions = getStudentQuestions(fullBank, AppState.user.uid, 5);
-    let h = '<p style="font-weight:600;">Responde las siguientes preguntas de opción múltiple:</p>';
+    let h = '<p style="font-weight:600;" data-i18n="quiz_instruction">Responde las preguntas:</p>';
     myQuestions.forEach((x, i) => {
         h += `<div style="background:var(--bg-color); padding:15px; border-radius:var(--radius-sm); margin-bottom:15px; border-left:4px solid var(--primary-color);"><p style="font-weight:700; margin-top:0;">${i+1}. ${x.pregunta}</p>`;
         x.opciones?.forEach(o => h += `<label style="display:flex; align-items:center; padding:10px; margin-bottom:5px; background:white; border:1px solid var(--border-color); border-radius:var(--radius-sm); cursor:pointer;"><input type="radio" name="q-${p.id}-${i}" value="${o}" style="width:auto; min-height:auto; margin:0 15px 0 0;"> ${o}</label>`);
         h += '</div>';
     });
-    d.innerHTML = h + `<button class="btn btn-full" onclick="subQuiz(event, '${p.id}')">ENVIAR RESPUESTAS</button>`;
+    d.innerHTML = h + `<button class="btn btn-full" onclick="subQuiz(event, '${p.id}')" data-i18n="btn_send_answers">ENVIAR RESPUESTAS</button>`;
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 async function subQuiz(e, pid) {
@@ -616,7 +629,7 @@ async function subQuiz(e, pid) {
 function renderCrossword(p) {
     const d = document.getElementById(`cross-${p.id}`);
     const allWordsData = p.generatedContent?.crucigrama;
-    if(!allWordsData) return d.innerHTML="<p>Error crucigrama</p>";
+    if(!allWordsData) return d.innerHTML="<p data-i18n='loading'>Error IA</p>";
     
     const myWordsData = getStudentCrosswordWords(allWordsData, AppState.user.uid, 5);
     const words = myWordsData.map(w => ({ word: w.word.toUpperCase(), clue: w.clue }));
@@ -644,12 +657,10 @@ function renderCrossword(p) {
     
     h += '</table></div><div style="flex:1; min-width:280px; background:var(--bg-color); padding:20px; border-radius:var(--radius-sm);"><h5>Pistas</h5>';
     layout.placedWordsInfo.forEach(w => h+=`<p style="margin-bottom:10px; font-size:0.95rem;"><strong>${w.number}. ${w.orientation==='across'?'H':'V'}</strong>: ${w.clue}</p>`);
-    h += '</div></div><button class="btn btn-full" onclick="handleCrosswordSubmit(event, \''+p.id+'\')" style="margin-top:20px;">EVALUAR CRUCIGRAMA</button>';
+    h += `</div></div><button class="btn btn-full" onclick="handleCrosswordSubmit(event, '${p.id}')" style="margin-top:20px;" data-i18n="btn_eval_cross">EVALUAR CRUCIGRAMA</button>`;
     d.innerHTML = h;
 
-    // LÓGICA DE NAVEGACIÓN MEJORADA
     d.querySelectorAll('.crossword-cell').forEach(input => {
-        // Al escribir una letra, saltar a la siguiente casilla (Derecha o Abajo)
         input.addEventListener('input', (e) => {
             if(input.value.length === 1) {
                 const r = parseInt(input.dataset.r), c = parseInt(input.dataset.c), pid = input.dataset.p;
@@ -657,28 +668,23 @@ function renderCrossword(p) {
                 if (next) next.focus();
             }
         });
-
-        // Manejo de flechas y tecla de borrar (Backspace)
         input.addEventListener('keydown', (e) => {
             const r = parseInt(input.dataset.r), c = parseInt(input.dataset.c), pid = input.dataset.p; 
             let nextId = null;
-            
             if(e.key === 'ArrowUp') nextId = `cell-${pid}-${r-1}-${c}`; 
             if(e.key === 'ArrowDown') nextId = `cell-${pid}-${r+1}-${c}`;
             if(e.key === 'ArrowLeft') nextId = `cell-${pid}-${r}-${c-1}`; 
             if(e.key === 'ArrowRight') nextId = `cell-${pid}-${r}-${c+1}`;
-            
-            // Si presiona borrar y la celda está vacía, retrocede a la celda anterior
             if(e.key === 'Backspace' && input.value === '') {
                 nextId = document.getElementById(`cell-${pid}-${r}-${c-1}`) ? `cell-${pid}-${r}-${c-1}` : `cell-${pid}-${r-1}-${c}`;
             }
-
             if(nextId) { 
                 const n = document.getElementById(nextId); 
                 if(n) { e.preventDefault(); n.focus(); } 
             }
         });
     });
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 function generateCrosswordLayout(words) {
@@ -730,20 +736,34 @@ async function handleCrosswordSubmit(e, pid) {
 }
 
 async function renderStudentGradesView() {
-    document.getElementById('main-content').innerHTML = '<h2>Mis Calificaciones Históricas</h2><div id="grades-list" data-i18n="loading">Cargando...</div>';
+    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_grades">Mis Calificaciones Históricas</h2><div id="grades-list" data-i18n="loading">Cargando...</div>`;
     const practices = await getPractices(); const myP = Object.values(practices).filter(p => p.students && p.students[AppState.user.uid]);
-    if (myP.length === 0) { document.getElementById('grades-list').innerHTML = '<div class="card"><p>Aún no tienes calificaciones registradas.</p></div>'; return; }
-    let html = `<div class="table-container"><table class="styled-table"><thead><tr><th>Práctica evaluada</th><th>Reporte IA (80%)</th><th>Cuestionario (10%)</th><th>Crucigrama (10%)</th><th>Ponderación Final</th><th>Fecha Fin</th></tr></thead><tbody>`;
+    if (myP.length === 0) { document.getElementById('grades-list').innerHTML = `<div class="card"><p data-i18n="dash_no_prac">Aún no tienes calificaciones.</p></div>`; return; }
+    let html = `<div class="table-container"><table class="styled-table"><thead><tr><th data-i18n="nav_create">Práctica</th><th data-i18n="table_report">Reporte (80%)</th><th data-i18n="table_quiz">Cuestionario (10%)</th><th data-i18n="table_cross">Crucigrama (10%)</th><th data-i18n="table_final">Ponderación Final</th><th data-i18n="table_date">Fecha Fin</th></tr></thead><tbody>`;
     html += myP.map(p => {
         const s = p.students[AppState.user.uid]; const f = calculateWeightedGrade(s.reportScore, s.quizScore, s.crosswordScore);
         return `<tr><td><strong>${p.title}</strong></td><td>${s.reportScore??'-'}</td><td>${s.quizScore??'-'}</td><td>${s.crosswordScore??'-'}</td><td><span class="badge ${f>=7?'badge-success':'badge-warning'}">${f}</span></td><td>${formatDate(s.completedAt||s.reportSubmittedAt)}</td></tr>`;
     }).join('');
     document.getElementById('grades-list').innerHTML = html + '</tbody></table></div>';
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 function renderStudentProfileView() {
     const u = AppState.user;
-    document.getElementById('main-content').innerHTML = `<h2>Mi Perfil Académico</h2><div class="card"><label>Matrícula Institucional</label><input value="${u.matricula}" disabled style="background:#f1f5f9; cursor:not-allowed;"><label>Nombre Completo</label><input id="pN" value="${u.username}"><label>Grupo</label><input id="pG" value="${u.grupo||''}"><label>Correo Electrónico</label><input id="pE" value="${u.email}"><button class="btn btn-full" onclick="updProf()">GUARDAR CAMBIOS</button></div>`;
+    document.getElementById('main-content').innerHTML = `
+        <h2 data-i18n="profile_title">Mi Perfil Académico</h2>
+        <div class="card">
+            <label data-i18n="id_label">Matrícula</label>
+            <input value="${u.matricula}" disabled style="background:#f1f5f9; cursor:not-allowed;">
+            <label data-i18n="name_label">Nombre Completo</label>
+            <input id="pN" value="${u.username}">
+            <label data-i18n="group_label">Grupo</label>
+            <input id="pG" value="${u.grupo||''}">
+            <label data-i18n="email_label">Correo</label>
+            <input id="pE" value="${u.email}">
+            <button class="btn btn-full" onclick="updProf()" data-i18n="profile_save">GUARDAR CAMBIOS</button>
+        </div>`;
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 async function updProf(){ await updateUserProfile(AppState.user.uid, {username: document.getElementById('pN').value, grupo: document.getElementById('pG').value, email: document.getElementById('pE').value}); alert("Perfil guardado exitosamente."); }
@@ -755,7 +775,7 @@ async function updProf(){ await updateUserProfile(AppState.user.uid, {username: 
 async function renderTutorDashboard() {
     const prefix = AppState.user.title || 'Coord.';
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2>Tablero de Control Académico</h2><div id="tutor-stats" data-i18n="loading">Calculando métricas...</div>`;
+    div.innerHTML = `<h2 data-i18n="nav_global">Tablero de Control</h2><div id="tutor-stats" data-i18n="loading">Calculando...</div>`;
     
     try {
         const stats = await getGlobalStats();
@@ -770,12 +790,9 @@ async function renderTutorDashboard() {
         const globalAvg = totalGrades > 0 ? (totalSchoolScore / totalGrades).toFixed(1) : '0.0';
 
         div.innerHTML = `
-          <h2>Tablero de Control Académico</h2>
             <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-                <div style="color:var(--text-muted);"><span data-i18n="dash_welcome">Bienvenido</span>, ${prefix} ${AppState.user.username}</div>
-                <button class="btn" onclick="descargarBitacoraAuditoria()" style="background-color: var(--success-color); padding: 10px 15px; font-size: 0.85rem;">
-                    Descargar Bitácora (Auditoría)
-                </button>
+                <h2 data-i18n="nav_global">Tablero de Control</h2>
+                <button class="btn" onclick="descargarBitacoraAuditoria()" style="background-color: var(--success-color);" data-i18n="btn_audit_log">Descargar Bitácora</button>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
@@ -789,23 +806,24 @@ async function renderTutorDashboard() {
                 </div>
                 <div class="card" style="text-align:center; border-left: 4px solid var(--success-color);">
                     <h3 style="margin:0; font-size: 2.5rem; color: var(--success-color);">${globalAvg}</h3>
-                    <p style="color:var(--text-muted);" data-i18n="dash_avg">Promedio Global (Escuela)</p>
+                    <p style="color:var(--text-muted);" data-i18n="tutor_global_avg">Promedio Global</p>
                 </div>
             </div>
             
             <div class="card">
-                <h4>Rendimiento Rápido por Grupo</h4>
+                <h4 data-i18n="tutor_quick_perf">Rendimiento por Grupo</h4>
                 <div class="table-container">
                     <table class="styled-table">
-                        <thead><tr><th>Grupo</th><th>Alumnos</th><th>Promedio General</th><th>Estado</th></tr></thead>
+                        <thead><tr>
+                            <th data-i18n="table_group">Grupo</th>
+                            <th data-i18n="dash_total_students">Alumnos</th>
+                            <th data-i18n="dash_avg">Promedio</th>
+                            <th data-i18n="table_status">Estado</th>
+                        </tr></thead>
                         <tbody>
                             ${groupsList.map(g => {
                                 const avg = g.gradesCount > 0 ? (g.totalScore / g.gradesCount).toFixed(1) : '0.0';
-                                let badge = '<span class="badge badge-success">✅ Excelente</span>';
-                                if(avg > 0 && avg < 8) badge = '<span class="badge badge-warning">⚠️ Regular</span>';
-                                if(avg > 0 && avg < 6) badge = '<span class="badge badge-danger" style="background:var(--danger-color); color:white;">❌ Crítico</span>';
-                                if(g.gradesCount === 0) badge = '<span class="badge" style="background:#f1f5f9;color:var(--text-muted)">⏳ Sin datos</span>';
-                                return `<tr><td><strong>${g.name}</strong></td><td>${g.studentCount}</td><td>${avg}</td><td>${badge}</td></tr>`;
+                                return `<tr><td><strong>${g.name}</strong></td><td>${g.studentCount}</td><td>${avg}</td><td><span class="badge badge-info">${avg >= 7 ? 'Ok' : '-'}</span></td></tr>`;
                             }).join('')}
                         </tbody>
                     </table>
@@ -814,7 +832,7 @@ async function renderTutorDashboard() {
         `;
         if(window.updateTranslations) window.updateTranslations();
     } catch (e) {
-        div.innerHTML = `<p class="alert-error">Error cargando datos: ${e.message}</p>`;
+        div.innerHTML = `<p class="alert-error">Error: ${e.message}</p>`;
     }
 }
 
@@ -857,7 +875,7 @@ async function getGlobalStats() {
 }
 
 async function renderTutorGroupsView() {
-    document.getElementById('main-content').innerHTML = `<h2>Detalle por Grupos</h2><div id="groups-detail" data-i18n="loading">Cargando...</div>`;
+    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_groups">Análisis por Grupos</h2><div id="groups-detail" data-i18n="loading">Cargando...</div>`;
     const stats = await getGlobalStats();
     const groups = Object.values(stats.groupsData);
     
@@ -868,7 +886,7 @@ async function renderTutorGroupsView() {
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h3 style="margin:0; color: var(--brand-dark);">Grupo ${g.name}</h3>
-                    <span class="badge badge-info" style="font-size:1em;">Promedio: ${avg}</span>
+                    <span class="badge badge-info" style="font-size:1em;"><span data-i18n="dash_avg">Promedio</span>: ${avg}</span>
                 </div>
                 <details>
                     <summary style="cursor:pointer; color:var(--primary-color); font-weight:600;">Ver lista de alumnos (${g.studentCount})</summary>
@@ -887,18 +905,19 @@ async function renderTutorGroupsView() {
         `;
     });
     
-    if (groups.length === 0) html = '<div class="card"><p>No hay grupos registrados.</p></div>';
+    if (groups.length === 0) html = '<div class="card"><p data-i18n="dash_no_prac">No hay grupos registrados.</p></div>';
     document.getElementById('groups-detail').innerHTML = html;
+    if(window.updateTranslations) window.updateTranslations();
 }
 
 async function renderTutorAuditView() {
-    document.getElementById('main-content').innerHTML = `<h2>Auditoría de Prácticas</h2><p style="color:var(--text-muted);">Vista de solo lectura del progreso académico.</p><div id="audit-list">Cargando...</div>`;
+    document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_audit">Auditoría de Prácticas</h2><p style="color:var(--text-muted);" data-i18n="dash_desc">Vista de solo lectura del progreso académico.</p><div id="audit-list" data-i18n="loading">Cargando...</div>`;
     
     const practices = await getPractices(); 
     const list = Object.values(practices);
     
     if (list.length === 0) {
-        document.getElementById('audit-list').innerHTML = '<div class="card">No hay prácticas creadas por docentes.</div>';
+        document.getElementById('audit-list').innerHTML = `<div class="card" data-i18n="dash_no_prac">No hay prácticas creadas.</div>`;
         return;
     }
 
@@ -931,11 +950,10 @@ async function renderTutorAuditView() {
                         <strong style="font-size:1.2em; color:var(--success-color);">${completedCount}</strong>
                     </div>
                     <div>
-                        <span style="display:block; font-size:0.8em; color:var(--text-muted);">Tasa de Éxito</span>
+                        <span style="display:block; font-size:0.8em; color:var(--text-muted);">Éxito</span>
                         <strong style="font-size:1.2em; color:var(--primary-color);">${completionRate}%</strong>
                     </div>
                 </div>
-                
                 <div style="margin-top:15px; background:var(--border-color); height:8px; border-radius:4px; overflow:hidden;">
                     <div style="background:var(--primary-color); width:${completionRate}%; height:100%;"></div>
                 </div>
@@ -944,4 +962,5 @@ async function renderTutorAuditView() {
     });
     
     document.getElementById('audit-list').innerHTML = html;
+    if(window.updateTranslations) window.updateTranslations();
 }

@@ -617,32 +617,66 @@ function renderCrossword(p) {
     const d = document.getElementById(`cross-${p.id}`);
     const allWordsData = p.generatedContent?.crucigrama;
     if(!allWordsData) return d.innerHTML="<p>Error crucigrama</p>";
+    
     const myWordsData = getStudentCrosswordWords(allWordsData, AppState.user.uid, 5);
     const words = myWordsData.map(w => ({ word: w.word.toUpperCase(), clue: w.clue }));
     const layout = generateCrosswordLayout(words);
+    
     if(!layout) return d.innerHTML="<p>Error generando el tablero.</p>";
     
     let h = '<div style="display:flex; flex-wrap:wrap; gap:20px;"><div style="overflow-x:auto; background:white; padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border-color);"><table style="border-collapse:collapse;">';
+    
     layout.grid.forEach((r, i) => { 
         h += '<tr>'; 
         r.forEach((c, j) => { 
             if(c) {
                 const cellId = `cell-${p.id}-${i}-${j}`;
-                h += `<td style="width:45px; height:45px; padding:0; border:1px solid #cbd5e1; position:relative;"><input type="text" maxlength="1" data-correct="${c.char}" class="crossword-cell" id="${cellId}" data-p="${p.id}" data-r="${i}" data-c="${j}" style="width:100%; height:100%; text-align:center; font-size:1.5rem; text-transform:uppercase; border:none; padding:0; min-height:auto; font-weight:bold; background:transparent;"><span style="position:absolute; top:2px; left:4px; font-size:10px; color:var(--text-muted); pointer-events:none;">${c.num||''}</span></td>`;
-            } else h += '<td style="background:#e2e8f0; border:1px solid #cbd5e1;"></td>';
+                h += `<td style="width:45px; height:45px; padding:0; border:1px solid #cbd5e1; position:relative;">
+                        <input type="text" maxlength="1" data-correct="${c.char}" class="crossword-cell" id="${cellId}" data-p="${p.id}" data-r="${i}" data-c="${j}" style="width:100%; height:100%; text-align:center; font-size:1.5rem; text-transform:uppercase; border:none; padding:0; min-height:auto; font-weight:bold; background:transparent;">
+                        <span style="position:absolute; top:2px; left:4px; font-size:10px; color:var(--text-muted); pointer-events:none;">${c.num||''}</span>
+                      </td>`;
+            } else {
+                h += '<td style="background:#e2e8f0; border:1px solid #cbd5e1;"></td>';
+            }
         }); 
         h += '</tr>'; 
     });
+    
     h += '</table></div><div style="flex:1; min-width:280px; background:var(--bg-color); padding:20px; border-radius:var(--radius-sm);"><h5>Pistas</h5>';
     layout.placedWordsInfo.forEach(w => h+=`<p style="margin-bottom:10px; font-size:0.95rem;"><strong>${w.number}. ${w.orientation==='across'?'H':'V'}</strong>: ${w.clue}</p>`);
     h += '</div></div><button class="btn btn-full" onclick="handleCrosswordSubmit(event, \''+p.id+'\')" style="margin-top:20px;">EVALUAR CRUCIGRAMA</button>';
     d.innerHTML = h;
+
+    // LÓGICA DE NAVEGACIÓN MEJORADA
     d.querySelectorAll('.crossword-cell').forEach(input => {
+        // Al escribir una letra, saltar a la siguiente casilla (Derecha o Abajo)
+        input.addEventListener('input', (e) => {
+            if(input.value.length === 1) {
+                const r = parseInt(input.dataset.r), c = parseInt(input.dataset.c), pid = input.dataset.p;
+                let next = document.getElementById(`cell-${pid}-${r}-${c+1}`) || document.getElementById(`cell-${pid}-${r+1}-${c}`);
+                if (next) next.focus();
+            }
+        });
+
+        // Manejo de flechas y tecla de borrar (Backspace)
         input.addEventListener('keydown', (e) => {
-            const r = parseInt(input.dataset.r), c = parseInt(input.dataset.c), pid = input.dataset.p; let nextId = null;
-            if(e.key==='ArrowUp') nextId=`cell-${pid}-${r-1}-${c}`; if(e.key==='ArrowDown') nextId=`cell-${pid}-${r+1}-${c}`;
-            if(e.key==='ArrowLeft') nextId=`cell-${pid}-${r}-${c-1}`; if(e.key==='ArrowRight') nextId=`cell-${pid}-${r}-${c+1}`;
-            if(nextId) { const n=document.getElementById(nextId); if(n) { e.preventDefault(); n.focus(); } }
+            const r = parseInt(input.dataset.r), c = parseInt(input.dataset.c), pid = input.dataset.p; 
+            let nextId = null;
+            
+            if(e.key === 'ArrowUp') nextId = `cell-${pid}-${r-1}-${c}`; 
+            if(e.key === 'ArrowDown') nextId = `cell-${pid}-${r+1}-${c}`;
+            if(e.key === 'ArrowLeft') nextId = `cell-${pid}-${r}-${c-1}`; 
+            if(e.key === 'ArrowRight') nextId = `cell-${pid}-${r}-${c+1}`;
+            
+            // Si presiona borrar y la celda está vacía, retrocede a la celda anterior
+            if(e.key === 'Backspace' && input.value === '') {
+                nextId = document.getElementById(`cell-${pid}-${r}-${c-1}`) ? `cell-${pid}-${r}-${c-1}` : `cell-${pid}-${r-1}-${c}`;
+            }
+
+            if(nextId) { 
+                const n = document.getElementById(nextId); 
+                if(n) { e.preventDefault(); n.focus(); } 
+            }
         });
     });
 }

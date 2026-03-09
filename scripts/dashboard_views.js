@@ -313,7 +313,7 @@ async function renderManageStudentsView() {
                 <div id="batchLog" style="margin-left:auto; font-weight:600;"></div>
             </div>
         </div>
-      <div id="sList"><p data-i18n="loading">Cargando...</p></div>`;
+      <div id="list">Cargando...</div>`;
     
     rList(AppState.users);
     if(window.updateTranslations) window.updateTranslations();
@@ -402,7 +402,7 @@ async function renderDoctorGradesView() {
             <h2 data-i18n="view_grades_title">Calificaciones por Práctica</h2>
             <button class="btn btn-secondary" onclick="window.print()" data-i18n="btn_export">Exportar PDF</button>
         </div>
-       <div id="grades-by-practice"><p data-i18n="loading">Cargando...</p></div>`;
+      <div id="grades-list">Cargando...</div>`;
         
     const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
     const uMap = new Map(users.map(u => [u.uid, u]));
@@ -501,7 +501,7 @@ function renderStudentDashboard() {
 
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2 data-i18n="nav_my_practices">Mis Prácticas</h2><div id="list" data-i18n="loading">Cargando...</div>`;
+    div.innerHTML = `<h2 data-i18n="nav_my_practices">Mis Prácticas</h2><div id="list">Cargando...</div>`;
     try {
         const practices = await getPractices(); 
         AppState.practices = practices; 
@@ -562,7 +562,7 @@ async function handleReportUpload(pid) {
 
 async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
-    div.innerHTML = `<h2 data-i18n="nav_activities">Actividades Complementarias</h2><div id="act-list" data-i18n="loading">Cargando...</div>`;
+    div.innerHTML = `<h2 data-i18n="nav_activities">Actividades Complementarias</h2><div id="act-list" >Cargando...</div>`;
     try {
         if (shouldFetch) { AppState.practices = await getPractices(); }
         const myP = Object.values(AppState.practices).filter(p => p.students && p.students[AppState.user.uid]);
@@ -591,7 +591,7 @@ async function renderStudentActivitiesView(shouldFetch = true) {
 function renderQuiz(p) {
     const d = document.getElementById(`quiz-${p.id}`);
     const fullBank = p.generatedContent?.cuestionario;
-    if (!fullBank) return d.innerHTML = "<p class='alert-error' data-i18n='loading'>Error IA</p>";
+    if (!fullBank) return d.innerHTML = "<p class='alert-error'>Error IA</p>";
     const myQuestions = getStudentQuestions(fullBank, AppState.user.uid, 5);
     let h = '<p style="font-weight:600;" data-i18n="quiz_instruction">Responde las preguntas:</p>';
     myQuestions.forEach((x, i) => {

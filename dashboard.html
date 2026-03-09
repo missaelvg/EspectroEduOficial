@@ -82,26 +82,32 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     }
 
-    async function initDashboard() {
-        const mainContent = document.getElementById('main-content');
-        try {
-            const user = await checkAuth();
-            if (!user) return;
+async function initDashboard() {
+    console.log("🚀 1. Arrancando initDashboard...");
+    const mainContent = document.getElementById('main-content');
+    try {
+        console.log("⏳ 2. Llamando a Firebase para verificar usuario...");
+        const user = await checkAuth();
+        
+        console.log("✅ 3. Firebase respondió:", user);
+        if (!user) return;
 
-            if (user.role === 'doctor') {
-                renderDoctorLayout(user);
-            } else if (user.role === 'alumno') {
-                renderStudentLayout(user);
-            } else if (user.role === 'coordinador') {
-                renderTutorLayout(user); 
-            } else {
-                mainContent.innerHTML = `<h2>Rol no reconocido</h2><p>Tu cuenta no tiene un rol válido asignado. Por favor, contacta al administrador.</p>`;
-            }
-        } catch (error) {
-            console.error("Fallo crítico en la inicialización:", error);
-            mainContent.innerHTML = `<h2 style="color: red;">Error al Cargar la Aplicación</h2><p>No se pudo conectar con los servicios. Verifica tu conexión a internet.</p>`;
+        if (user.role === 'doctor') {
+            console.log("👨‍⚕️ 4. Cargando vista de Docente...");
+            renderDoctorLayout(user);
+        } else if (user.role === 'alumno') {
+            console.log("🎓 4. Cargando vista de Alumno...");
+            renderStudentLayout(user);
+        } else if (user.role === 'coordinador') {
+            console.log("📋 4. Cargando vista de Coordinador...");
+            renderTutorLayout(user); 
+        } else {
+            mainContent.innerHTML = `<h2>Rol no reconocido</h2>`;
         }
+    } catch (error) {
+        console.error("❌ Fallo crítico en la inicialización:", error);
     }
+}
     
     initDashboard();
 </script>

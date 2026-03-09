@@ -245,6 +245,26 @@ body.login-page {
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 40px rgba(255, 255, 255, 0.05); 
     color: #0f172a;
+    
+    /* NUEVO: Evita que choque con los bordes de la pantalla */
+    max-height: 85vh; 
+    overflow-y: auto; /* Permite hacer scroll interno si el formulario es muy largo */
+}
+
+/* NUEVO: Personalización de la barra de scroll para que se vea moderna y discreta */
+.form-card::-webkit-scrollbar {
+    width: 6px;
+}
+.form-card::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 20px 0; /* Separa un poco el scrollbar de los bordes arriba/abajo */
+}
+.form-card::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+.form-card::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
 }
 
 .form-header {

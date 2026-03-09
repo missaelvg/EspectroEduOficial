@@ -313,7 +313,7 @@ async function renderManageStudentsView() {
                 <div id="batchLog" style="margin-left:auto; font-weight:600;"></div>
             </div>
         </div>
-        <div id="sList" data-i18n="loading">Cargando...</div>`;
+      <div id="sList">Cargando...</div>`;
     
     rList(AppState.users);
     if(window.updateTranslations) window.updateTranslations();
@@ -402,7 +402,7 @@ async function renderDoctorGradesView() {
             <h2 data-i18n="view_grades_title">Calificaciones por Práctica</h2>
             <button class="btn btn-secondary" onclick="window.print()">Exportar PDF</button>
         </div>
-        <div id="grades-by-practice" data-i18n="loading">Cargando...</div>`;
+       <div id="grades-by-practice">Cargando...</div>`;
         
     const [practices, users] = await Promise.all([getPractices(), getAllUsers()]);
     const uMap = new Map(users.map(u => [u.uid, u]));
@@ -892,7 +892,7 @@ async function renderTutorGroupsView() {
 }
 
 async function renderTutorAuditView() {
-    document.getElementById('main-content').innerHTML = `<h2>Auditoría de Prácticas</h2><p style="color:var(--text-muted);">Vista de solo lectura del progreso académico.</p><div id="audit-list" data-i18n="loading">Cargando...</div>`;
+    document.getElementById('main-content').innerHTML = `<h2>Auditoría de Prácticas</h2><p style="color:var(--text-muted);">Vista de solo lectura del progreso académico.</p><div id="audit-list">Cargando...</div>`;
     
     const practices = await getPractices(); 
     const list = Object.values(practices);

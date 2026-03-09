@@ -6,7 +6,6 @@ let daltonismActive = localStorage.getItem('espectro_daltonism') === 'true';
 let highlightActive = localStorage.getItem('espectro_highlight') === 'true';
 let fontSize = localStorage.getItem('espectro_fontsize') || '16';
 
-// DICCIONARIO AMPLIADO COMPLETO
 const translations = {
     es: {
         "a11y_title": "Herramientas de Accesibilidad",
@@ -81,7 +80,52 @@ const translations = {
         "view_create_title": "Crear Nueva Práctica",
         "view_manage_title": "Gestionar Alumnos",
         "view_grades_title": "Calificaciones por Práctica",
-        "loading": "Cargando..."
+        "loading": "Cargando...",
+        "btn_export": "Exportar PDF",
+        "pract_title_label": "Título de la Práctica",
+        "pract_slides_label": "Diapositivas (PDF)",
+        "pract_standard_label": "Estándar de Evaluación (PDF)",
+        "pract_drop_text": "↑ Arrastra y suelta tu archivo aquí",
+        "pract_click_text": "O haz clic para seleccionar",
+        "pract_btn_create": "CREAR PRÁCTICA",
+        "search_student": "Buscar alumno...",
+        "all_groups": "Todos los Grupos",
+        "any_status": "Cualquier Estado",
+        "select_all_label": "Seleccionar Todo",
+        "choose_pract": "Elegir Práctica...",
+        "btn_enroll": "Inscribir Seleccionados",
+        "status_enrolled": "✅ Inscrito",
+        "status_not_enrolled": "⏳ No inscrito",
+        "btn_delete": "Borrar",
+        "table_name": "Nombre",
+        "table_id": "Matrícula",
+        "table_group": "Grupo",
+        "table_report": "Reporte (80%)",
+        "table_quiz": "Cuestionario (10%)",
+        "table_cross": "Crucigrama (10%)",
+        "table_final": "Final",
+        "table_status": "Estado",
+        "table_date": "Fecha Fin",
+        "grade_approved": "✅ Aprobado",
+        "grade_pending": "⏳ Pendiente",
+        "grade_attention": "⚠️ Requiere Atención",
+        "report_delivered": "Reporte Entregado Correctamente",
+        "report_ia_score": "Calificación Asignada por IA",
+        "consult_material": "Material de Consulta:",
+        "btn_slides": "Diapositivas",
+        "btn_standard": "Estándar Evaluación",
+        "upload_report_label": "Sube tu reporte elaborado en PDF:",
+        "btn_send_report": "ENTREGAR REPORTE PARA EVALUACIÓN",
+        "act_blocked": "Para desbloquear las actividades, primero debes entregar tu reporte.",
+        "act_completed": "¡Has completado todas las actividades de esta práctica!",
+        "quiz_instruction": "Responde las siguientes preguntas de opción múltiple:",
+        "btn_send_answers": "ENVIAR RESPUESTAS",
+        "btn_eval_cross": "EVALUAR CRUCIGRAMA",
+        "profile_title": "Mi Perfil Académico",
+        "profile_save": "GUARDAR CAMBIOS",
+        "tutor_global_avg": "Promedio Global (Escuela)",
+        "tutor_quick_perf": "Rendimiento Rápido por Grupo",
+        "btn_audit_log": "Descargar Bitácora (Auditoría)"
     },
     en: {
         "a11y_title": "Accessibility Tools",
@@ -156,7 +200,52 @@ const translations = {
         "view_create_title": "Create New Practice",
         "view_manage_title": "Manage Students",
         "view_grades_title": "Grades by Practice",
-        "loading": "Loading..."
+        "loading": "Loading...",
+        "btn_export": "Export PDF",
+        "pract_title_label": "Practice Title",
+        "pract_slides_label": "Slides (PDF)",
+        "pract_standard_label": "Evaluation Standard (PDF)",
+        "pract_drop_text": "↑ Drag and drop your file here",
+        "pract_click_text": "Or click to select",
+        "pract_btn_create": "CREATE PRACTICE",
+        "search_student": "Search student...",
+        "all_groups": "All Groups",
+        "any_status": "Any Status",
+        "select_all_label": "Select All",
+        "choose_pract": "Choose Practice...",
+        "btn_enroll": "Enroll Selected",
+        "status_enrolled": "✅ Enrolled",
+        "status_not_enrolled": "⏳ Not enrolled",
+        "btn_delete": "Delete",
+        "table_name": "Name",
+        "table_id": "Student ID",
+        "table_group": "Group",
+        "table_report": "Report (80%)",
+        "table_quiz": "Quiz (10%)",
+        "table_cross": "Crossword (10%)",
+        "table_final": "Final",
+        "table_status": "Status",
+        "table_date": "End Date",
+        "grade_approved": "✅ Approved",
+        "grade_pending": "⏳ Pending",
+        "grade_attention": "⚠️ Needs Attention",
+        "report_delivered": "Report Successfully Delivered",
+        "report_ia_score": "IA Assigned Grade",
+        "consult_material": "Consultation Material:",
+        "btn_slides": "Slides",
+        "btn_standard": "Evaluation Standard",
+        "upload_report_label": "Upload your prepared PDF report:",
+        "btn_send_report": "DELIVER REPORT FOR EVALUATION",
+        "act_blocked": "To unlock activities, you must first deliver your report.",
+        "act_completed": "You have completed all activities for this practice!",
+        "quiz_instruction": "Answer the following multiple choice questions:",
+        "btn_send_answers": "SUBMIT ANSWERS",
+        "btn_eval_cross": "EVALUATE CROSSWORD",
+        "profile_title": "My Academic Profile",
+        "profile_save": "SAVE CHANGES",
+        "tutor_global_avg": "Global Average (School)",
+        "tutor_quick_perf": "Quick Performance by Group",
+        "btn_audit_log": "Download Audit Log"
     }
 };
 
@@ -202,7 +291,6 @@ function applyLanguage(lang) {
     });
 }
 
-// Función global para actualizar vistas renderizadas desde JS
 window.updateTranslations = () => applyLanguage(currentLang);
 function setLanguage(lang) { applyLanguage(lang); }
 
@@ -230,9 +318,6 @@ function changeFontSize() {
     localStorage.setItem('espectro_fontsize', size);
 }
 
-// =========================================
-// LÓGICA DE GUÍA AUDITIVA MEJORADA (LEE TODO)
-// =========================================
 function toggleAudioGuide() {
     audioGuideActive = !audioGuideActive;
     document.documentElement.classList.toggle('audio-guide-active', audioGuideActive);
@@ -255,11 +340,10 @@ function readText(text, force = false) {
 
 document.addEventListener('mouseover', (e) => {
     if (!audioGuideActive) return;
-    // Selector ultra amplio para capturar prácticamente cualquier texto visible interactivo o informativo
     const target = e.target.closest('button, a, input, select, textarea, label, h1, h2, h3, h4, h5, h6, p, span, li, td, th, strong, em, b, i, details, summary, .alert-success, .alert-warning, .alert-error, .step-text, .badge');
     
     if (target) {
-        if (target === window.lastSpokenElement) return; // Evita repetir el mismo elemento al mover un pixel
+        if (target === window.lastSpokenElement) return;
         window.lastSpokenElement = target;
         
         target.classList.add('speaking-indicator');

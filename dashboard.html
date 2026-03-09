@@ -6,18 +6,12 @@
 <title>Dashboard - EspectroEdu</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=3">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script> 
-    <script src="scripts/firebase_config.js?v=2"></script>
-<script src="scripts/auth.js?v=2"></script>
-<script src="scripts/data_manager.js?v=2"></script>
-<script src="scripts/utils.js?v=2"></script>
-<script src="scripts/accessibility.js?v=2"></script>
-<script src="scripts/dashboard_views.js?v=2"></script>
 </head>
 <body>
 <header id="header">
@@ -76,44 +70,44 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
-<script src="scripts/firebase_config.js"></script>
-<script src="scripts/auth.js"></script>
-<script src="scripts/data_manager.js"></script>
-<script src="scripts/utils.js"></script>
-<script src="scripts/accessibility.js"></script>
-<script src="scripts/dashboard_views.js"></script>
+<script src="scripts/firebase_config.js?v=3"></script>
+<script src="scripts/auth.js?v=3"></script>
+<script src="scripts/data_manager.js?v=3"></script>
+<script src="scripts/utils.js?v=3"></script>
+<script src="scripts/accessibility.js?v=3"></script>
+<script src="scripts/dashboard_views.js?v=3"></script>
 
 <script>
     if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     }
 
-async function initDashboard() {
-    console.log("🚀 1. Arrancando initDashboard...");
-    const mainContent = document.getElementById('main-content');
-    try {
-        console.log("⏳ 2. Llamando a Firebase para verificar usuario...");
-        const user = await checkAuth();
-        
-        console.log("✅ 3. Firebase respondió:", user);
-        if (!user) return;
+    async function initDashboard() {
+        console.log("🚀 1. Arrancando initDashboard...");
+        const mainContent = document.getElementById('main-content');
+        try {
+            console.log("⏳ 2. Llamando a Firebase para verificar usuario...");
+            const user = await checkAuth();
+            
+            console.log("✅ 3. Firebase respondió:", user);
+            if (!user) return;
 
-        if (user.role === 'doctor') {
-            console.log("👨‍⚕️ 4. Cargando vista de Docente...");
-            renderDoctorLayout(user);
-        } else if (user.role === 'alumno') {
-            console.log("🎓 4. Cargando vista de Alumno...");
-            renderStudentLayout(user);
-        } else if (user.role === 'coordinador') {
-            console.log("📋 4. Cargando vista de Coordinador...");
-            renderTutorLayout(user); 
-        } else {
-            mainContent.innerHTML = `<h2>Rol no reconocido</h2>`;
+            if (user.role === 'doctor') {
+                console.log("👨‍⚕️ 4. Cargando vista de Docente...");
+                renderDoctorLayout(user);
+            } else if (user.role === 'alumno') {
+                console.log("🎓 4. Cargando vista de Alumno...");
+                renderStudentLayout(user);
+            } else if (user.role === 'coordinador') {
+                console.log("📋 4. Cargando vista de Coordinador...");
+                renderTutorLayout(user); 
+            } else {
+                mainContent.innerHTML = `<h2>Rol no reconocido</h2>`;
+            }
+        } catch (error) {
+            console.error("❌ Fallo crítico en la inicialización:", error);
         }
-    } catch (error) {
-        console.error("❌ Fallo crítico en la inicialización:", error);
     }
-}
     
     initDashboard();
 </script>

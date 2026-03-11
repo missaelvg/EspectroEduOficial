@@ -256,19 +256,36 @@ async function handlePracticeCreation() {
         await savePracticeContent(pid, { slidesPdfUrl: s, standardPdfUrl: std });
         
         pBar.style.width = '60%';
-        logDiv.innerHTML = '<span style="color:var(--accent-color)">Analizando métricas con IA...</span>';
-        let txt = ""; try { txt = await extractTextFromPDF(slidesFile); } catch(e){}
-        await savePracticeContent(pid, { slidesText: txt });
+        logDiv.innerHTML = '<span style="color:var(--accent-color)">Leyendo el texto de los PDFs...</span>';
         
-        if (txt.length > 50) {
+        let txtSlides = "";
+        let txtStandard = "";
+        
+        try { 
+            // NUEVO: Extraemos el texto de AMBOS documentos
+            txtSlides = await extractTextFromPDF(slidesFile); 
+            txtStandard = await extractTextFromPDF(standardFile);
+        } catch(e) {
+            // NUEVO: Si falla, mostramos el error real en consola y pantalla
+            console.error("Error real de PDF.js:", e);
+            logDiv.innerHTML = `<p class="alert-error">Error al procesar el PDF: ${e.message}</p>`;
+            return;
+        }
+        
+        // Guardamos los dos textos en la base de datos
+        await savePracticeContent(pid, { slidesText: txtSlides, standardText: txtStandard });
+        
+        if (txtSlides.length > 50) {
             pBar.style.width = '90%';
-            logDiv.innerHTML = '<span style="color:var(--accent-color)">Generando contenido educativo...</span>';
+            logDiv.innerHTML = '<span style="color:var(--accent-color)">Generando contenido educativo con IA...</span>';
             try { 
-                const gen = await callAIGenerate(txt); 
+                const gen = await callAIGenerate(txtSlides); 
                 await savePracticeContent(pid, { generatedContent: gen }); 
                 pBar.style.width = '100%';
                 logDiv.innerHTML = '<p class="alert-success">¡Práctica creada con éxito!</p>'; 
-            } catch(e) { logDiv.innerHTML = '<p class="alert-warning">Creada parcialmente (Error IA). Intenta subir nuevamente el PDF.</p>'; }
+            } catch(e) { 
+                logDiv.innerHTML = '<p class="alert-warning">Creada parcialmente. Falló la conexión con la IA.</p>'; 
+            }
         } else { 
             pBar.style.width = '100%';
             logDiv.innerHTML = '<p class="alert-warning">Documento escaneado. No se detectó texto para la IA.</p>'; 

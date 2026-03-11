@@ -47,7 +47,7 @@ function extractStudentData(texto) {
     return { nombre, matricula };
 }
 
-// 3. Evalúa directamente desde el navegador (Blindado contra Markdown)
+// 3. Evalúa directamente desde el navegador (Blindado)
 async function callAIEvaluate(reporteTexto, estandar) {
     const promptIA = `
         Evalúa este reporte contra el estándar.
@@ -68,14 +68,16 @@ async function callAIEvaluate(reporteTexto, estandar) {
 
     if (!response.ok) throw new Error(`Error en evaluación IA: ${response.status}`);
     const data = await response.json();
-    let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     
-    // Limpieza de etiquetas Markdown (```json ... ```)
-    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-    return JSON.parse(rawText);
+    // MAGIA: Busca y extrae SOLAMENTE lo que esté entre la primera { y la última }
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("La IA no devolvió un formato JSON válido.");
+    
+    return JSON.parse(jsonMatch[0]);
 }
 
-// 4. Genera cuestionarios y crucigramas desde el navegador (Blindado contra Markdown)
+// 4. Genera cuestionarios y crucigramas desde el navegador (Blindado)
 async function callAIGenerate(slidesTexto, practicaId) {
     const promptIA = `
         Actúa como un profesor experto. Analiza el siguiente texto y genera:
@@ -107,11 +109,13 @@ async function callAIGenerate(slidesTexto, practicaId) {
         })
     });
 
-    if (!response.ok) throw new Error(`Error en la generación de IA: ${response.status}`);
+    if (!response.ok) throw new Error(`Error HTTP de Google: ${response.status}`);
     const data = await response.json();
-    let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     
-    // Limpieza de etiquetas Markdown (```json ... ```)
-    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-    return JSON.parse(rawText);
+    // MAGIA: Busca y extrae SOLAMENTE lo que esté entre la primera { y la última }
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("La IA no devolvió un formato JSON válido.");
+    
+    return JSON.parse(jsonMatch[0]);
 }

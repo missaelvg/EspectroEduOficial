@@ -5,35 +5,40 @@
 const GEMINI_API_KEY = "AIzaSyCfPNkDv3LwpsGcKKkmo8LtEiSuq89b3Fw"; 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-// 1. Extrae texto crudo de un archivo PDF usando la librería pdf.js
+// 1. Extrae texto usando URL Object (Mucho más estable en navegadores)
 async function extractTextFromPDF(file) {
     if (!window.pdfjsLib) throw new Error("La librería pdf.js no se ha cargado.");
     
-    // Conecta a la librería con su "trabajador" para que no se congele
+    // Conecta a la librería con su "trabajador"
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     
-    const fileReader = new FileReader();
-    const texto = await new Promise((resolve, reject) => {
-        fileReader.onload = async function() {
-            try {
-                const typedarray = new Uint8Array(this.result);
-                const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-                let textoAcumulado = "";
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    textoAcumulado += content.items.map(item => item.str).join(" ") + "\n";
-                }
-                resolve(textoAcumulado.replace(/\s+/g, ' ').trim()); 
-            } catch (e) { 
-                console.error("Error leyendo el PDF:", e); 
-                reject(e); 
-            }
-        };
-        fileReader.onerror = reject;
-        fileReader.readAsArrayBuffer(file);
-    });
-    return texto;
+    try {
+        // Creamos una URL temporal para el archivo en lugar de usar un ArrayBuffer pesado
+        const fileUrl = URL.createObjectURL(file);
+        const pdf = await pdfjsLib.getDocument(fileUrl).promise;
+        
+        let textoAcumulado = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            textoAcumulado += content.items.map(item => item.str).join(" ") + "\n";
+        }
+        
+        // Limpiamos la memoria del navegador
+        URL.revokeObjectURL(fileUrl);
+        
+        const textoLimpio = textoAcumulado.replace(/\s+/g, ' ').trim();
+        
+        // 🚨 AQUÍ VEREMOS LA VERDAD EN LA CONSOLA (F12) 🚨
+        console.log(`📄 Texto extraído de [${file.name}]:`, textoLimpio.substring(0, 150) + "...");
+        console.log(`📏 Cantidad de caracteres extraídos:`, textoLimpio.length);
+        
+        return textoLimpio;
+
+    } catch (e) { 
+        console.error("Error leyendo el PDF:", e); 
+        throw e;
+    }
 }
 
 // 2. Extraer datos del alumno
@@ -47,7 +52,7 @@ function extractStudentData(texto) {
     return { nombre, matricula };
 }
 
-// 3. Evalúa directamente desde el navegador
+// 3. Evalúa directamente desde el navegador (Blindado contra Markdown)
 async function callAIEvaluate(reporteTexto, estandar) {
     const promptIA = `
         Evalúa este reporte contra el estándar.
@@ -68,13 +73,14 @@ async function callAIEvaluate(reporteTexto, estandar) {
 
     if (!response.ok) throw new Error(`Error en evaluación IA: ${response.status}`);
     const data = await response.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Error formato IA");
-    return JSON.parse(jsonMatch[0]);
+    let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    
+    // Limpieza de etiquetas Markdown (```json ... ```)
+    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(rawText);
 }
 
-// 4. Genera cuestionarios y crucigramas desde el navegador
+// 4. Genera cuestionarios y crucigramas desde el navegador (Blindado contra Markdown)
 async function callAIGenerate(slidesTexto, practicaId) {
     const promptIA = `
         Actúa como un profesor experto. Analiza el siguiente texto y genera:
@@ -108,8 +114,9 @@ async function callAIGenerate(slidesTexto, practicaId) {
 
     if (!response.ok) throw new Error(`Error en la generación de IA: ${response.status}`);
     const data = await response.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Error formato IA");
-    return JSON.parse(jsonMatch[0]);
+    let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    
+    // Limpieza de etiquetas Markdown (```json ... ```)
+    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(rawText);
 }

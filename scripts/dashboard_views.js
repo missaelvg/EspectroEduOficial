@@ -266,13 +266,12 @@ async function handlePracticeCreation() {
             txtSlides = await extractTextFromPDF(slidesFile); 
             txtStandard = await extractTextFromPDF(standardFile);
         } catch(e) {
-            // NUEVO: Si falla, mostramos el error real en consola y pantalla
             console.error("Error real de PDF.js:", e);
             logDiv.innerHTML = `<p class="alert-error">Error al procesar el PDF: ${e.message}</p>`;
             return;
         }
         
-        // Guardamos los dos textos en la base de datos
+        // Guardamos los dos textos en la BD
         await savePracticeContent(pid, { slidesText: txtSlides, standardText: txtStandard });
         
         if (txtSlides.length > 50) {
@@ -284,7 +283,7 @@ async function handlePracticeCreation() {
                 pBar.style.width = '100%';
                 logDiv.innerHTML = '<p class="alert-success">¡Práctica creada con éxito!</p>'; 
             } catch(e) { 
-                logDiv.innerHTML = '<p class="alert-warning">Creada parcialmente. Falló la conexión con la IA.</p>'; 
+                logDiv.innerHTML = `<p class="alert-warning">Creada parcialmente. Falló la conexión con la IA: ${e.message}</p>`; 
             }
         } else { 
             pBar.style.width = '100%';

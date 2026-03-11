@@ -77,39 +77,6 @@
 <script src="scripts/accessibility.js?v=3"></script>
 <script src="scripts/dashboard_views.js?v=3"></script>
 
-<script>
-    if (window.pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    }
-
-    async function initDashboard() {
-        console.log("🚀 1. Arrancando initDashboard...");
-        const mainContent = document.getElementById('main-content');
-        try {
-            console.log("⏳ 2. Llamando a Firebase para verificar usuario...");
-            const user = await checkAuth();
-            
-            console.log("✅ 3. Firebase respondió:", user);
-            if (!user) return;
-
-            if (user.role === 'doctor') {
-                console.log("👨‍⚕️ 4. Cargando vista de Docente...");
-                renderDoctorLayout(user);
-            } else if (user.role === 'alumno') {
-                console.log("🎓 4. Cargando vista de Alumno...");
-                renderStudentLayout(user);
-            } else if (user.role === 'coordinador') {
-                console.log("📋 4. Cargando vista de Coordinador...");
-                renderTutorLayout(user); 
-            } else {
-                mainContent.innerHTML = `<h2>Rol no reconocido</h2>`;
-            }
-        } catch (error) {
-            console.error("❌ Fallo crítico en la inicialización:", error);
-        }
-    }
-    
-    initDashboard();
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </body>
 </html>

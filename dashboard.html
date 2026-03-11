@@ -75,5 +75,28 @@
 <script src="scripts/utils.js?v=3"></script>
 <script src="scripts/accessibility.js?v=3"></script>
 <script src="scripts/dashboard_views.js?v=3"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Obtenemos al usuario activo desde Firebase
+        const user = await getCurrentUser();
+        
+        // Si no hay sesión, lo regresamos al Login
+        if (!user) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // Renderizamos la vista dependiendo de su rol
+        if (user.role === 'alumno') {
+            renderStudentLayout(user);
+        } else if (user.role === 'doctor' || user.role === 'docente') {
+            renderDoctorLayout(user);
+        } else if (user.role === 'coordinador' || user.role === 'tutor') {
+            renderTutorLayout(user);
+        } else {
+            document.getElementById('main-content').innerHTML = '<p class="alert-error">Error: Rol de usuario no reconocido.</p>';
+        }
+    });
+</script>
 </body>
 </html>

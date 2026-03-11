@@ -13,7 +13,6 @@ async function extractTextFromPDF(file) {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     
     try {
-        // Creamos una URL temporal para el archivo en lugar de usar un ArrayBuffer pesado
         const fileUrl = URL.createObjectURL(file);
         const pdf = await pdfjsLib.getDocument(fileUrl).promise;
         
@@ -24,17 +23,13 @@ async function extractTextFromPDF(file) {
             textoAcumulado += content.items.map(item => item.str).join(" ") + "\n";
         }
         
-        // Limpiamos la memoria del navegador
         URL.revokeObjectURL(fileUrl);
-        
         const textoLimpio = textoAcumulado.replace(/\s+/g, ' ').trim();
         
-        // 🚨 AQUÍ VEREMOS LA VERDAD EN LA CONSOLA (F12) 🚨
         console.log(`📄 Texto extraído de [${file.name}]:`, textoLimpio.substring(0, 150) + "...");
-        console.log(`📏 Cantidad de caracteres extraídos:`, textoLimpio.length);
+        console.log(`📏 Caracteres:`, textoLimpio.length);
         
         return textoLimpio;
-
     } catch (e) { 
         console.error("Error leyendo el PDF:", e); 
         throw e;

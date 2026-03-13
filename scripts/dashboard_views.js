@@ -198,14 +198,14 @@ function renderCreatePracticeView() {
                 <span data-i18n="pract_drop_text">↑ Arrastra y suelta tu archivo aquí</span>
                 <p data-i18n="pract_click_text">O haz clic para seleccionar (La IA generará el cuestionario basándose en esto)</p>
             </div>
-            <input type="file" id="slidesFile" style="display:none;" accept=".pdf">
+            <input type="file" id="slidesFile" style="display:none;" accept=".pdf, application/pdf">
             
             <label data-i18n="pract_standard_label">Estándar de Evaluación (PDF)</label>
             <div class="drop-zone" id="dz-standard">
                 <span data-i18n="pract_drop_text">↑ Arrastra y suelta tu archivo aquí</span>
                 <p data-i18n="pract_click_text">O haz clic para seleccionar (Criterios de evaluación para la IA)</p>
             </div>
-            <input type="file" id="standardFile" style="display:none;" accept=".pdf">
+            <input type="file" id="standardFile" style="display:none;" accept=".pdf, application/pdf">
             
             <div class="progress-container" id="ai-progress-bar"><div class="progress-bar" id="ai-progress-inner"></div></div>
             <div id="creationLog" style="margin-top:15px; margin-bottom:15px; font-weight:600;"></div>
@@ -227,12 +227,26 @@ function setupDragAndDrop(inputId, zoneId) {
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault(); dropZone.classList.remove('dragover');
         if(e.dataTransfer.files.length) {
+            const file = e.dataTransfer.files[0];
+            if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+                alert("Error: Solo se permiten archivos en formato PDF.");
+                return;
+            }
             input.files = e.dataTransfer.files;
-            dropZone.querySelector('span').innerText = "✅ " + e.dataTransfer.files[0].name;
+            dropZone.querySelector('span').innerText = "✅ " + file.name;
         }
     });
     input.addEventListener('change', () => {
-        if(input.files.length) dropZone.querySelector('span').innerText = "✅ " + input.files[0].name;
+        if(input.files.length) {
+            const file = input.files[0];
+            if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+                alert("Error: Solo se permiten archivos en formato PDF.");
+                input.value = "";
+                dropZone.querySelector('span').innerText = "↑ Arrastra y suelta tu archivo aquí";
+                return;
+            }
+            dropZone.querySelector('span').innerText = "✅ " + file.name;
+        }
     });
 }
 
@@ -246,6 +260,14 @@ async function handlePracticeCreation() {
     
     if (!title || !slidesFile || !standardFile) { logDiv.innerHTML = '<p class="alert-error">Faltan campos por completar.</p>'; return; }
     
+    // Validación de seguridad adicional
+    if (slidesFile && (slidesFile.type !== "application/pdf" && !slidesFile.name.toLowerCase().endsWith(".pdf"))) {
+        return alert("El archivo de diapositivas no es un PDF válido.");
+    }
+    if (standardFile && (standardFile.type !== "application/pdf" && !standardFile.name.toLowerCase().endsWith(".pdf"))) {
+        return alert("El archivo de estándar no es un PDF válido.");
+    }
+
     try {
         pContainer.style.display = 'block';
         pBar.style.width = '20%';
@@ -262,7 +284,6 @@ async function handlePracticeCreation() {
         let txtStandard = "";
         
         try { 
-            // NUEVO: Extraemos el texto de AMBOS documentos
             txtSlides = await extractTextFromPDF(slidesFile); 
             txtStandard = await extractTextFromPDF(standardFile);
         } catch(e) {
@@ -271,7 +292,6 @@ async function handlePracticeCreation() {
             return;
         }
         
-        // Guardamos los dos textos en la BD
         await savePracticeContent(pid, { slidesText: txtSlides, standardText: txtStandard });
         
         if (txtSlides.length > 50) {
@@ -517,7 +537,6 @@ function renderStudentDashboard() {
 
 async function renderStudentPracticesView() {
     const div = document.getElementById('main-content');
-    // CORREGIDO: Se quitó data-i18n="loading" de id="list"
     div.innerHTML = `<h2 data-i18n="nav_my_practices">Mis Prácticas</h2><div id="list">Cargando...</div>`;
     try {
         const practices = await getPractices(); 
@@ -545,7 +564,7 @@ async function renderStudentPracticesView() {
                         <h4>${p.title}</h4>
                         <p style="color:var(--text-muted);" data-i18n="dash_desc">Para comenzar, revisa los materiales:</p>${dl}<hr style="border-top:1px solid var(--border-color); margin: 20px 0;">
                         <label data-i18n="upload_report_label">Sube tu reporte elaborado en PDF:</label>
-                        <input type="file" id="rep-${p.id}" accept="application/pdf">
+                        <input type="file" id="rep-${p.id}" accept=".pdf, application/pdf">
                         <button class="btn btn-full" onclick="handleReportUpload('${p.id}')" data-i18n="btn_send_report">ENTREGAR REPORTE</button>
                         <div id="log-${p.id}" style="margin-top:15px; font-weight:600;"></div>
                     </div>`;
@@ -556,10 +575,18 @@ async function renderStudentPracticesView() {
 }
 
 async function handleReportUpload(pid) {
-    const f = document.getElementById(`rep-${pid}`).files[0];
+    const inputElement = document.getElementById(`rep-${pid}`);
+    const f = inputElement.files[0];
     if(!f) return alert("Selecciona un archivo PDF primero.");
-    const log = document.getElementById(`log-${pid}`);
     
+    // Validación de PDF en Frontend
+    if (f.type !== "application/pdf" && !f.name.toLowerCase().endsWith(".pdf")) {
+        alert("Error: El archivo seleccionado no es un PDF válido. Por favor, sube solo archivos PDF.");
+        inputElement.value = ""; // Limpia el archivo incorrecto
+        return;
+    }
+
+    const log = document.getElementById(`log-${pid}`);
     log.innerHTML = "<span style='color:var(--primary-color)'>Subiendo archivo y analizando con IA... Esto puede tardar unos segundos.</span>";
     try {
         const url = await uploadFile(f, `reports/${pid}/${AppState.user.uid}`);
@@ -579,7 +606,6 @@ async function handleReportUpload(pid) {
 
 async function renderStudentActivitiesView(shouldFetch = true) {
     const div = document.getElementById('main-content');
-    // CORREGIDO: Se quitó data-i18n="loading" de id="act-list"
     div.innerHTML = `<h2 data-i18n="nav_activities">Actividades Complementarias</h2><div id="act-list">Cargando...</div>`;
     try {
         if (shouldFetch) { AppState.practices = await getPractices(); }
@@ -594,8 +620,6 @@ async function renderStudentActivitiesView(shouldFetch = true) {
             const cid = st.status === 'Crucigrama Pendiente' ? `cross-${p.id}` : `quiz-${p.id}`;
             let scoreBadge = st.quizScore !== undefined && st.quizScore !== null ? `<div class="alert-success" style="margin-bottom:15px;">Cuestionario Completado. Tu puntuación: ${st.quizScore}/10</div>` : '';
 
-            // El data-i18n="loading" aquí está bien porque renderQuiz lo reemplaza rápido, 
-            // pero si falla, se prefiere quitarlo también para evitar el borrado del traductor.
             return `<div class="card"><h4>${p.title}</h4>${scoreBadge}<div id="${cid}">Generando actividad...</div></div>`;
         }).join('');
         
@@ -778,7 +802,7 @@ function renderStudentProfileView() {
             <label data-i18n="name_label">Nombre Completo</label>
             <input id="pN" value="${u.username}">
             <label data-i18n="group_label">Grupo</label>
-            <input id="pG" value="${u.grupo||''}">
+            <input id="pG" value="${u.grupo||''}" oninput="this.value = this.value.toUpperCase().replace(/\\s/g, '')">
             <label data-i18n="email_label">Correo</label>
             <input id="pE" value="${u.email}">
             <button class="btn btn-full" onclick="updProf()" data-i18n="profile_save">GUARDAR CAMBIOS</button>
@@ -795,7 +819,6 @@ async function updProf(){ await updateUserProfile(AppState.user.uid, {username: 
 async function renderTutorDashboard() {
     const prefix = AppState.user.title || 'Coord.';
     const div = document.getElementById('main-content');
-    // CORREGIDO: Se quitó data-i18n="loading" de id="tutor-stats"
     div.innerHTML = `<h2 data-i18n="nav_global">Tablero de Control</h2><div id="tutor-stats">Calculando...</div>`;
     
     try {
@@ -896,7 +919,6 @@ async function getGlobalStats() {
 }
 
 async function renderTutorGroupsView() {
-    // CORREGIDO: Se quitó data-i18n="loading" de id="groups-detail"
     document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_groups">Análisis por Grupos</h2><div id="groups-detail">Cargando...</div>`;
     const stats = await getGlobalStats();
     const groups = Object.values(stats.groupsData);
@@ -933,7 +955,6 @@ async function renderTutorGroupsView() {
 }
 
 async function renderTutorAuditView() {
-    // CORREGIDO: Se quitó data-i18n="loading" de id="audit-list"
     document.getElementById('main-content').innerHTML = `<h2 data-i18n="nav_audit">Auditoría de Prácticas</h2><p style="color:var(--text-muted);" data-i18n="dash_desc">Vista de solo lectura del progreso académico.</p><div id="audit-list">Cargando...</div>`;
     
     const practices = await getPractices(); 

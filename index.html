@@ -94,7 +94,7 @@
                     </div>
                     <div id="groupContainer" style="flex: 1;">
                         <label data-i18n="group_label">Grupo</label>
-                        <input type="text" id="regGroup" placeholder="Ej. 8A" data-i18n="group_ph" required>
+                        <input type="text" id="regGroup" placeholder="Ej. 8A" data-i18n="group_ph" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')" required>
                     </div>
                 </div>
                 

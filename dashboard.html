@@ -6,7 +6,7 @@
 <title>Dashboard - EspectroEdu</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -25,7 +25,7 @@
     </div>
 </main>
 
-<div id="a11y-btn" onclick="toggleA11yMenu()" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: var(--shadow-md); border: 2px solid white; transition: 0.2s;">⚙️</div>
+<div id="a11y-btn" onclick="toggleA11yMenu(event)" title="Herramientas de Accesibilidad" aria-label="Abrir opciones de accesibilidad" style="position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; z-index: 1001; box-shadow: var(--shadow-md); border: 2px solid white; transition: 0.2s;">⚙️</div>
 
 <div id="a11y-panel" style="display:none; position: fixed; bottom: 90px; right: 20px; width: 320px; max-height: 80vh; overflow-y: auto; background: var(--card-bg); padding: 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 1000; border: 1px solid var(--border-color);">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
@@ -67,14 +67,38 @@
     <p style="font-size:0.8rem; color:var(--text-muted); text-align:center; margin-top:20px;" data-i18n="a11y_footer">Estos ajustes se guardarán para tu próxima visita.</p>
 </div>
 
+<div id="helpModal" class="help-modal-overlay">
+    <div class="help-modal">
+        <button class="help-close" onclick="closeHelp()">×</button>
+        <h3 data-i18n="help_title">Centro de Ayuda y FAQ</h3>
+        <div class="help-item">
+            <h4 data-i18n="help_q1">¿Qué es EspectroEdu?</h4>
+            <p data-i18n="help_a1">Es una plataforma inteligente diseñada para la gestión, análisis y aprendizaje en laboratorios de óptica biomédica mediante Inteligencia Artificial.</p>
+        </div>
+        <div class="help-item">
+            <h4 data-i18n="help_q2">¿Cómo recupero mi contraseña?</h4>
+            <p data-i18n="help_a2">En la pantalla de inicio de sesión, haz clic en "¿Olvidaste tu contraseña?". Ingresa tu correo y te enviaremos un enlace seguro para restablecerla.</p>
+        </div>
+        <div class="help-item">
+            <h4 data-i18n="help_q3">¿Cómo entrego una práctica? (Alumnos)</h4>
+            <p data-i18n="help_a3">Inicia sesión, dirígete a la pestaña "Mis Prácticas", sube tu reporte en formato PDF y posteriormente completa el cuestionario y el crucigrama generados en la pestaña "Actividades".</p>
+        </div>
+        <div class="help-item">
+            <h4 data-i18n="help_q4">Problemas con la evaluación de la IA</h4>
+            <p data-i18n="help_a4">Por favor, asegúrate de que el PDF que subes contenga texto seleccionable (creado desde Word, Google Docs, etc.). Los documentos escaneados como imagen no pueden ser analizados correctamente.</p>
+        </div>
+    </div>
+</div>
+<div class="help-btn-floating" onclick="openHelp()" title="Ayuda" aria-label="Abrir centro de ayuda">❓</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
-<script src="scripts/firebase_config.js?v=3"></script>
-<script src="scripts/auth.js?v=3"></script>
-<script src="scripts/data_manager.js?v=3"></script>
-<script src="scripts/utils.js?v=3"></script>
-<script src="scripts/accessibility.js?v=3"></script>
-<script src="scripts/dashboard_views.js?v=3"></script>
+<script src="scripts/firebase_config.js?v=4"></script>
+<script src="scripts/auth.js?v=4"></script>
+<script src="scripts/data_manager.js?v=4"></script>
+<script src="scripts/utils.js?v=4"></script>
+<script src="scripts/accessibility.js?v=4"></script>
+<script src="scripts/dashboard_views.js?v=4"></script>
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
         // Obtenemos al usuario activo desde Firebase

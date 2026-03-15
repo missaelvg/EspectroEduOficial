@@ -127,28 +127,51 @@ const translations = {
         "tutor_quick_perf": "Rendimiento Rápido por Grupo",
         "btn_audit_log": "Descargar Bitácora (Auditoría)",
         
-        /* Centro de Ayuda Dinámico */
+        /* Centro de Ayuda Dinámico (5 preguntas por Rol) */
         "help_title": "Centro de Ayuda y FAQ",
         "help_download_manual": "📥 Descargar Manual de Usuario",
+        
+        // General / Visitante
         "help_q1": "¿Qué es EspectroEdu?",
         "help_a1": "Es una plataforma inteligente para la gestión, análisis y aprendizaje en laboratorios de óptica biomédica mediante Inteligencia Artificial.",
         "help_q2": "¿Cómo recupero mi contraseña?",
         "help_a2": "En la pantalla de inicio, haz clic en '¿Olvidaste tu contraseña?'. Ingresa tu correo y te enviaremos un enlace.",
         
+        // Alumnos (5)
         "help_al_q1": "¿Cómo entrego mi reporte?",
         "help_al_a1": "Entra a 'Mis Prácticas' y sube tu reporte en formato PDF. Importante: ¡No subas fotos de cuadernos porque la IA no podrá leerlas y sacará cero!",
-        "help_al_q2": "No puedo abrir las actividades",
+        "help_al_q2": "¿Por qué no puedo abrir las actividades?",
         "help_al_a2": "El Cuestionario y el Crucigrama están bloqueados. Se habilitarán automáticamente en cuanto entregues exitosamente tu reporte en PDF.",
+        "help_al_q3": "¿Cómo sé si aprobé la práctica?",
+        "help_al_a3": "Ve a la pestaña 'Ver Calificaciones'. Si tu calificación final es 7 o mayor, aparecerá la etiqueta verde de 'Aprobado'.",
+        "help_al_q4": "¿Cómo lleno rápido el crucigrama?",
+        "help_al_a4": "Puedes usar las flechas de tu teclado para moverte entre cuadritos. Al darle a Evaluar, las letras correctas se pintarán de verde.",
+        "help_al_q5": "¿Puedo cambiar mis datos o grupo?",
+        "help_al_a5": "Sí. Ve a 'Mi Perfil' para cambiar tu nombre, grupo o correo. (Nota: Tu Matrícula está bloqueada por motivos de seguridad escolar).",
         
+        // Docentes (5)
         "help_doc_q1": "¿Cómo creo una práctica?",
-        "help_doc_a1": "Ve a 'Crear Práctica', sube tus diapositivas y el estándar de evaluación en PDF. La Inteligencia Artificial generará las preguntas y la rúbrica automáticamente.",
+        "help_doc_a1": "Ve a 'Crear Práctica', sube tus diapositivas y el estándar de evaluación en PDF. La Inteligencia Artificial generará todo automáticamente.",
         "help_doc_q2": "¿Cómo asigno la tarea a mis alumnos?",
         "help_doc_a2": "Ve a 'Gestionar Alumnos', selecciona a los estudiantes de la lista, elige la práctica en el menú desplegable y da clic en 'Inscribir Seleccionados'.",
+        "help_doc_q3": "¿Tengo que calificar los reportes?",
+        "help_doc_a3": "¡No! La Inteligencia Artificial lee los reportes PDF de los alumnos y los califica comparándolos con el 'Estándar de Evaluación' que tú subiste.",
+        "help_doc_q4": "¿Qué pasa si le doy clic a 'Borrar' práctica?",
+        "help_doc_a4": "Cuidado: Eliminarás la práctica por completo y también borrarás TODAS las calificaciones de los alumnos que ya la habían entregado.",
+        "help_doc_q5": "¿Cómo imprimo o guardo mis calificaciones?",
+        "help_doc_a5": "Ve a la pestaña 'Ver Calificaciones' y haz clic en el botón gris 'Exportar PDF' que está en la esquina superior derecha.",
         
+        // Coordinadores (5)
         "help_coord_q1": "¿Qué puedo hacer en mi perfil?",
-        "help_coord_a1": "Tienes permisos de auditoría (solo lectura). Puedes vigilar el rendimiento global de la escuela y analizar las estadísticas por grupos.",
+        "help_coord_a1": "Tienes permisos de Auditoría (solo lectura). Puedes vigilar el rendimiento global de la escuela y analizar estadísticas por grupos.",
         "help_coord_q2": "¿Cómo descargo las calificaciones oficiales?",
-        "help_coord_a2": "En la pestaña 'Tablero Global', da clic en el botón verde 'Descargar Bitácora (Auditoría)' para obtener un reporte en Excel con horas exactas y notas."
+        "help_coord_a2": "En la pestaña 'Tablero Global', da clic en el botón verde 'Descargar Bitácora (Auditoría)' para obtener un reporte Excel con horas exactas y notas.",
+        "help_coord_q3": "¿Puedo modificar calificaciones o borrar alumnos?",
+        "help_coord_a3": "No. Tu perfil está diseñado estrictamente para observación y auditoría, garantizando que no se alteren los registros de los docentes.",
+        "help_coord_q4": "¿Cómo veo a los alumnos de un grupo específico?",
+        "help_coord_a4": "Ve a la pestaña 'Análisis por Grupos' y haz clic en el texto azul 'Ver lista de alumnos' debajo de la tarjeta del grupo correspondiente.",
+        "help_coord_q5": "¿Qué indica la barra en 'Auditoría de Prácticas'?",
+        "help_coord_a5": "Muestra la Tasa de Éxito de la tarea. Compara cuántos alumnos fueron inscritos contra cuántos realmente completaron la práctica."
     },
     en: {
         "a11y_title": "Accessibility Tools",
@@ -273,25 +296,48 @@ const translations = {
         /* Dynamic Help Center */
         "help_title": "Help Center & FAQ",
         "help_download_manual": "📥 Download User Manual",
+        
+        // General
         "help_q1": "What is EspectroEdu?",
         "help_a1": "It is an intelligent platform for management and learning in biomedical optics laboratories through Artificial Intelligence.",
         "help_q2": "How do I recover my password?",
         "help_a2": "On the login screen, click on 'Forgot your password?'. Enter your email and we will send you a link.",
         
+        // Students (5)
         "help_al_q1": "How do I submit my report?",
-        "help_al_a1": "Go to 'My Practices' and upload your report in PDF format. Important: Do not upload photos of notebooks because the AI won't be able to read them!",
+        "help_al_a1": "Go to 'My Practices' and upload your report in PDF format. Important: Do not upload photos of notebooks!",
         "help_al_q2": "I can't open the activities",
         "help_al_a2": "The Quiz and Crossword are locked. They will automatically unlock once you successfully deliver your PDF report.",
+        "help_al_q3": "How do I know if I passed?",
+        "help_al_a3": "Go to the 'View Grades' tab. If your final score is 7 or higher, you'll see a green 'Approved' badge.",
+        "help_al_q4": "How does the crossword work?",
+        "help_al_a4": "Click a box and use your keyboard arrows to move. When evaluated, correct letters turn green and incorrect ones turn red.",
+        "help_al_q5": "Can I change my personal data?",
+        "help_al_a5": "Yes. Go to 'My Profile' to change your name, group, or email. (Note: Your Student ID cannot be changed for security reasons).",
         
+        // Teachers (5)
         "help_doc_q1": "How do I create a practice?",
-        "help_doc_a1": "Go to 'Create Practice', upload your slides and the evaluation standard in PDF. The Artificial Intelligence will automatically generate the questions and rubric.",
-        "help_doc_q2": "How do I assign the task to my students?",
-        "help_doc_a2": "Go to 'Manage Students', select the students from the list, choose the practice in the dropdown menu, and click 'Enroll Selected'.",
+        "help_doc_a1": "Go to 'Create Practice', upload your slides and the evaluation standard in PDF. The AI will generate everything automatically.",
+        "help_doc_q2": "How do I assign tasks to students?",
+        "help_doc_a2": "Go to 'Manage Students', select the students, choose the practice in the dropdown, and click 'Enroll Selected'.",
+        "help_doc_q3": "Do I have to grade the reports?",
+        "help_doc_a3": "No! The Artificial Intelligence reads the students' PDF reports and grades them based on the standard you uploaded.",
+        "help_doc_q4": "What happens if I click 'Delete' practice?",
+        "help_doc_a4": "Warning: It will delete the practice entirely and also delete ALL the grades of students who had already submitted it.",
+        "help_doc_q5": "How do I save my grades?",
+        "help_doc_a5": "Go to the 'View Grades' tab and click the gray 'Export PDF' button in the top right corner.",
         
+        // Coordinators (5)
         "help_coord_q1": "What can I do in my profile?",
-        "help_coord_a1": "You have audit permissions (read-only). You can monitor the global performance of the school and analyze statistics by groups.",
+        "help_coord_a1": "You have Audit permissions (read-only). You can monitor global performance and analyze statistics by groups.",
         "help_coord_q2": "How do I download official grades?",
-        "help_coord_a2": "In the 'Global Dashboard' tab, click the green button 'Download Audit Log' to get an Excel report with exact times and grades."
+        "help_coord_a2": "In the 'Global Dashboard' tab, click the green 'Download Audit Log' button to get an Excel report with exact times and grades.",
+        "help_coord_q3": "Can I modify grades or delete students?",
+        "help_coord_a3": "No. Your profile is strictly designed for observation to guarantee that teachers' records are not altered.",
+        "help_coord_q4": "How do I view students in a specific group?",
+        "help_coord_a4": "Go to the 'Group Analysis' tab and click the blue 'View student list' text under the corresponding group's card.",
+        "help_coord_q5": "What does the bar in 'Practice Audit' mean?",
+        "help_coord_a5": "It shows the Task Success Rate. It compares how many students were enrolled vs how many actually completed the practice."
     }
 };
 
@@ -422,7 +468,7 @@ document.addEventListener('mouseout', (e) => {
     if (target) { target.classList.remove('speaking-indicator'); window.lastSpokenElement = null; speechSynthesis.cancel(); }
 });
 
-// FUNCIÓN DE AYUDA DINÁMICA
+// FUNCIÓN DE AYUDA DINÁMICA CON 5 PREGUNTAS POR ROL (ACORDEÓN)
 function updateHelpForRole(role) {
     const container = document.getElementById('help-dynamic-content');
     if (!container) return;
@@ -431,47 +477,83 @@ function updateHelpForRole(role) {
 
     if (role === 'alumno') {
         htmlContent = `
-            <div class="help-item">
-                <h4 data-i18n="help_al_q1"></h4>
+            <details class="help-accordion">
+                <summary data-i18n="help_al_q1"></summary>
                 <p data-i18n="help_al_a1"></p>
-            </div>
-            <div class="help-item">
-                <h4 data-i18n="help_al_q2"></h4>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_al_q2"></summary>
                 <p data-i18n="help_al_a2"></p>
-            </div>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_al_q3"></summary>
+                <p data-i18n="help_al_a3"></p>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_al_q4"></summary>
+                <p data-i18n="help_al_a4"></p>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_al_q5"></summary>
+                <p data-i18n="help_al_a5"></p>
+            </details>
         `;
     } else if (role === 'doctor' || role === 'docente') {
         htmlContent = `
-            <div class="help-item">
-                <h4 data-i18n="help_doc_q1"></h4>
+            <details class="help-accordion">
+                <summary data-i18n="help_doc_q1"></summary>
                 <p data-i18n="help_doc_a1"></p>
-            </div>
-            <div class="help-item">
-                <h4 data-i18n="help_doc_q2"></h4>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_doc_q2"></summary>
                 <p data-i18n="help_doc_a2"></p>
-            </div>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_doc_q3"></summary>
+                <p data-i18n="help_doc_a3"></p>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_doc_q4"></summary>
+                <p data-i18n="help_doc_a4"></p>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_doc_q5"></summary>
+                <p data-i18n="help_doc_a5"></p>
+            </details>
         `;
     } else if (role === 'coordinador' || role === 'tutor') {
         htmlContent = `
-            <div class="help-item">
-                <h4 data-i18n="help_coord_q1"></h4>
+            <details class="help-accordion">
+                <summary data-i18n="help_coord_q1"></summary>
                 <p data-i18n="help_coord_a1"></p>
-            </div>
-            <div class="help-item">
-                <h4 data-i18n="help_coord_q2"></h4>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_coord_q2"></summary>
                 <p data-i18n="help_coord_a2"></p>
-            </div>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_coord_q3"></summary>
+                <p data-i18n="help_coord_a3"></p>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_coord_q4"></summary>
+                <p data-i18n="help_coord_a4"></p>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_coord_q5"></summary>
+                <p data-i18n="help_coord_a5"></p>
+            </details>
         `;
     } else {
         htmlContent = `
-            <div class="help-item">
-                <h4 data-i18n="help_q1"></h4>
+            <details class="help-accordion">
+                <summary data-i18n="help_q1"></summary>
                 <p data-i18n="help_a1"></p>
-            </div>
-            <div class="help-item">
-                <h4 data-i18n="help_q2"></h4>
+            </details>
+            <details class="help-accordion">
+                <summary data-i18n="help_q2"></summary>
                 <p data-i18n="help_a2"></p>
-            </div>
+            </details>
         `;
     }
 

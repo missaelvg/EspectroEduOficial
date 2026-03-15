@@ -30,9 +30,13 @@
 
 * { box-sizing: border-box; }
 
+html {
+    font-size: var(--font-size-base); /* Modificado para que los rem escalen correctamente */
+}
+
 body {
     font-family: 'Noto Sans', sans-serif;
-    font-size: var(--font-size-base);
+    font-size: 1rem;
     background-color: var(--bg-color);
     color: var(--text-main);
     margin: 0;
@@ -76,9 +80,9 @@ nav#navbar button.active { background: white; color: var(--brand-dark); font-wei
 /* ELEMENTOS DE FORMULARIO - Dashboard */
 input, select, textarea { 
     width: 100%; 
-    padding: 16px; 
+    padding: 1rem; 
     margin-top: 4px; 
-    margin-bottom: 16px; 
+    margin-bottom: 1rem; 
     border: 1.5px solid var(--border-color); 
     border-radius: var(--radius-sm); 
     background-color: var(--card-bg); 
@@ -97,7 +101,7 @@ button, .btn {
     color: white; 
     border: none; 
     border-radius: var(--radius-sm); 
-    padding: 12px 20px; 
+    padding: 0.75rem 1.25rem; 
     cursor: pointer; 
     font-weight: 600; 
     font-size: 1rem; 
@@ -245,19 +249,16 @@ body.login-page {
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 40px rgba(255, 255, 255, 0.05); 
     color: #0f172a;
-    
-    /* NUEVO: Evita que choque con los bordes de la pantalla */
     max-height: 85vh; 
-    overflow-y: auto; /* Permite hacer scroll interno si el formulario es muy largo */
+    overflow-y: auto; 
 }
 
-/* NUEVO: Personalización de la barra de scroll para que se vea moderna y discreta */
 .form-card::-webkit-scrollbar {
     width: 6px;
 }
 .form-card::-webkit-scrollbar-track {
     background: transparent;
-    margin: 20px 0; /* Separa un poco el scrollbar de los bordes arriba/abajo */
+    margin: 20px 0; 
 }
 .form-card::-webkit-scrollbar-thumb {
     background-color: #cbd5e1;
@@ -292,10 +293,9 @@ body.login-page {
     display: block;
 }
 
-/* Configuraciones de Inputs Generales (Normales, sin ícono) */
 .form-card input, .form-card select {
     width: 100%;
-    padding: 14px 16px; /* Padding normalizado para que el texto empiece bien a la izquierda */
+    padding: 14px 16px; 
     margin-top: 0;
     margin-bottom: 20px;
     border: 1px solid #cbd5e1;
@@ -317,16 +317,15 @@ body.login-page {
     color: #cbd5e1;
 }
 
-/* Inputs con Iconos Integrados (Solución a la alineación) */
 .input-with-icon {
     position: relative;
     width: 100%;
-    margin-bottom: 20px; /* Movimos el margen hacia el contenedor para que calcule el 50% perfecto */
+    margin-bottom: 20px; 
 }
 
 .input-with-icon input {
-    padding-left: 45px !important; /* Espacio extra SOLO para los que tienen ícono */
-    margin-bottom: 0 !important; /* Quitamos el margen interior para no desfasar el centro */
+    padding-left: 45px !important; 
+    margin-bottom: 0 !important; 
 }
 
 .input-with-icon svg.left-icon {
@@ -338,9 +337,8 @@ body.login-page {
     pointer-events: none; 
 }
 
-/* Controles de Contraseña */
 .password-wrapper input {
-    padding-right: 45px !important; /* Espacio extra a la derecha para que el texto no pise el ojo */
+    padding-right: 45px !important; 
 }
 
 input[type="password"]::-ms-reveal,
@@ -353,7 +351,7 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     position: absolute;
     right: 16px;
     top: 50%;
-    transform: translateY(-50%); /* Ahora esto quedará perfectamente alineado también */
+    transform: translateY(-50%); 
     cursor: pointer;
     color: #94a3b8;
     display: flex;
@@ -370,7 +368,6 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     width: 100%;
 }
 
-/* Links y Botones */
 .forgot-container {
     text-align: right;
     margin-top: -10px;
@@ -425,7 +422,6 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     text-decoration: underline;
 }
 
-/* RESPONSIVO PARA TELÉFONOS - LOGIN */
 @media (max-width: 900px) {
     body.login-page {
         overflow: auto; 
@@ -465,7 +461,7 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
 }
 
 /* =========================================
-   ACCESIBILIDAD: DALTONISMO Y GUÍA AUDITIVA
+   ACCESIBILIDAD Y MODALES DE AYUDA
    ========================================= */
 
 body.daltonism-mode {
@@ -495,4 +491,83 @@ html.audio-guide-active {
     outline-offset: 2px;
     box-shadow: 0 0 12px var(--warning-color);
     transition: outline 0.1s ease-in-out;
+}
+
+/* ESTILOS DEL MODAL Y BOTÓN DE AYUDA */
+.help-modal-overlay {
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); 
+    z-index: 2000; 
+    justify-content: center; 
+    align-items: center;
+}
+.help-modal {
+    background: var(--card-bg); 
+    width: 90%; 
+    max-width: 500px; 
+    border-radius: var(--radius-md);
+    padding: 2.5rem; 
+    position: relative; 
+    max-height: 85vh; 
+    overflow-y: auto;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    color: var(--text-main);
+}
+.help-modal h3 { 
+    margin-top: 0; 
+    color: var(--primary-color); 
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+.help-close {
+    position: absolute; 
+    top: 15px; 
+    right: 15px; 
+    background: none; 
+    border: none;
+    font-size: 1.8rem; 
+    cursor: pointer; 
+    color: var(--text-muted);
+    padding: 0;
+    line-height: 1;
+}
+.help-close:hover {
+    color: var(--danger-color);
+}
+.help-item { 
+    margin-bottom: 20px; 
+    background: var(--bg-color);
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--accent-color);
+}
+.help-item h4 { 
+    margin: 0 0 8px 0; 
+    color: var(--brand-dark); 
+    font-size: 1.05rem; 
+}
+.help-item p { 
+    margin: 0; 
+    color: var(--text-muted); 
+    font-size: 0.95rem; 
+    line-height: 1.5;
+}
+.help-btn-floating {
+    position: fixed; 
+    bottom: 20px; 
+    left: 20px; 
+    background: var(--accent-color);
+    color: white; 
+    width: 60px; height: 60px; 
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; cursor: pointer; z-index: 1001;
+    box-shadow: var(--shadow-md); 
+    border: 2px solid white; transition: 0.2s;
+}
+.help-btn-floating:hover { 
+    transform: scale(1.08); 
 }

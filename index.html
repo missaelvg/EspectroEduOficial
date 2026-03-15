@@ -212,22 +212,13 @@
     <div class="help-modal">
         <button class="help-close" onclick="closeHelp()">×</button>
         <h3 data-i18n="help_title">Centro de Ayuda y FAQ</h3>
-        <div class="help-item">
-            <h4 data-i18n="help_q1">¿Qué es EspectroEdu?</h4>
-            <p data-i18n="help_a1">Es una plataforma inteligente diseñada para la gestión, análisis y aprendizaje en laboratorios de óptica biomédica mediante Inteligencia Artificial.</p>
-        </div>
-        <div class="help-item">
-            <h4 data-i18n="help_q2">¿Cómo recupero mi contraseña?</h4>
-            <p data-i18n="help_a2">En la pantalla de inicio de sesión, haz clic en "¿Olvidaste tu contraseña?". Ingresa tu correo y te enviaremos un enlace seguro para restablecerla.</p>
-        </div>
-        <div class="help-item">
-            <h4 data-i18n="help_q3">¿Cómo entrego una práctica? (Alumnos)</h4>
-            <p data-i18n="help_a3">Inicia sesión, dirígete a la pestaña "Mis Prácticas", sube tu reporte en formato PDF y posteriormente completa el cuestionario y el crucigrama generados en la pestaña "Actividades".</p>
-        </div>
-        <div class="help-item">
-            <h4 data-i18n="help_q4">Problemas con la evaluación de la IA</h4>
-            <p data-i18n="help_a4">Por favor, asegúrate de que el PDF que subes contenga texto seleccionable (creado desde Word, Google Docs, etc.). Los documentos escaneados como imagen no pueden ser analizados correctamente.</p>
-        </div>
+        
+        <div id="help-dynamic-content">
+            </div>
+
+        <a href="Manual_EspectroEdu.pdf" target="_blank" download class="btn-download-manual">
+            <span data-i18n="help_download_manual">📥 Descargar Manual de Usuario</span>
+        </a>
     </div>
 </div>
 <div class="help-btn-floating" onclick="openHelp()" title="Ayuda" aria-label="Abrir centro de ayuda">❓</div>
@@ -263,6 +254,9 @@
         emailInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') passInput.focus();
         });
+
+        // Inicializamos la ayuda estática para la pantalla de inicio
+        if(window.updateHelpForRole) updateHelpForRole(null);
     });
 
     function showRegister() { hideAllForms(); document.getElementById('registerForm').style.display = 'block'; }

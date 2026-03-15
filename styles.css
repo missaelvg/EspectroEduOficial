@@ -235,37 +235,41 @@ html.audio-guide-active { cursor: help; }
     margin-bottom: 12px;
     background: var(--bg-color);
     border-radius: var(--radius-sm);
-    border-left: 4px solid var(--accent-color);
+    border: 1px solid var(--primary-color);
+    overflow: hidden;
     transition: all 0.2s ease;
-}
-.help-accordion:hover {
-    background: #e0f2fe; /* Color sutil al pasar el ratón */
 }
 .help-accordion summary {
     padding: 15px;
     font-weight: 700;
-    color: var(--brand-dark);
+    background: var(--primary-color); /* Fondo azul institucional */
+    color: white; /* Texto blanco para contrastar */
     cursor: pointer;
-    list-style: none; /* Quita la flechita por defecto */
+    list-style: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 1.05rem;
+    transition: background 0.2s ease;
+}
+.help-accordion summary:hover {
+    background: var(--primary-hover); /* Azul más oscuro al pasar el ratón */
 }
 .help-accordion summary::-webkit-details-marker { display: none; }
 .help-accordion summary::after {
     content: '▼';
     font-size: 0.9rem;
-    color: var(--primary-color);
+    color: white; /* Flecha blanca */
     transition: transform 0.3s ease;
 }
 .help-accordion[open] summary::after {
-    transform: rotate(180deg); /* La flecha gira al abrir */
+    transform: rotate(180deg);
 }
 .help-accordion p {
-    padding: 0 15px 15px 15px;
+    padding: 15px;
     margin: 0;
-    color: var(--text-muted);
+    color: var(--text-main);
+    background: var(--card-bg); /* Fondo blanco para facilitar la lectura */
     font-size: 0.95rem;
     line-height: 1.5;
 }

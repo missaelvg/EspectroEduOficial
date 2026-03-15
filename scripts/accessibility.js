@@ -125,7 +125,18 @@ const translations = {
         "profile_save": "GUARDAR CAMBIOS",
         "tutor_global_avg": "Promedio Global (Escuela)",
         "tutor_quick_perf": "Rendimiento Rápido por Grupo",
-        "btn_audit_log": "Descargar Bitácora (Auditoría)"
+        "btn_audit_log": "Descargar Bitácora (Auditoría)",
+        
+        /* Traducciones del Centro de Ayuda */
+        "help_title": "Centro de Ayuda y FAQ",
+        "help_q1": "¿Qué es EspectroEdu?",
+        "help_a1": "Es una plataforma inteligente diseñada para la gestión, análisis y aprendizaje en laboratorios de óptica biomédica mediante Inteligencia Artificial.",
+        "help_q2": "¿Cómo recupero mi contraseña?",
+        "help_a2": "En la pantalla de inicio de sesión, haz clic en \"¿Olvidaste tu contraseña?\". Ingresa tu correo y te enviaremos un enlace seguro para restablecerla.",
+        "help_q3": "¿Cómo entrego una práctica? (Alumnos)",
+        "help_a3": "Inicia sesión, dirígete a la pestaña \"Mis Prácticas\", sube tu reporte en formato PDF y posteriormente completa el cuestionario y el crucigrama generados en la pestaña \"Actividades\".",
+        "help_q4": "Problemas con la evaluación de la IA",
+        "help_a4": "Por favor, asegúrate de que el PDF que subes contenga texto seleccionable (creado desde Word, Google Docs, etc.). Los documentos escaneados como imagen no pueden ser analizados correctamente."
     },
     en: {
         "a11y_title": "Accessibility Tools",
@@ -245,14 +256,29 @@ const translations = {
         "profile_save": "SAVE CHANGES",
         "tutor_global_avg": "Global Average (School)",
         "tutor_quick_perf": "Quick Performance by Group",
-        "btn_audit_log": "Download Audit Log"
+        "btn_audit_log": "Download Audit Log",
+        
+        /* Help Center Translations */
+        "help_title": "Help Center & FAQ",
+        "help_q1": "What is EspectroEdu?",
+        "help_a1": "It is an intelligent platform designed for management, analysis, and learning in biomedical optics laboratories through Artificial Intelligence.",
+        "help_q2": "How do I recover my password?",
+        "help_a2": "On the login screen, click on 'Forgot your password?'. Enter your email and we will send you a secure link to reset it.",
+        "help_q3": "How do I submit a practice? (Students)",
+        "help_a3": "Log in, go to the 'My Practices' tab, upload your report in PDF format, and then complete the generated quiz and crossword in the 'Activities' tab.",
+        "help_q4": "Problems with AI Evaluation",
+        "help_a4": "Please ensure that the PDF you upload contains selectable text (created from Word, Google Docs, etc.). Documents scanned as images cannot be correctly analyzed."
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     if(daltonismActive) document.body.classList.add('daltonism-mode');
     if(highlightActive) document.body.classList.add('highlight-links');
+    
+    // MAGIA DE ZOOM: Aplicamos el tamaño de fuente directamente al HTML para que afecte a todo el sistema (rem)
+    document.documentElement.style.fontSize = fontSize + 'px';
     document.documentElement.style.setProperty('--font-size-base', fontSize + 'px');
+    
     if(audioGuideActive) document.documentElement.classList.add('audio-guide-active');
     
     const dt = document.getElementById('daltonism-toggle'); if(dt) dt.checked = daltonismActive;
@@ -262,6 +288,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const fsv = document.getElementById('fs-val'); if(fsv) fsv.innerText = fontSize + 'px';
     
     applyLanguage(currentLang);
+    
+    // Event listener global para cerrar el menú de accesibilidad si se hace clic afuera
+    document.addEventListener('click', (e) => {
+        const panel = document.getElementById('a11y-panel');
+        const btn = document.getElementById('a11y-btn');
+        if (panel && panel.style.display === 'block') {
+            // Si el clic no es dentro del panel y tampoco en el botón de engrane
+            if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                panel.style.display = 'none';
+            }
+        }
+    });
 });
 
 function applyLanguage(lang) {
@@ -294,7 +332,9 @@ function applyLanguage(lang) {
 window.updateTranslations = () => applyLanguage(currentLang);
 function setLanguage(lang) { applyLanguage(lang); }
 
-function toggleA11yMenu() {
+function toggleA11yMenu(e) {
+    // Si viene un evento, previene que se propague al document click listener general
+    if(e) e.stopPropagation();
     const panel = document.getElementById('a11y-panel');
     panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none';
 }
@@ -313,7 +353,11 @@ function toggleHighlightLinks() {
 
 function changeFontSize() {
     const size = document.getElementById('fs-toggle').value;
+    
+    // Al aplicar la fuente directamente en documentElement, todos los rem del sitio escalarán parejos.
+    document.documentElement.style.fontSize = size + 'px';
     document.documentElement.style.setProperty('--font-size-base', size + 'px');
+    
     document.getElementById('fs-val').innerText = size + 'px';
     localStorage.setItem('espectro_fontsize', size);
 }
@@ -372,3 +416,23 @@ document.addEventListener('mouseout', (e) => {
         speechSynthesis.cancel();
     }
 });
+
+// Lógica de Modales de Ayuda Global
+function openHelp() { 
+    document.getElementById('helpModal').style.display = 'flex'; 
+}
+
+function closeHelp() { 
+    document.getElementById('helpModal').style.display = 'none'; 
+}
+
+// Para que se pueda cerrar haciendo clic en el fondo gris exterior
+document.addEventListener('click', (e) => {
+    const modalOverlay = document.getElementById('helpModal');
+    if (e.target === modalOverlay) {
+        closeHelp();
+    }
+});
+
+window.openHelp = openHelp;
+window.closeHelp = closeHelp;

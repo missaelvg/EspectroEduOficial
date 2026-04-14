@@ -58,6 +58,13 @@ function getStudentCrosswordWords(all, uid, count = 5) {
     return s.slice(0, count);
 }
 
+function getStudentCountLabel(count) {
+    const safeCount = Number(count) || 0;
+    const lang = (typeof currentLang !== 'undefined') ? currentLang : 'es';
+    if (lang === 'en') return `${safeCount} student${safeCount === 1 ? '' : 's'}`;
+    return `${safeCount} alumno${safeCount === 1 ? '' : 's'}`;
+}
+
 // ==================================================================================
 // 2. NAVEGACIÓN Y ROLES
 // ==================================================================================
@@ -172,7 +179,7 @@ async function renderDoctorDashboard() {
                 html += `<div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h4 style="margin:0;">${p.title}</h4>
-                        <span class="badge badge-info">${count} alumnos</span>
+                        <span class="badge badge-info">${getStudentCountLabel(count)}</span>
                     </div>
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-secondary" onclick="renderDoctorGradesView()" data-i18n="nav_grades">Ver Calificaciones</button>

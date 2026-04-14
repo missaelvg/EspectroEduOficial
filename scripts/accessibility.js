@@ -395,6 +395,11 @@ function applyLanguage(lang) {
             else el.innerHTML = translations[lang][key];
         }
     });
+
+    document.querySelectorAll('[data-student-count]').forEach(el => {
+        const count = Number(el.getAttribute('data-student-count')) || 0;
+        el.textContent = formatStudentCountLabel(count, lang);
+    });
 }
 
 window.updateTranslations = () => applyLanguage(currentLang);
@@ -434,12 +439,62 @@ function toggleAudioGuide() {
     else speechSynthesis.cancel();
 }
 
+function formatStudentCountLabel(count, lang = currentLang) {
+    if (lang === 'en') return `${count} student${count === 1 ? '' : 's'}`;
+    return `${count} alumno${count === 1 ? '' : 's'}`;
+}
+
+function detectSpeechLang(text) {
+    if (!text) return currentLang === 'en' ? 'en-US' : 'es-MX';
+    const englishHints = /\b(the|and|status|practice|student|group|quiz|crossword|home|start|active|pending)\b/i;
+    const spanishChars = /[áéíóúñ¿¡]/i;
+    if (spanishChars.test(text)) return 'es-MX';
+    if (englishHints.test(text)) return 'en-US';
+    return currentLang === 'en' ? 'en-US' : 'es-MX';
+}
+
+function getBestVoiceForLang(langCode) {
+    const voices = speechSynthesis.getVoices() || [];
+    if (!voices.length) return null;
+    const lang = langCode.toLowerCase();
+    return (
+        voices.find(v => v.lang && v.lang.toLowerCase() === lang) ||
+        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.split('-')[0])) ||
+        null
+    );
+}
+
+function getReadableText(target) {
+    if (!target) return '';
+    if (target.getAttribute('aria-label')) return target.getAttribute('aria-label').trim();
+    if (target.placeholder) return target.placeholder.trim();
+
+    if (target.tagName === 'SELECT') {
+        const selectedOption = target.options[target.selectedIndex];
+        return selectedOption ? selectedOption.textContent.trim() : '';
+    }
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return (target.value || '').trim();
+    }
+
+    const ownText = Array.from(target.childNodes)
+        .filter(node => node.nodeType === Node.TEXT_NODE)
+        .map(node => node.textContent.trim())
+        .join(' ')
+        .trim();
+    if (ownText) return ownText;
+    return (target.textContent || '').trim().replace(/\s+/g, ' ');
+}
+
 function readText(text, force = false) {
     if (!audioGuideActive && !force) return;
     speechSynthesis.cancel();
     setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = currentLang === 'es' ? 'es-MX' : 'en-US';
+        const langCode = detectSpeechLang(text);
+        utterance.lang = langCode;
+        const bestVoice = getBestVoiceForLang(langCode);
+        if (bestVoice) utterance.voice = bestVoice;
         utterance.rate = 0.95; 
         speechSynthesis.speak(utterance);
     }, 50);
@@ -452,12 +507,7 @@ document.addEventListener('mouseover', (e) => {
         if (target === window.lastSpokenElement) return;
         window.lastSpokenElement = target;
         target.classList.add('speaking-indicator');
-        let textToSpeak = target.getAttribute('aria-label') || target.placeholder;
-        if (!textToSpeak) {
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                textToSpeak = target.value;
-            } else { textToSpeak = target.innerText; }
-        }
+        const textToSpeak = getReadableText(target);
         if (textToSpeak && textToSpeak.trim().length > 0) readText(textToSpeak.trim());
     }
 });

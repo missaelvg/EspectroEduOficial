@@ -202,12 +202,21 @@ input[type="password"]::-ms-reveal, input[type="password"]::-ms-clear, input[typ
 
 /* ACCESIBILIDAD */
 body.daltonism-mode {
-    --primary-color: #0077BB; --brand-dark: #0077BB;
-    --success-color: #117733; --danger-color: #AA0000;
-    --warning-color: #DDAA00; --accent-color: #CC7722;
+    /* Paleta Okabe-Ito, recomendada para deuteranopía (el caso más común). */
+    --primary-color: #0072B2; --primary-hover: #005A8D; --brand-dark: #004D78;
+    --success-color: #009E73; --danger-color: #D55E00;
+    --warning-color: #E69F00; --accent-color: #56B4E9;
+    --text-main: #102A43; --text-muted: #334E68;
+    --border-color: #486581;
 }
-body.daltonism-mode * { border-width: 3px !important; }
+body.daltonism-mode * {
+    border-width: 3px !important;
+    text-shadow: none !important;
+}
 body.daltonism-mode .card, body.daltonism-mode .drop-zone { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 8px); }
+body.daltonism-mode :is(p, span, a, button, label, li, td, th, h1, h2, h3, h4, h5, h6, small, strong, em, summary, input, select, textarea, .badge, .btn, .card, .alert-success, .alert-warning, .alert-error) {
+    filter: contrast(1.08) saturate(1.05);
+}
 html.audio-guide-active { cursor: help; }
 .speaking-indicator { outline: 4px solid var(--warning-color) !important; outline-offset: 2px; box-shadow: 0 0 12px var(--warning-color); transition: outline 0.1s ease-in-out; }
 

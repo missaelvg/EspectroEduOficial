@@ -180,7 +180,6 @@ async function renderDoctorDashboard() {
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h4 style="margin:0;">${p.title}</h4>
                         <span class="badge badge-info" data-student-count="${count}">${getStudentCountLabel(count)}</span>
-                        <span class="badge badge-info">${getStudentCountLabel(count)}</span>
                     </div>
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-secondary" onclick="renderDoctorGradesView()" data-i18n="nav_grades">Ver Calificaciones</button>

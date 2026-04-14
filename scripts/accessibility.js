@@ -486,6 +486,32 @@ function getReadableText(target) {
     return (target.textContent || '').trim().replace(/\s+/g, ' ');
 }
 
+function getSelectLabel(selectEl) {
+    if (!selectEl || !selectEl.id) return '';
+    const label = document.querySelector(`label[for="${selectEl.id}"]`);
+    return label ? label.textContent.trim() : '';
+}
+
+function getSelectAnnouncement(selectEl, includeAllOptions = false) {
+    if (!selectEl) return '';
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const selectedText = selectedOption ? selectedOption.textContent.trim() : '';
+    const labelText = getSelectLabel(selectEl);
+
+    if (!includeAllOptions) {
+        return labelText ? `${labelText}: ${selectedText}` : selectedText;
+    }
+
+    const allOptions = Array.from(selectEl.options)
+        .map(option => option.textContent.trim())
+        .filter(Boolean)
+        .join(', ');
+
+    if (!allOptions) return labelText ? `${labelText}: ${selectedText}` : selectedText;
+    if (labelText) return `${labelText}. ${currentLang === 'en' ? 'Available options' : 'Opciones disponibles'}: ${allOptions}`;
+    return `${currentLang === 'en' ? 'Available options' : 'Opciones disponibles'}: ${allOptions}`;
+}
+
 function readText(text, force = false) {
     if (!audioGuideActive && !force) return;
     speechSynthesis.cancel();
@@ -516,6 +542,33 @@ document.addEventListener('mouseout', (e) => {
     if (!audioGuideActive) return;
     const target = e.target.closest('button, a, input, select, textarea, label, h1, h2, h3, h4, h5, h6, p, span, li, td, th, strong, em, b, i, details, summary, .alert-success, .alert-warning, .alert-error, .step-text, .badge');
     if (target) { target.classList.remove('speaking-indicator'); window.lastSpokenElement = null; speechSynthesis.cancel(); }
+});
+
+document.addEventListener('focusin', (e) => {
+    if (!audioGuideActive) return;
+    const target = e.target;
+    if (target && target.tagName === 'SELECT') {
+        const textToSpeak = getSelectAnnouncement(target, false);
+        if (textToSpeak) readText(textToSpeak);
+    }
+});
+
+document.addEventListener('change', (e) => {
+    if (!audioGuideActive) return;
+    const target = e.target;
+    if (target && target.tagName === 'SELECT') {
+        const textToSpeak = getSelectAnnouncement(target, false);
+        if (textToSpeak) readText(textToSpeak);
+    }
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (!audioGuideActive) return;
+    const target = e.target.closest('select');
+    if (target) {
+        const textToSpeak = getSelectAnnouncement(target, true);
+        if (textToSpeak) readText(textToSpeak);
+    }
 });
 
 // FUNCIÓN DE AYUDA DINÁMICA CON 5 PREGUNTAS POR ROL (ACORDEÓN)

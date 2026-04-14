@@ -395,6 +395,11 @@ function applyLanguage(lang) {
             else el.innerHTML = translations[lang][key];
         }
     });
+
+    document.querySelectorAll('[data-student-count]').forEach(el => {
+        const count = Number(el.getAttribute('data-student-count')) || 0;
+        el.textContent = formatStudentCountLabel(count, lang);
+    });
 }
 
 window.updateTranslations = () => applyLanguage(currentLang);
@@ -434,12 +439,88 @@ function toggleAudioGuide() {
     else speechSynthesis.cancel();
 }
 
+function formatStudentCountLabel(count, lang = currentLang) {
+    if (lang === 'en') return `${count} student${count === 1 ? '' : 's'}`;
+    return `${count} alumno${count === 1 ? '' : 's'}`;
+}
+
+function detectSpeechLang(text) {
+    if (!text) return currentLang === 'en' ? 'en-US' : 'es-MX';
+    const englishHints = /\b(the|and|status|practice|student|group|quiz|crossword|home|start|active|pending)\b/i;
+    const spanishChars = /[áéíóúñ¿¡]/i;
+    if (spanishChars.test(text)) return 'es-MX';
+    if (englishHints.test(text)) return 'en-US';
+    return currentLang === 'en' ? 'en-US' : 'es-MX';
+}
+
+function getBestVoiceForLang(langCode) {
+    const voices = speechSynthesis.getVoices() || [];
+    if (!voices.length) return null;
+    const lang = langCode.toLowerCase();
+    return (
+        voices.find(v => v.lang && v.lang.toLowerCase() === lang) ||
+        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.split('-')[0])) ||
+        null
+    );
+}
+
+function getReadableText(target) {
+    if (!target) return '';
+    if (target.getAttribute('aria-label')) return target.getAttribute('aria-label').trim();
+    if (target.placeholder) return target.placeholder.trim();
+
+    if (target.tagName === 'SELECT') {
+        const selectedOption = target.options[target.selectedIndex];
+        return selectedOption ? selectedOption.textContent.trim() : '';
+    }
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return (target.value || '').trim();
+    }
+
+    const ownText = Array.from(target.childNodes)
+        .filter(node => node.nodeType === Node.TEXT_NODE)
+        .map(node => node.textContent.trim())
+        .join(' ')
+        .trim();
+    if (ownText) return ownText;
+    return (target.textContent || '').trim().replace(/\s+/g, ' ');
+}
+
+function getSelectLabel(selectEl) {
+    if (!selectEl || !selectEl.id) return '';
+    const label = document.querySelector(`label[for="${selectEl.id}"]`);
+    return label ? label.textContent.trim() : '';
+}
+
+function getSelectAnnouncement(selectEl, includeAllOptions = false) {
+    if (!selectEl) return '';
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const selectedText = selectedOption ? selectedOption.textContent.trim() : '';
+    const labelText = getSelectLabel(selectEl);
+
+    if (!includeAllOptions) {
+        return labelText ? `${labelText}: ${selectedText}` : selectedText;
+    }
+
+    const allOptions = Array.from(selectEl.options)
+        .map(option => option.textContent.trim())
+        .filter(Boolean)
+        .join(', ');
+
+    if (!allOptions) return labelText ? `${labelText}: ${selectedText}` : selectedText;
+    if (labelText) return `${labelText}. ${currentLang === 'en' ? 'Available options' : 'Opciones disponibles'}: ${allOptions}`;
+    return `${currentLang === 'en' ? 'Available options' : 'Opciones disponibles'}: ${allOptions}`;
+}
+
 function readText(text, force = false) {
     if (!audioGuideActive && !force) return;
     speechSynthesis.cancel();
     setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = currentLang === 'es' ? 'es-MX' : 'en-US';
+        const langCode = detectSpeechLang(text);
+        utterance.lang = langCode;
+        const bestVoice = getBestVoiceForLang(langCode);
+        if (bestVoice) utterance.voice = bestVoice;
         utterance.rate = 0.95; 
         speechSynthesis.speak(utterance);
     }, 50);
@@ -452,12 +533,7 @@ document.addEventListener('mouseover', (e) => {
         if (target === window.lastSpokenElement) return;
         window.lastSpokenElement = target;
         target.classList.add('speaking-indicator');
-        let textToSpeak = target.getAttribute('aria-label') || target.placeholder;
-        if (!textToSpeak) {
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                textToSpeak = target.value;
-            } else { textToSpeak = target.innerText; }
-        }
+        const textToSpeak = getReadableText(target);
         if (textToSpeak && textToSpeak.trim().length > 0) readText(textToSpeak.trim());
     }
 });
@@ -466,6 +542,33 @@ document.addEventListener('mouseout', (e) => {
     if (!audioGuideActive) return;
     const target = e.target.closest('button, a, input, select, textarea, label, h1, h2, h3, h4, h5, h6, p, span, li, td, th, strong, em, b, i, details, summary, .alert-success, .alert-warning, .alert-error, .step-text, .badge');
     if (target) { target.classList.remove('speaking-indicator'); window.lastSpokenElement = null; speechSynthesis.cancel(); }
+});
+
+document.addEventListener('focusin', (e) => {
+    if (!audioGuideActive) return;
+    const target = e.target;
+    if (target && target.tagName === 'SELECT') {
+        const textToSpeak = getSelectAnnouncement(target, false);
+        if (textToSpeak) readText(textToSpeak);
+    }
+});
+
+document.addEventListener('change', (e) => {
+    if (!audioGuideActive) return;
+    const target = e.target;
+    if (target && target.tagName === 'SELECT') {
+        const textToSpeak = getSelectAnnouncement(target, false);
+        if (textToSpeak) readText(textToSpeak);
+    }
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (!audioGuideActive) return;
+    const target = e.target.closest('select');
+    if (target) {
+        const textToSpeak = getSelectAnnouncement(target, true);
+        if (textToSpeak) readText(textToSpeak);
+    }
 });
 
 // FUNCIÓN DE AYUDA DINÁMICA CON 5 PREGUNTAS POR ROL (ACORDEÓN)

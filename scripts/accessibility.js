@@ -395,6 +395,11 @@ function applyLanguage(lang) {
             else el.innerHTML = translations[lang][key];
         }
     });
+
+    document.querySelectorAll('[data-student-count]').forEach(el => {
+        const count = Number(el.getAttribute('data-student-count')) || 0;
+        el.textContent = formatStudentCountLabel(count, lang);
+    });
 }
 
 window.updateTranslations = () => applyLanguage(currentLang);
@@ -432,6 +437,11 @@ function toggleAudioGuide() {
     localStorage.setItem('espectro_audio', audioGuideActive);
     if(audioGuideActive) readText(currentLang === 'es' ? "Guía auditiva activada" : "Audio guide activated", true);
     else speechSynthesis.cancel();
+}
+
+function formatStudentCountLabel(count, lang = currentLang) {
+    if (lang === 'en') return `${count} student${count === 1 ? '' : 's'}`;
+    return `${count} alumno${count === 1 ? '' : 's'}`;
 }
 
 function detectSpeechLang(text) {

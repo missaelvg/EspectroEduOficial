@@ -1,7 +1,7 @@
 // scripts/utils.js
-// REESCRITO PARA LLAMAR A GEMINI DIRECTAMENTE DESDE EL FRONTEND
+// REESCRITO PARA LLAMAR A LA API DIRECTAMENTE DESDE EL FRONTEND
 
-// ⚠️ IMPORTANTE: PEGA AQUÍ TU API KEY DE GEMINI ⚠️
+// ⚠️ IMPORTANTE: PEGA AQUÍ TU API KEY ⚠️
 const GEMINI_API_KEY = "AIzaSyCfPNkDv3LwpsGcKKkmo8LtEiSuq89b3Fw"; 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
